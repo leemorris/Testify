@@ -1,0 +1,16 @@
+using System.Xml.Serialization;
+
+namespace Leem.Testify.Domain.Model
+{
+    /// <summary>
+    /// a branch point
+    /// </summary>
+    public class BranchPoint : InstrumentationPoint
+    {
+        /// <summary>
+        /// A path that can be taken
+        /// </summary>
+        [XmlAttribute("path")]
+        public int Path { get; set; }
+    }
+}

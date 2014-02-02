@@ -1,0 +1,160 @@
+
+-- Warning: There were errors validating the existing SSDL. Drop statements
+-- will not be generated.
+-- --------------------------------------------------
+-- Entity Designer DDL Script for SQL Server Compact Edition
+-- --------------------------------------------------
+-- Date Created: 05/25/2013 07:34:09
+-- Generated from EDMX file: c:\WIP\Lactose\DataLayer\TestifyModel.edmx
+-- --------------------------------------------------
+
+
+-- --------------------------------------------------
+-- Dropping existing FOREIGN KEY constraints
+-- NOTE: if the constraint does not exist, an ignorable error will be reported.
+-- --------------------------------------------------
+
+
+-- --------------------------------------------------
+-- Dropping existing tables
+-- NOTE: if the table does not exist, an ignorable error will be reported.
+-- --------------------------------------------------
+
+
+-- --------------------------------------------------
+-- Creating all tables
+-- --------------------------------------------------
+
+-- Creating table 'Panels'
+CREATE TABLE [Panels] (
+    [UnitTestId] int  NOT NULL,
+    [QueueId] int  NOT NULL
+);
+GO
+
+-- Creating table 'Projects'
+CREATE TABLE [Projects] (
+    [ProjectId] int  NOT NULL,
+    [Name] nvarchar(100)  NOT NULL,
+    [Path] nvarchar(100)  NOT NULL
+);
+GO
+
+-- Creating table 'Queues'
+CREATE TABLE [Queues] (
+    [QueueId] int  NOT NULL,
+    [Name] nvarchar(100)  NOT NULL,
+    [IsRunning] bit  NOT NULL,
+    [IsDiscarded] bit  NOT NULL
+);
+GO
+
+-- Creating table 'TestProjects'
+CREATE TABLE [TestProjects] (
+    [ProjectId] int  NOT NULL,
+    [Name] nvarchar(100)  NOT NULL,
+    [Path] nvarchar(100)  NOT NULL,
+    [PanelQueueId] int  NOT NULL
+);
+GO
+
+-- Creating table 'UnitTests'
+CREATE TABLE [UnitTests] (
+    [UnitTestId] int  NOT NULL,
+    [Name] nvarchar(100)  NOT NULL,
+    [MetadataToken] int  NOT NULL,
+    [UniqueId] int  NOT NULL,
+    [ProjectId] int  NOT NULL,
+    [IsBroken] bit  NOT NULL,
+    [DurationInMSec] int  NOT NULL,
+    [Strategy] nvarchar(100)  NULL
+);
+GO
+
+-- --------------------------------------------------
+-- Creating all PRIMARY KEY constraints
+-- --------------------------------------------------
+
+-- Creating primary key on [QueueId] in table 'Panels'
+ALTER TABLE [Panels]
+ADD CONSTRAINT [PK_Panels]
+    PRIMARY KEY ([QueueId] );
+GO
+
+-- Creating primary key on [ProjectId] in table 'Projects'
+ALTER TABLE [Projects]
+ADD CONSTRAINT [PK_Projects]
+    PRIMARY KEY ([ProjectId] );
+GO
+
+-- Creating primary key on [QueueId] in table 'Queues'
+ALTER TABLE [Queues]
+ADD CONSTRAINT [PK_Queues]
+    PRIMARY KEY ([QueueId] );
+GO
+
+-- Creating primary key on [ProjectId] in table 'TestProjects'
+ALTER TABLE [TestProjects]
+ADD CONSTRAINT [PK_TestProjects]
+    PRIMARY KEY ([ProjectId] );
+GO
+
+-- Creating primary key on [UnitTestId] in table 'UnitTests'
+ALTER TABLE [UnitTests]
+ADD CONSTRAINT [PK_UnitTests]
+    PRIMARY KEY ([UnitTestId] );
+GO
+
+-- --------------------------------------------------
+-- Creating all FOREIGN KEY constraints
+-- --------------------------------------------------
+
+-- Creating foreign key on [ProjectId] in table 'TestProjects'
+ALTER TABLE [TestProjects]
+ADD CONSTRAINT [FK_ProjectTestProject]
+    FOREIGN KEY ([ProjectId])
+    REFERENCES [Projects]
+        ([ProjectId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating foreign key on [UnitTestId] in table 'Panels'
+ALTER TABLE [Panels]
+ADD CONSTRAINT [FK_PanelUnitTest]
+    FOREIGN KEY ([UnitTestId])
+    REFERENCES [UnitTests]
+        ([UnitTestId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_PanelUnitTest'
+CREATE INDEX [IX_FK_PanelUnitTest]
+ON [Panels]
+    ([UnitTestId]);
+GO
+
+-- Creating foreign key on [QueueId] in table 'Panels'
+ALTER TABLE [Panels]
+ADD CONSTRAINT [FK_QueuePanel]
+    FOREIGN KEY ([QueueId])
+    REFERENCES [Queues]
+        ([QueueId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating foreign key on [ProjectId] in table 'UnitTests'
+ALTER TABLE [UnitTests]
+ADD CONSTRAINT [FK_ProjectUnitTest]
+    FOREIGN KEY ([ProjectId])
+    REFERENCES [Projects]
+        ([ProjectId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_ProjectUnitTest'
+CREATE INDEX [IX_FK_ProjectUnitTest]
+ON [UnitTests]
+    ([ProjectId]);
+GO
+
+-- --------------------------------------------------
+-- Script has ended
+-- --------------------------------------------------

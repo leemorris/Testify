@@ -1,0 +1,424 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="TestifyModel.Store" Alias="Self" Provider="System.Data.SqlServerCe.4.0" ProviderManifestToken="4.0" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityContainer Name="TestifyModelStoreContainer">
+    <EntitySet Name="CoveredLines" EntityType="TestifyModel.Store.CoveredLines" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="Projects" EntityType="TestifyModel.Store.Projects" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="TestProjects" EntityType="TestifyModel.Store.TestProjects" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="TrackedMethods" EntityType="TestifyModel.Store.TrackedMethods" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="UnitTests" EntityType="TestifyModel.Store.UnitTests" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="CoveredLineTrackedMethods" EntityType="TestifyModel.Store.CoveredLineTrackedMethods" store:Type="Tables" Schema="dbo" />
+    <EntitySet Name="TrackedMethodUnitTests" EntityType="TestifyModel.Store.TrackedMethodUnitTests" store:Type="Tables" Schema="dbo" />
+    <AssociationSet Name="Project_TestProjects" Association="TestifyModel.Store.Project_TestProjects">
+      <End Role="Projects" EntitySet="Projects" />
+      <End Role="TestProjects" EntitySet="TestProjects" />
+    </AssociationSet>
+    <AssociationSet Name="TestProject_UnitTests" Association="TestifyModel.Store.TestProject_UnitTests">
+      <End Role="TestProjects" EntitySet="TestProjects" />
+      <End Role="UnitTests" EntitySet="UnitTests" />
+    </AssociationSet>
+    <AssociationSet Name="FK_CoveredLineTrackedMethods_CoveredLine" Association="TestifyModel.Store.FK_CoveredLineTrackedMethods_CoveredLine">
+      <End Role="CoveredLine" EntitySet="CoveredLines" />
+      <End Role="CoveredLineTrackedMethods" EntitySet="CoveredLineTrackedMethods" />
+    </AssociationSet>
+    <AssociationSet Name="FK_CoveredLineTrackedMethods_TrackedMethod" Association="TestifyModel.Store.FK_CoveredLineTrackedMethods_TrackedMethod">
+      <End Role="TrackedMethod" EntitySet="TrackedMethods" />
+      <End Role="CoveredLineTrackedMethods" EntitySet="CoveredLineTrackedMethods" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TrackedMethodUnitTests_TrackedMethod" Association="TestifyModel.Store.FK_TrackedMethodUnitTests_TrackedMethod">
+      <End Role="TrackedMethod" EntitySet="TrackedMethods" />
+      <End Role="TrackedMethodUnitTests" EntitySet="TrackedMethodUnitTests" />
+    </AssociationSet>
+    <AssociationSet Name="FK_TrackedMethodUnitTests_UnitTest" Association="TestifyModel.Store.FK_TrackedMethodUnitTests_UnitTest">
+      <End Role="UnitTest" EntitySet="UnitTests" />
+      <End Role="TrackedMethodUnitTests" EntitySet="TrackedMethodUnitTests" />
+    </AssociationSet>
+  </EntityContainer>
+  <EntityType Name="CoveredLines">
+    <Key>
+      <PropertyRef Name="CoveredLineId" />
+    </Key>
+    <Property Name="Module" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="Class" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="Method" Type="nvarchar" Nullable="true" MaxLength="2000" />
+    <Property Name="LineNumber" Type="int" Nullable="false" />
+    <Property Name="MetadataToken" Type="int" Nullable="false" />
+    <Property Name="IsCode" Type="bit" Nullable="false" />
+    <Property Name="IsCovered" Type="bit" Nullable="false" />
+    <Property Name="CoveredLineId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="IsSuccessful" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Projects">
+    <Key>
+      <PropertyRef Name="UniqueName" />
+    </Key>
+    <Property Name="UniqueName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+    <Property Name="Name" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="Path" Type="nvarchar" Nullable="true" MaxLength="2000" />
+    <Property Name="AssemblyName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+  </EntityType>
+  <EntityType Name="TestProjects">
+    <Key>
+      <PropertyRef Name="UniqueName" />
+    </Key>
+    <Property Name="UniqueName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+    <Property Name="Name" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="Path" Type="nvarchar" Nullable="true" MaxLength="2000" />
+    <Property Name="OutputPath" Type="nvarchar" Nullable="true" MaxLength="2000" />
+    <Property Name="ProjectUniqueName" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="AssemblyName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+  </EntityType>
+  <EntityType Name="TrackedMethods">
+    <Key>
+      <PropertyRef Name="MetadataToken" />
+    </Key>
+    <Property Name="MetadataToken" Type="int" Nullable="false" />
+    <Property Name="UniqueId" Type="int" Nullable="false" />
+    <Property Name="Name" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="Strategy" Type="nvarchar" Nullable="true" MaxLength="200" />
+  </EntityType>
+  <EntityType Name="UnitTests">
+    <Key>
+      <PropertyRef Name="UnitTestId" />
+    </Key>
+    <Property Name="UnitTestId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TestProjectUniqueName" Type="nvarchar" Nullable="true" MaxLength="1000" />
+    <Property Name="IsSuccessful" Type="bit" Nullable="false" />
+    <Property Name="MetadataToken" Type="int" Nullable="true" />
+    <Property Name="TestMethodName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+    <Property Name="NumberOfAsserts" Type="int" Nullable="true" />
+    <Property Name="Executed" Type="bit" Nullable="false" />
+    <Property Name="Result" Type="nvarchar" Nullable="false" />
+    <Property Name="AssemblyName" Type="nvarchar" Nullable="false" MaxLength="1000" />
+    <Property Name="LastRunDatetime" Type="nvarchar" Nullable="false" />
+    <Property Name="LastSuccessfulRunDatetime" Type="nvarchar" Nullable="true" />
+    <Property Name="TestDuration" Type="nvarchar" Nullable="true" />
+  </EntityType>
+  <EntityType Name="CoveredLineTrackedMethods">
+    <Key>
+      <PropertyRef Name="CoveredLines_CoveredLineId" />
+      <PropertyRef Name="TrackedMethods_MetadataToken" />
+    </Key>
+    <Property Name="CoveredLines_CoveredLineId" Type="int" Nullable="false" />
+    <Property Name="TrackedMethods_MetadataToken" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="TrackedMethodUnitTests">
+    <Key>
+      <PropertyRef Name="TrackedMethods_MetadataToken" />
+      <PropertyRef Name="UnitTests_UnitTestId" />
+    </Key>
+    <Property Name="TrackedMethods_MetadataToken" Type="int" Nullable="false" />
+    <Property Name="UnitTests_UnitTestId" Type="int" Nullable="false" />
+  </EntityType>
+  <Association Name="Project_TestProjects">
+    <End Role="Projects" Type="TestifyModel.Store.Projects" Multiplicity="0..1" />
+    <End Role="TestProjects" Type="TestifyModel.Store.TestProjects" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Projects">
+        <PropertyRef Name="UniqueName" />
+      </Principal>
+      <Dependent Role="TestProjects">
+        <PropertyRef Name="ProjectUniqueName" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="TestProject_UnitTests">
+    <End Role="TestProjects" Type="TestifyModel.Store.TestProjects" Multiplicity="0..1" />
+    <End Role="UnitTests" Type="TestifyModel.Store.UnitTests" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TestProjects">
+        <PropertyRef Name="UniqueName" />
+      </Principal>
+      <Dependent Role="UnitTests">
+        <PropertyRef Name="TestProjectUniqueName" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_CoveredLineTrackedMethods_CoveredLine">
+    <End Role="CoveredLine" Type="TestifyModel.Store.CoveredLines" Multiplicity="1" />
+    <End Role="CoveredLineTrackedMethods" Type="TestifyModel.Store.CoveredLineTrackedMethods" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CoveredLine">
+        <PropertyRef Name="CoveredLineId" />
+      </Principal>
+      <Dependent Role="CoveredLineTrackedMethods">
+        <PropertyRef Name="CoveredLines_CoveredLineId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_CoveredLineTrackedMethods_TrackedMethod">
+    <End Role="CoveredLineTrackedMethods" Type="TestifyModel.Store.CoveredLineTrackedMethods" Multiplicity="*" />
+    <End Role="TrackedMethod" Type="TestifyModel.Store.TrackedMethods" Multiplicity="1" />
+    <ReferentialConstraint>
+      <Principal Role="TrackedMethod">
+        <PropertyRef Name="MetadataToken" />
+      </Principal>
+      <Dependent Role="CoveredLineTrackedMethods">
+        <PropertyRef Name="TrackedMethods_MetadataToken" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TrackedMethodUnitTests_TrackedMethod">
+    <End Role="TrackedMethod" Type="TestifyModel.Store.TrackedMethods" Multiplicity="1" />
+    <End Role="TrackedMethodUnitTests" Type="TestifyModel.Store.TrackedMethodUnitTests" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TrackedMethod">
+        <PropertyRef Name="MetadataToken" />
+      </Principal>
+      <Dependent Role="TrackedMethodUnitTests">
+        <PropertyRef Name="TrackedMethods_MetadataToken" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_TrackedMethodUnitTests_UnitTest">
+    <End Role="TrackedMethodUnitTests" Type="TestifyModel.Store.TrackedMethodUnitTests" Multiplicity="*" />
+    <End Role="UnitTest" Type="TestifyModel.Store.UnitTests" Multiplicity="1" />
+    <ReferentialConstraint>
+      <Principal Role="UnitTest">
+        <PropertyRef Name="UnitTestId" />
+      </Principal>
+      <Dependent Role="TrackedMethodUnitTests">
+        <PropertyRef Name="UnitTests_UnitTestId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+</Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="TestifyModel" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="TestifyCEEntities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="CoveredLines" EntityType="TestifyModel.CoveredLine" />
+          <EntitySet Name="Projects" EntityType="TestifyModel.Project" />
+          <EntitySet Name="TestProjects" EntityType="TestifyModel.TestProject" />
+          <EntitySet Name="TrackedMethods" EntityType="TestifyModel.TrackedMethod" />
+          <EntitySet Name="UnitTests" EntityType="TestifyModel.UnitTest" />
+          <AssociationSet Name="Project_TestProjects" Association="TestifyModel.Project_TestProjects">
+            <End Role="Projects" EntitySet="Projects" />
+            <End Role="TestProjects" EntitySet="TestProjects" />
+          </AssociationSet>
+          <AssociationSet Name="TestProject_UnitTests" Association="TestifyModel.TestProject_UnitTests">
+            <End Role="TestProjects" EntitySet="TestProjects" />
+            <End Role="UnitTests" EntitySet="UnitTests" />
+          </AssociationSet>
+          <AssociationSet Name="CoveredLineTrackedMethods" Association="TestifyModel.CoveredLineTrackedMethods">
+            <End Role="CoveredLine" EntitySet="CoveredLines" />
+            <End Role="TrackedMethod" EntitySet="TrackedMethods" />
+          </AssociationSet>
+          <AssociationSet Name="TrackedMethodUnitTests" Association="TestifyModel.TrackedMethodUnitTests">
+            <End Role="TrackedMethod" EntitySet="TrackedMethods" />
+            <End Role="UnitTest" EntitySet="UnitTests" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="CoveredLine">
+          <Key>
+            <PropertyRef Name="CoveredLineId" />
+          </Key>
+          <Property Name="Module" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Class" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Method" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
+          <Property Name="LineNumber" Type="Int32" Nullable="false" />
+          <Property Name="MetadataToken" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="None" />
+          <Property Name="IsCode" Type="Boolean" Nullable="false" />
+          <Property Name="IsCovered" Type="Boolean" Nullable="false" />
+          <Property Type="Int32" Name="CoveredLineId" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <NavigationProperty Name="TrackedMethods" Relationship="TestifyModel.CoveredLineTrackedMethods" FromRole="CoveredLine" ToRole="TrackedMethod" />
+          <Property Type="Boolean" Name="IsSuccessful" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Project">
+          <Key>
+            <PropertyRef Name="UniqueName" />
+          </Key>
+          <Property Name="UniqueName" Type="String" Nullable="false" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Name" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Path" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="TestProjects" Relationship="TestifyModel.Project_TestProjects" FromRole="Projects" ToRole="TestProjects" />
+          <Property Type="String" Name="AssemblyName" Nullable="false" MaxLength="1000" />
+        </EntityType>
+        <EntityType Name="TestProject">
+          <Key>
+            <PropertyRef Name="UniqueName" />
+          </Key>
+          <Property Name="UniqueName" Type="String" Nullable="false" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Name" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Path" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
+          <Property Name="OutputPath" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
+          <Property Name="ProjectUniqueName" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Project" Relationship="TestifyModel.Project_TestProjects" FromRole="TestProjects" ToRole="Projects" />
+          <NavigationProperty Name="UnitTests" Relationship="TestifyModel.TestProject_UnitTests" FromRole="TestProjects" ToRole="UnitTests" />
+          <Property Type="String" Name="AssemblyName" Nullable="false" MaxLength="1000" />
+        </EntityType>
+        <EntityType Name="TrackedMethod">
+          <Key>
+            <PropertyRef Name="MetadataToken" />
+          </Key>
+          <Property Name="MetadataToken" Type="Int32" Nullable="false" />
+          <Property Name="UniqueId" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="Strategy" Type="String" MaxLength="200" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="CoveredLines" Relationship="TestifyModel.CoveredLineTrackedMethods" FromRole="TrackedMethod" ToRole="CoveredLine" />
+          <NavigationProperty Name="UnitTests" Relationship="TestifyModel.TrackedMethodUnitTests" FromRole="TrackedMethod" ToRole="UnitTest" />
+        </EntityType>
+        <EntityType Name="UnitTest">
+          <Key>
+            <PropertyRef Name="UnitTestId" />
+          </Key>
+          <Property Name="UnitTestId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="TestProjectUniqueName" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
+          <Property Name="IsSuccessful" Type="Boolean" Nullable="false" />
+          <Property Name="MetadataToken" Type="Int32" />
+          <NavigationProperty Name="TestProject" Relationship="TestifyModel.TestProject_UnitTests" FromRole="UnitTests" ToRole="TestProjects" />
+          <NavigationProperty Name="TrackedMethods" Relationship="TestifyModel.TrackedMethodUnitTests" FromRole="UnitTest" ToRole="TrackedMethod" />
+          <Property Type="String" Name="TestMethodName" Nullable="false" MaxLength="1000" />
+          <Property Type="Int32" Name="NumberOfAsserts" Nullable="true" />
+          <Property Type="Boolean" Name="Executed" Nullable="false" />
+          <Property Type="String" Name="Result" Nullable="false" />
+          <Property Type="String" Name="AssemblyName" Nullable="false" MaxLength="1000" />
+          <Property Type="String" Name="LastRunDatetime" Nullable="false" />
+          <Property Type="String" Name="LastSuccessfulRunDatetime" Nullable="true" />
+          <Property Type="String" Name="TestDuration" Nullable="true" />
+        </EntityType>
+        <Association Name="Project_TestProjects">
+          <End Role="Projects" Type="TestifyModel.Project" Multiplicity="0..1" />
+          <End Role="TestProjects" Type="TestifyModel.TestProject" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Projects">
+              <PropertyRef Name="UniqueName" />
+            </Principal>
+            <Dependent Role="TestProjects">
+              <PropertyRef Name="ProjectUniqueName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="TestProject_UnitTests">
+          <End Role="TestProjects" Type="TestifyModel.TestProject" Multiplicity="0..1" />
+          <End Role="UnitTests" Type="TestifyModel.UnitTest" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TestProjects">
+              <PropertyRef Name="UniqueName" />
+            </Principal>
+            <Dependent Role="UnitTests">
+              <PropertyRef Name="TestProjectUniqueName" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="CoveredLineTrackedMethods">
+          <End Type="TestifyModel.CoveredLine" Role="CoveredLine" Multiplicity="*" />
+          <End Type="TestifyModel.TrackedMethod" Role="TrackedMethod" Multiplicity="*" />
+        </Association>
+        <Association Name="TrackedMethodUnitTests">
+          <End Type="TestifyModel.TrackedMethod" Role="TrackedMethod" Multiplicity="*" />
+          <End Type="TestifyModel.UnitTest" Role="UnitTest" Multiplicity="*" />
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="TestifyModelStoreContainer" CdmEntityContainer="TestifyCEEntities">
+    <EntitySetMapping Name="CoveredLines">
+      <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.CoveredLine)">
+        <MappingFragment StoreEntitySet="CoveredLines">
+          <ScalarProperty Name="CoveredLineId" ColumnName="CoveredLineId" />
+          <ScalarProperty Name="Module" ColumnName="Module" />
+          <ScalarProperty Name="Class" ColumnName="Class" />
+          <ScalarProperty Name="Method" ColumnName="Method" />
+          <ScalarProperty Name="LineNumber" ColumnName="LineNumber" />
+          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
+          <ScalarProperty Name="IsCode" ColumnName="IsCode" />
+          <ScalarProperty Name="IsCovered" ColumnName="IsCovered" />
+          <ScalarProperty Name="IsSuccessful" ColumnName="IsSuccessful" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Projects">
+      <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.Project)">
+        <MappingFragment StoreEntitySet="Projects">
+          <ScalarProperty Name="UniqueName" ColumnName="UniqueName" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="AssemblyName" ColumnName="AssemblyName" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TestProjects">
+      <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.TestProject)">
+        <MappingFragment StoreEntitySet="TestProjects">
+          <ScalarProperty Name="UniqueName" ColumnName="UniqueName" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Path" ColumnName="Path" />
+          <ScalarProperty Name="OutputPath" ColumnName="OutputPath" />
+          <ScalarProperty Name="ProjectUniqueName" ColumnName="ProjectUniqueName" />
+          <ScalarProperty Name="AssemblyName" ColumnName="AssemblyName" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TrackedMethods">
+      <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.TrackedMethod)">
+        <MappingFragment StoreEntitySet="TrackedMethods">
+          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
+          <ScalarProperty Name="UniqueId" ColumnName="UniqueId" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Strategy" ColumnName="Strategy" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="UnitTests">
+      <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.UnitTest)">
+        <MappingFragment StoreEntitySet="UnitTests">
+          <ScalarProperty Name="UnitTestId" ColumnName="UnitTestId" />
+          <ScalarProperty Name="TestProjectUniqueName" ColumnName="TestProjectUniqueName" />
+          <ScalarProperty Name="IsSuccessful" ColumnName="IsSuccessful" />
+          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
+          <ScalarProperty Name="TestMethodName" ColumnName="TestMethodName" />
+          <ScalarProperty Name="NumberOfAsserts" ColumnName="NumberOfAsserts" />
+          <ScalarProperty Name="Executed" ColumnName="Executed" />
+          <ScalarProperty Name="Result" ColumnName="Result" />
+          <ScalarProperty Name="AssemblyName" ColumnName="AssemblyName" />
+          <ScalarProperty Name="LastRunDatetime" ColumnName="LastRunDatetime" />
+          <ScalarProperty Name="LastSuccessfulRunDatetime" ColumnName="LastSuccessfulRunDatetime" />
+          <ScalarProperty Name="TestDuration" ColumnName="TestDuration" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <AssociationSetMapping Name="CoveredLineTrackedMethods" TypeName="TestifyModel.CoveredLineTrackedMethods" StoreEntitySet="CoveredLineTrackedMethods">
+      <EndProperty Name="CoveredLine">
+        <ScalarProperty Name="CoveredLineId" ColumnName="CoveredLines_CoveredLineId" />
+      </EndProperty>
+      <EndProperty Name="TrackedMethod">
+        <ScalarProperty Name="MetadataToken" ColumnName="TrackedMethods_MetadataToken" />
+      </EndProperty>
+    </AssociationSetMapping>
+    <AssociationSetMapping Name="TrackedMethodUnitTests" TypeName="TestifyModel.TrackedMethodUnitTests" StoreEntitySet="TrackedMethodUnitTests">
+      <EndProperty Name="TrackedMethod">
+        <ScalarProperty Name="MetadataToken" ColumnName="TrackedMethods_MetadataToken" />
+      </EndProperty>
+      <EndProperty Name="UnitTest">
+        <ScalarProperty Name="UnitTestId" ColumnName="UnitTests_UnitTestId" />
+      </EndProperty>
+    </AssociationSetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

@@ -1,0 +1,252 @@
+
+-- --------------------------------------------------
+-- Entity Designer DDL Script for SQL Server Compact Edition
+-- --------------------------------------------------
+-- Date Created: 11/04/2013 05:16:22
+-- Generated from EDMX file: C:\WIP\Testify\Testify\DataLayer\EntityModel.edmx
+-- --------------------------------------------------
+
+
+-- --------------------------------------------------
+-- Dropping existing FOREIGN KEY constraints
+-- NOTE: if the constraint does not exist, an ignorable error will be reported.
+-- --------------------------------------------------
+
+    ALTER TABLE [CoveredLineTrackedMethods] DROP CONSTRAINT [FK_CoveredLineTrackedMethods_CoveredLine];
+GO
+    ALTER TABLE [CoveredLineTrackedMethods] DROP CONSTRAINT [FK_CoveredLineTrackedMethods_TrackedMethod];
+GO
+    ALTER TABLE [TestProjects] DROP CONSTRAINT [FK_Project_TestProjects];
+GO
+    ALTER TABLE [UnitTests] DROP CONSTRAINT [FK_TestProject_UnitTests];
+GO
+    ALTER TABLE [TrackedMethodUnitTests] DROP CONSTRAINT [FK_TrackedMethodUnitTests_TrackedMethod];
+GO
+    ALTER TABLE [TrackedMethodUnitTests] DROP CONSTRAINT [FK_TrackedMethodUnitTests_UnitTest];
+GO
+
+-- --------------------------------------------------
+-- Dropping existing tables
+-- NOTE: if the table does not exist, an ignorable error will be reported.
+-- --------------------------------------------------
+
+    DROP TABLE [CoveredLines];
+GO
+    DROP TABLE [CoveredLineTrackedMethods];
+GO
+    DROP TABLE [Projects];
+GO
+    DROP TABLE [TestProjects];
+GO
+    DROP TABLE [TrackedMethods];
+GO
+    DROP TABLE [TrackedMethodUnitTests];
+GO
+    DROP TABLE [UnitTests];
+GO
+
+-- --------------------------------------------------
+-- Creating all tables
+-- --------------------------------------------------
+
+-- Creating table 'CoveredLines'
+CREATE TABLE [CoveredLines] (
+    [Module] nvarchar(1000)  NULL,
+    [Class] nvarchar(1000)  NULL,
+    [Method] nvarchar(2000)  NULL,
+    [LineNumber] int  NOT NULL,
+    [MetadataToken] int  NOT NULL,
+    [IsCode] bit  NOT NULL,
+    [IsCovered] bit  NOT NULL,
+    [CoveredLineId] int IDENTITY(1,1) NOT NULL,
+    [IsSuccessful] bit  NOT NULL
+);
+GO
+
+-- Creating table 'Projects'
+CREATE TABLE [Projects] (
+    [UniqueName] nvarchar(1000)  NOT NULL,
+    [Name] nvarchar(1000)  NULL,
+    [Path] nvarchar(2000)  NULL,
+    [AssemblyName] nvarchar(1000)  NOT NULL
+);
+GO
+
+-- Creating table 'TestProjects'
+CREATE TABLE [TestProjects] (
+    [UniqueName] nvarchar(1000)  NOT NULL,
+    [Name] nvarchar(1000)  NULL,
+    [Path] nvarchar(2000)  NULL,
+    [OutputPath] nvarchar(2000)  NULL,
+    [ProjectUniqueName] nvarchar(1000)  NULL,
+    [AssemblyName] nvarchar(1000)  NOT NULL
+);
+GO
+
+-- Creating table 'TrackedMethods'
+CREATE TABLE [TrackedMethods] (
+    [MetadataToken] int  NOT NULL,
+    [UniqueId] int  NOT NULL,
+    [Name] nvarchar(1000)  NULL,
+    [Strategy] nvarchar(200)  NULL
+);
+GO
+
+-- Creating table 'UnitTests'
+CREATE TABLE [UnitTests] (
+    [UnitTestId] int IDENTITY(1,1) NOT NULL,
+    [TestProjectUniqueName] nvarchar(1000)  NULL,
+    [IsSuccessful] bit  NOT NULL,
+    [MetadataToken] int  NULL,
+    [TestMethodName] nvarchar(1000)  NOT NULL,
+    [NumberOfAsserts] int  NULL,
+    [Executed] bit  NOT NULL,
+    [Result] nvarchar(4000)  NOT NULL,
+    [AssemblyName] nvarchar(1000)  NOT NULL,
+    [LastRunDatetime] nvarchar(4000)  NOT NULL,
+    [LastSuccessfulRunDatetime] nvarchar(4000)  NULL,
+    [TestDuration] nvarchar(4000)  NULL
+);
+GO
+
+-- Creating table 'CoveredLineTrackedMethods'
+CREATE TABLE [CoveredLineTrackedMethods] (
+    [CoveredLines_CoveredLineId] int  NOT NULL,
+    [TrackedMethods_MetadataToken] int  NOT NULL
+);
+GO
+
+-- Creating table 'TrackedMethodUnitTests'
+CREATE TABLE [TrackedMethodUnitTests] (
+    [TrackedMethods_MetadataToken] int  NOT NULL,
+    [UnitTests_UnitTestId] int  NOT NULL
+);
+GO
+
+-- --------------------------------------------------
+-- Creating all PRIMARY KEY constraints
+-- --------------------------------------------------
+
+-- Creating primary key on [CoveredLineId] in table 'CoveredLines'
+ALTER TABLE [CoveredLines]
+ADD CONSTRAINT [PK_CoveredLines]
+    PRIMARY KEY ([CoveredLineId] );
+GO
+
+-- Creating primary key on [UniqueName] in table 'Projects'
+ALTER TABLE [Projects]
+ADD CONSTRAINT [PK_Projects]
+    PRIMARY KEY ([UniqueName] );
+GO
+
+-- Creating primary key on [UniqueName] in table 'TestProjects'
+ALTER TABLE [TestProjects]
+ADD CONSTRAINT [PK_TestProjects]
+    PRIMARY KEY ([UniqueName] );
+GO
+
+-- Creating primary key on [MetadataToken] in table 'TrackedMethods'
+ALTER TABLE [TrackedMethods]
+ADD CONSTRAINT [PK_TrackedMethods]
+    PRIMARY KEY ([MetadataToken] );
+GO
+
+-- Creating primary key on [UnitTestId] in table 'UnitTests'
+ALTER TABLE [UnitTests]
+ADD CONSTRAINT [PK_UnitTests]
+    PRIMARY KEY ([UnitTestId] );
+GO
+
+-- Creating primary key on [CoveredLines_CoveredLineId], [TrackedMethods_MetadataToken] in table 'CoveredLineTrackedMethods'
+ALTER TABLE [CoveredLineTrackedMethods]
+ADD CONSTRAINT [PK_CoveredLineTrackedMethods]
+    PRIMARY KEY ([CoveredLines_CoveredLineId], [TrackedMethods_MetadataToken] );
+GO
+
+-- Creating primary key on [TrackedMethods_MetadataToken], [UnitTests_UnitTestId] in table 'TrackedMethodUnitTests'
+ALTER TABLE [TrackedMethodUnitTests]
+ADD CONSTRAINT [PK_TrackedMethodUnitTests]
+    PRIMARY KEY ([TrackedMethods_MetadataToken], [UnitTests_UnitTestId] );
+GO
+
+-- --------------------------------------------------
+-- Creating all FOREIGN KEY constraints
+-- --------------------------------------------------
+
+-- Creating foreign key on [ProjectUniqueName] in table 'TestProjects'
+ALTER TABLE [TestProjects]
+ADD CONSTRAINT [FK_Project_TestProjects]
+    FOREIGN KEY ([ProjectUniqueName])
+    REFERENCES [Projects]
+        ([UniqueName])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_Project_TestProjects'
+CREATE INDEX [IX_FK_Project_TestProjects]
+ON [TestProjects]
+    ([ProjectUniqueName]);
+GO
+
+-- Creating foreign key on [TestProjectUniqueName] in table 'UnitTests'
+ALTER TABLE [UnitTests]
+ADD CONSTRAINT [FK_TestProject_UnitTests]
+    FOREIGN KEY ([TestProjectUniqueName])
+    REFERENCES [TestProjects]
+        ([UniqueName])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_TestProject_UnitTests'
+CREATE INDEX [IX_FK_TestProject_UnitTests]
+ON [UnitTests]
+    ([TestProjectUniqueName]);
+GO
+
+-- Creating foreign key on [CoveredLines_CoveredLineId] in table 'CoveredLineTrackedMethods'
+ALTER TABLE [CoveredLineTrackedMethods]
+ADD CONSTRAINT [FK_CoveredLineTrackedMethods_CoveredLine]
+    FOREIGN KEY ([CoveredLines_CoveredLineId])
+    REFERENCES [CoveredLines]
+        ([CoveredLineId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating foreign key on [TrackedMethods_MetadataToken] in table 'CoveredLineTrackedMethods'
+ALTER TABLE [CoveredLineTrackedMethods]
+ADD CONSTRAINT [FK_CoveredLineTrackedMethods_TrackedMethod]
+    FOREIGN KEY ([TrackedMethods_MetadataToken])
+    REFERENCES [TrackedMethods]
+        ([MetadataToken])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_CoveredLineTrackedMethods_TrackedMethod'
+CREATE INDEX [IX_FK_CoveredLineTrackedMethods_TrackedMethod]
+ON [CoveredLineTrackedMethods]
+    ([TrackedMethods_MetadataToken]);
+GO
+
+-- Creating foreign key on [TrackedMethods_MetadataToken] in table 'TrackedMethodUnitTests'
+ALTER TABLE [TrackedMethodUnitTests]
+ADD CONSTRAINT [FK_TrackedMethodUnitTests_TrackedMethod]
+    FOREIGN KEY ([TrackedMethods_MetadataToken])
+    REFERENCES [TrackedMethods]
+        ([MetadataToken])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating foreign key on [UnitTests_UnitTestId] in table 'TrackedMethodUnitTests'
+ALTER TABLE [TrackedMethodUnitTests]
+ADD CONSTRAINT [FK_TrackedMethodUnitTests_UnitTest]
+    FOREIGN KEY ([UnitTests_UnitTestId])
+    REFERENCES [UnitTests]
+        ([UnitTestId])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_TrackedMethodUnitTests_UnitTest'
+CREATE INDEX [IX_FK_TrackedMethodUnitTests_UnitTest]
+ON [TrackedMethodUnitTests]
+    ([UnitTests_UnitTestId]);
+GO
+
+-- --------------------------------------------------
+-- Script has ended
+-- --------------------------------------------------
