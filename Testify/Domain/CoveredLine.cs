@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Leem.Testify.Domain
+namespace Leem.Testify
 {
     using System;
     using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Leem.Testify.Domain
         public string Class { get; set; }
         public string Method { get; set; }
         public int LineNumber { get; set; }
-        public int MetadataToken { get; set; }
+        public int UnitTestId { get; set; }
         public bool IsCode { get; set; }
         public bool IsCovered { get; set; }
         public int CoveredLineId { get; set; }

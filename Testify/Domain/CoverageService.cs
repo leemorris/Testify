@@ -130,7 +130,11 @@ namespace Leem.Testify.Domain
                         {
                             coveredLine.IsCode = true;
                             coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
-                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, MetadataToken = test.MetadataToken, Strategy = test.Strategy, Name = test.Name };
+                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, 
+                                                                            UnitTestId = test.UnitTestId, 
+                                                                            Strategy = test.Strategy, 
+                                                                            Name = test.Name,
+                                                                            MetadataToken = test.MetadataToken };
                         }
                     }
 
@@ -193,7 +197,10 @@ namespace Leem.Testify.Domain
                                         {
                                             coveredLine.IsCode = true;
                                             coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
-                                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, MetadataToken = test.MetadataToken, Strategy = test.Strategy, Name = test.Name };
+                                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, 
+
+                                                                                            Strategy = test.Strategy, 
+                                                                                            Name = test.Name };
                                         }
                                     }
 

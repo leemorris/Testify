@@ -269,7 +269,7 @@ namespace Leem.Testify
         {
 
             List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
-            var projects = new List<Domain.Project>();
+            var projects = new List<Project>();
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
                 Log.DebugFormat("Verify project name: {0}", project.Name);
@@ -278,7 +278,7 @@ namespace Leem.Testify
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 var assemblyName = GetAssemblyName(project);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
-                projects.Add(new Domain.Project
+                projects.Add(new Project
                 {
                     Name = project.Name,
                     AssemblyName = assemblyName,
@@ -294,14 +294,14 @@ namespace Leem.Testify
   
         public void VerifyProjects(EnvDTE.Project project)
         {
-            var projects = new List<Domain.Project>();
+            var projects = new List<Project>();
             Log.DebugFormat("Verify project name: {0}", project.Name);
 
             var outputPath = GetProjectOutputBuildFolder(project);
             Log.DebugFormat("  outputPath: {0}", outputPath);
             var assemblyName = GetAssemblyName(project);
             Log.DebugFormat("  Assembly name: {0}", assemblyName);
-            projects.Add(new Domain.Project
+            projects.Add(new Project
             {
                 Name = project.Name,
                 AssemblyName = assemblyName,

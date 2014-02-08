@@ -134,6 +134,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModelService.cs" />
+    <Compile Include="EntityModelExtensions\TrackedMethodExtension.cs" />
+    <Compile Include="EntityModelExtensions\UnitTestExtension.cs" />
     <Compile Include="TestOutputFileReader.cs" />
     <Compile Include="CoverageFileReader.cs" />
     <Compile Include="CoverageService.cs" />

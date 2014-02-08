@@ -64,23 +64,31 @@ namespace Leem.Testify.DataLayer
 
         public ProjectInfo GetProjectInfo(string uniqueName)
         {
-
-            using (var context = new TestifyContext(_solutionName))
+            try 
             {
+                using (var context = new TestifyContext(_solutionName))
+                {
 
-                var result = from project in context.Projects
-                             from testProject in context.TestProjects
-                             where project.UniqueName == uniqueName
-                             && testProject.ProjectUniqueName == project.UniqueName
-                             select new ProjectInfo
-                             {
-                                 ProjectName = project.Name,
-                                 ProjectAssemblyName = project.AssemblyName,
-                                 TestProject = testProject
-                             };
+                    var result = from project in context.Projects
+                                 from testProject in context.TestProjects
+                                 where project.UniqueName == uniqueName
+                                 && testProject.ProjectUniqueName == project.UniqueName
+                                 select new ProjectInfo
+                                 {
+                                     ProjectName = project.Name,
+                                     ProjectAssemblyName = project.AssemblyName,
+                                     TestProject = testProject
+                                 };
 
-                return result.FirstOrDefault();
+                    return result.FirstOrDefault();
+                }
             }
+            catch (Exception ex)
+            {
+                Log.DebugFormat("Error Getting Project Info, error: {0}",ex);
+                return null;
+            }
+           
         }
         public IList<TestProject> GetTestProjects()
         {
@@ -326,7 +334,7 @@ namespace Leem.Testify.DataLayer
                                 {
                                     existingTest.IsCode = line.IsCode;
                                     existingTest.IsCovered = line.IsCovered;
-                                    existingTest.MetadataToken = line.CoveringTest.MetadataToken;
+                                    //existingTest.UnitTestId = line.CoveringTest.UnitTestId;
                                 }
                                 else
                                 {
@@ -350,10 +358,10 @@ namespace Leem.Testify.DataLayer
                             if (trackedMethods.Any())
                             {
                                 var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
-
-                                UpdateTrackedMethods(distinctTrackedMethods);
                                 UpdateUnitTests(distinctTrackedMethods, testModule);
-                                UpdateCoveredLines(module.FullName);
+                                UpdateTrackedMethods(distinctTrackedMethods);
+
+                                UpdateCoveredLines(module.FullName, distinctTrackedMethods, newCoveredLineInfos);
 
                             }                     
                         }
@@ -394,54 +402,75 @@ namespace Leem.Testify.DataLayer
                 bc.WriteToServer(coveredLines);
             }
         }
-  
-        private void UpdateCoveredLines(string moduleName)
+
+        private void UpdateCoveredLines(string moduleName, List<TrackedMethod> trackedMethods, IList<LineCoverageInfo> newCoveredLineInfos)
         {
 
             using (var context = new TestifyContext(_solutionName))
             {
-                var results = (from line in context.CoveredLines
-                               join test in context.UnitTests on line.MetadataToken equals test.MetadataToken into allLines
-                               from test in allLines.DefaultIfEmpty()
-                               where line.Module.Equals(moduleName)
-                               select new { line, IsSuccessful = test == null ? false : test.IsSuccessful }).ToList();
+                //var results = (from line in context.CoveredLines
+                //               // 2/7 join test in context.UnitTests on line.MetadataToken equals test.MetadataToken into allLines
+                //               join test in context.UnitTests on line.UnitTestId equals test.UnitTestId into allLines
+                //               from test in allLines.DefaultIfEmpty()
+                //               where line.Module.Equals(moduleName)
+                //               select new { line, IsSuccessful = test == null ? false : test.IsSuccessful }).ToList();
 
-                foreach (var result in results)
+//var covering testc = line.CoveringTest
+                var coveredLines = (from line in context.CoveredLines
+                                // 2/7 join test in context.UnitTests on line.MetadataToken equals test.MetadataToken into allLines
+                                //join lineInfo in newCoveredLines on new { line.Method, line.LineNumber } equals new { lineInfo.Method, lineInfo.LineNumber } //into allLines
+                                //join test in context.UnitTests on lineInfo.CoveringTest.Name equals test.TestMethodName into allLines
+                                //from test in allLines.DefaultIfEmpty()
+                                where line.Module.Equals(moduleName)
+                                select line);
+
+                foreach (var coveredLine in coveredLines)
                 {
+                    var unitTestName = newCoveredLineInfos.FirstOrDefault(x => x.Method == coveredLine.Method && x.LineNumber == coveredLine.LineNumber).CoveringTest.Name;
+                    var testMethodName = ConvertTrackedMethodFormatToUnitTestFormat(unitTestName);
+                    var unitTest = context.UnitTests.FirstOrDefault(x => x.TestMethodName == testMethodName);
+                    if (unitTest != null)
+                    {
+                        coveredLine.UnitTestId = unitTest.UnitTestId; 
+                        coveredLine.IsSuccessful = unitTest.IsSuccessful;
+                    }
+
+
                     //Log.DebugFormat("TestMethod {0} ,  IsSuccessful = {1}", result.line.Method, result.IsSuccessful);
-                    result.line.IsSuccessful = result.IsSuccessful;
+                   // var metaDataToken = newCoveredLines.Where(x=>x.Method == result.Method && x.LineNumber == result.LineNumber).FirstOrDefault().CoveringTest.MetadataToken;
                 }
                 context.SaveChanges();
             }
-               
+            //{"Unable to create a constant value of type 'Leem.Testify.Domain.LineCoverageInfo'. Only primitive types or enumeration types are supported in this context."}{"Unable to create a constant value of type 'Leem.Testify.Domain.LineCoverageInfo'. Only primitive types or enumeration types are supported in this context."}         
         }
 
-        private void UpdateUnitTests(IList<Domain.TrackedMethod> trackedMethods, Module testModule)
+        private void UpdateUnitTests(IList<TrackedMethod> trackedMethods, Module testModule)
         {
             _sw.Restart();
-
+ 
             try
             {
                 if (testModule != null)
                 {
                     using (var context = new TestifyContext(_solutionName))
                     {
+
                         var testProjectUniqueName = context.TestProjects.Where(x => x.AssemblyName.Equals(testModule.ModuleName)).First().UniqueName;
- 
+
                         //Create Unit Test objects
                         var unitTests = new List<UnitTest>();
                         foreach (var trackedMethod in trackedMethods)
                         {
-                            int locationOfSpace = trackedMethod.Name.IndexOf(' ') + 1;
-                            int locationOfParen = trackedMethod.Name.IndexOf('(');
-                            var testMethodName = trackedMethod.Name.Substring(locationOfSpace, locationOfParen - locationOfSpace);
-                            testMethodName = testMethodName.Replace("::", ".");
+                            var testMethodName = ConvertTrackedMethodFormatToUnitTestFormat(trackedMethod.Name);
 
                             var matchingUnitTest = context.UnitTests.Single(x => x.TestMethodName.Equals(testMethodName));
                             if (matchingUnitTest != null)
                             {
-                                matchingUnitTest.MetadataToken = trackedMethod.MetadataToken;
+                                // 2/7 matchingUnitTest.MetadataToken = trackedMethod.MetadataToken;
+ //                               matchingUnitTest.UnitTestId = trackedMethod.UnitTestId;
                                 matchingUnitTest.TestProjectUniqueName = testProjectUniqueName;
+                                trackedMethod.UnitTestId = matchingUnitTest.UnitTestId;
+                                
                             }
                             else
                             {
@@ -467,6 +496,23 @@ namespace Leem.Testify.DataLayer
             }
         }
 
+        public static string ConvertTrackedMethodFormatToUnitTestFormat(string trackedMethodName)
+        {
+            if (string.IsNullOrEmpty(trackedMethodName))
+            {
+                return string.Empty;
+            }
+            else 
+            {
+                int locationOfSpace = trackedMethodName.IndexOf(' ') + 1;
+                int locationOfParen = trackedMethodName.IndexOf('(');
+                var testMethodName = trackedMethodName.Substring(locationOfSpace, locationOfParen - locationOfSpace);
+                testMethodName = testMethodName.Replace("::", ".");
+                return testMethodName;
+            }
+
+        }
+
  
 
         private static CoveredLine ConstructCoveredLine(LineCoverageInfo line)
@@ -480,26 +526,33 @@ namespace Leem.Testify.DataLayer
                 IsCode = line.IsCode,
                 IsCovered = line.IsCovered,
 
-                MetadataToken = line.CoveringTest != null ? line.CoveringTest.MetadataToken : 0
+                UnitTestId = line.CoveringTest != null ? line.CoveringTest.UnitTestId : 0
             };
             return newCoverage;
         }
 
-        public void UpdateTrackedMethods(IList<Domain.TrackedMethod> trackedMethods)
+        public void UpdateTrackedMethods(IList<TrackedMethod> trackedMethods)
         {
             using (var context = new TestifyContext(_solutionName))
             {
   
                 foreach(var currentTrackedMethod in trackedMethods)
                 {
-                    var existingTrackedMethod = context.TrackedMethods.Find(currentTrackedMethod.MetadataToken);
+                    //var existingTrackedMethod = context.TrackedMethods.Find(currentTrackedMethod.MetadataToken);
+                    var existingTrackedMethod = context.TrackedMethods.Where(x => x.Name == currentTrackedMethod.Name).FirstOrDefault();
+
                     if (existingTrackedMethod == null)
                     {
                         context.TrackedMethods.Add(currentTrackedMethod);
                     }
-                    else if (currentTrackedMethod.Name != existingTrackedMethod.Name)
+                    // 2/7 
+                    //else if (currentTrackedMethod.Name != existingTrackedMethod.Name)
+                    // {
+                    //    existingTrackedMethod = currentTrackedMethod;
+                    // }
+                    else
                     {
-                        existingTrackedMethod = currentTrackedMethod;
+                        existingTrackedMethod.UnitTestId = currentTrackedMethod.UnitTestId;
                     }
                }
                 _sw.Stop();
@@ -539,7 +592,8 @@ namespace Leem.Testify.DataLayer
                 
                 var query = from unitTest in context.TrackedMethods
                             where unitTest.Name.Contains(modifiedMethod)
-                            select unitTest.MetadataToken;
+                            // 2/7 select unitTest.MetadataToken;
+                            select unitTest.UnitTestId;
 
             }
         }
@@ -646,7 +700,7 @@ namespace Leem.Testify.DataLayer
             {
                 var query = (from line in context.CoveredLines
                             join test in context.UnitTests
-                            on line.MetadataToken equals test.MetadataToken
+                            on line.UnitTestId equals test.UnitTestId
                             where line.Method.Contains(methodNameFragment)
                             select test.TestMethodName);
                 testNames = query.Distinct().ToList();

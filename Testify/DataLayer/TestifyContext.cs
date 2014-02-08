@@ -24,8 +24,7 @@ namespace Leem.Testify.DataLayer
        {
           
            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-           //var directory = @"c:\WIP\Lactose\DataLayer\";
-           
+          
            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
            
            // Set connection string
@@ -43,11 +42,11 @@ namespace Leem.Testify.DataLayer
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UnitTest>()
-                .HasKey(x => x.UnitTestId);
+            modelBuilder.Entity<UnitTest>().Property(x => x.UnitTestId).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity); 
+               // .HasKey(x => x.UnitTestId);
             modelBuilder.Entity<TrackedMethod>()
-                .HasKey(x => x.MetadataToken);
-            modelBuilder.Entity<TrackedMethod>().Property(x => x.MetadataToken).HasDatabaseGeneratedOption(DatabaseGeneratedOption.None); 
+                .HasKey(x => x.Name);
+            modelBuilder.Entity<TrackedMethod>().Property(x => x.UnitTestId); 
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
             modelBuilder.Entity<TestProject>()
@@ -57,7 +56,7 @@ namespace Leem.Testify.DataLayer
             modelBuilder.Entity<CoveredLine>()
                 .Property(x => x.CoveredLineId)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
-
+            
             base.OnModelCreating(modelBuilder);
 
         }

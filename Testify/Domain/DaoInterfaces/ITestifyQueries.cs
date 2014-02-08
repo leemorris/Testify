@@ -15,7 +15,7 @@ namespace Leem.Testify.Domain.DaoInterfaces
         ProjectInfo GetProjectInfo(string uniqueName);
         System.Linq.IQueryable<Project> GetProjects();
         IList<TestProject> GetTestProjects();
-        void MaintainProjects(IList<Domain.Project> projects);
+        void MaintainProjects(IList<Project> projects);
         Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, ProjectInfo projectInfo, List<string> individualTest);
         void SaveUnitTest(UnitTest test);
         void UpdateTrackedMethods(IList<TrackedMethod> trackedMethods);

@@ -37,5 +37,7 @@ namespace Leem.Testify.Domain.Model
         [XmlAttribute("strategy")]
         public string Strategy { get; set; }
 
+
+        public int UnitTestId { get; set; }
     }
 }

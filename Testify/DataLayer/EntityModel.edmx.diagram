@@ -5,16 +5,16 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="9f9b114a307d4895bff9c254d470d2dc" Name="Diagram1">
-        <EntityTypeShape EntityType="TestifyModel.CoveredLine" Width="1.5" PointX="10.125" PointY="1.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="TestifyModel.Project" Width="1.5" PointX="0.75" PointY="5.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="TestifyModel.TestProject" Width="1.5" PointX="3" PointY="5" IsExpanded="true" />
-        <EntityTypeShape EntityType="TestifyModel.TrackedMethod" Width="1.5" PointX="8" PointY="2.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="TestifyModel.CoveredLine" Width="1.5" PointX="9.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="TestifyModel.Project" Width="1.5" PointX="0.5" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="TestifyModel.TestProject" Width="1.5" PointX="2.875" PointY="2.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="TestifyModel.TrackedMethod" Width="1.5" PointX="7.375" PointY="2.5" IsExpanded="true" />
         <EntityTypeShape EntityType="TestifyModel.UnitTest" Width="1.5" PointX="5.25" PointY="1" IsExpanded="true" />
         <AssociationConnector Association="TestifyModel.Project_TestProjects" ManuallyRouted="false" />
         <AssociationConnector Association="TestifyModel.TestProject_UnitTests" ManuallyRouted="false" />
         <AssociationConnector Association="TestifyModel.CoveredLineTrackedMethods" />
         <AssociationConnector Association="TestifyModel.TrackedMethodUnitTests" />
-      </Diagram>
+        </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

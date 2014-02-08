@@ -46,11 +46,11 @@
     <Property Name="Class" Type="nvarchar" Nullable="true" MaxLength="1000" />
     <Property Name="Method" Type="nvarchar" Nullable="true" MaxLength="2000" />
     <Property Name="LineNumber" Type="int" Nullable="false" />
-    <Property Name="MetadataToken" Type="int" Nullable="false" />
     <Property Name="IsCode" Type="bit" Nullable="false" />
     <Property Name="IsCovered" Type="bit" Nullable="false" />
     <Property Name="CoveredLineId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="IsSuccessful" Type="bit" Nullable="false" />
+    <Property Name="UnitTestId" Type="int" Nullable="false" />
   </EntityType>
   <EntityType Name="Projects">
     <Key>
@@ -74,12 +74,12 @@
   </EntityType>
   <EntityType Name="TrackedMethods">
     <Key>
-      <PropertyRef Name="MetadataToken" />
+      <PropertyRef Name="UnitTestId" />
     </Key>
-    <Property Name="MetadataToken" Type="int" Nullable="false" />
     <Property Name="UniqueId" Type="int" Nullable="false" />
     <Property Name="Name" Type="nvarchar" Nullable="true" MaxLength="1000" />
     <Property Name="Strategy" Type="nvarchar" Nullable="true" MaxLength="200" />
+    <Property Name="UnitTestId" Type="int" Nullable="false" />
   </EntityType>
   <EntityType Name="UnitTests">
     <Key>
@@ -88,7 +88,6 @@
     <Property Name="UnitTestId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
     <Property Name="TestProjectUniqueName" Type="nvarchar" Nullable="true" MaxLength="1000" />
     <Property Name="IsSuccessful" Type="bit" Nullable="false" />
-    <Property Name="MetadataToken" Type="int" Nullable="true" />
     <Property Name="TestMethodName" Type="nvarchar" Nullable="false" MaxLength="1000" />
     <Property Name="NumberOfAsserts" Type="int" Nullable="true" />
     <Property Name="Executed" Type="bit" Nullable="false" />
@@ -101,17 +100,17 @@
   <EntityType Name="CoveredLineTrackedMethods">
     <Key>
       <PropertyRef Name="CoveredLines_CoveredLineId" />
-      <PropertyRef Name="TrackedMethods_MetadataToken" />
+      <PropertyRef Name="TrackedMethods_UnitTestId" />
     </Key>
     <Property Name="CoveredLines_CoveredLineId" Type="int" Nullable="false" />
-    <Property Name="TrackedMethods_MetadataToken" Type="int" Nullable="false" />
+    <Property Name="TrackedMethods_UnitTestId" Type="int" Nullable="false" />
   </EntityType>
   <EntityType Name="TrackedMethodUnitTests">
     <Key>
-      <PropertyRef Name="TrackedMethods_MetadataToken" />
+      <PropertyRef Name="TrackedMethods_UnitTestId" />
       <PropertyRef Name="UnitTests_UnitTestId" />
     </Key>
-    <Property Name="TrackedMethods_MetadataToken" Type="int" Nullable="false" />
+    <Property Name="TrackedMethods_UnitTestId" Type="int" Nullable="false" />
     <Property Name="UnitTests_UnitTestId" Type="int" Nullable="false" />
   </EntityType>
   <Association Name="Project_TestProjects">
@@ -155,10 +154,10 @@
     <End Role="TrackedMethod" Type="TestifyModel.Store.TrackedMethods" Multiplicity="1" />
     <ReferentialConstraint>
       <Principal Role="TrackedMethod">
-        <PropertyRef Name="MetadataToken" />
+        <PropertyRef Name="UnitTestId" />
       </Principal>
       <Dependent Role="CoveredLineTrackedMethods">
-        <PropertyRef Name="TrackedMethods_MetadataToken" />
+        <PropertyRef Name="TrackedMethods_UnitTestId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -167,10 +166,10 @@
     <End Role="TrackedMethodUnitTests" Type="TestifyModel.Store.TrackedMethodUnitTests" Multiplicity="*" />
     <ReferentialConstraint>
       <Principal Role="TrackedMethod">
-        <PropertyRef Name="MetadataToken" />
+        <PropertyRef Name="UnitTestId" />
       </Principal>
       <Dependent Role="TrackedMethodUnitTests">
-        <PropertyRef Name="TrackedMethods_MetadataToken" />
+        <PropertyRef Name="TrackedMethods_UnitTestId" />
       </Dependent>
     </ReferentialConstraint>
   </Association>
@@ -212,7 +211,7 @@
             <End Role="TrackedMethod" EntitySet="TrackedMethods" />
             <End Role="UnitTest" EntitySet="UnitTests" />
           </AssociationSet>
-        </EntityContainer>
+          </EntityContainer>
         <EntityType Name="CoveredLine">
           <Key>
             <PropertyRef Name="CoveredLineId" />
@@ -221,12 +220,12 @@
           <Property Name="Class" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
           <Property Name="Method" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
           <Property Name="LineNumber" Type="Int32" Nullable="false" />
-          <Property Name="MetadataToken" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="None" />
           <Property Name="IsCode" Type="Boolean" Nullable="false" />
           <Property Name="IsCovered" Type="Boolean" Nullable="false" />
           <Property Type="Int32" Name="CoveredLineId" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <NavigationProperty Name="TrackedMethods" Relationship="TestifyModel.CoveredLineTrackedMethods" FromRole="CoveredLine" ToRole="TrackedMethod" />
           <Property Type="Boolean" Name="IsSuccessful" Nullable="false" />
+          <Property Type="Int32" Name="UnitTestId" Nullable="false" />
         </EntityType>
         <EntityType Name="Project">
           <Key>
@@ -253,14 +252,14 @@
         </EntityType>
         <EntityType Name="TrackedMethod">
           <Key>
-            <PropertyRef Name="MetadataToken" />
+            <PropertyRef Name="UnitTestId" />
           </Key>
-          <Property Name="MetadataToken" Type="Int32" Nullable="false" />
           <Property Name="UniqueId" Type="Int32" Nullable="false" />
           <Property Name="Name" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
           <Property Name="Strategy" Type="String" MaxLength="200" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="CoveredLines" Relationship="TestifyModel.CoveredLineTrackedMethods" FromRole="TrackedMethod" ToRole="CoveredLine" />
           <NavigationProperty Name="UnitTests" Relationship="TestifyModel.TrackedMethodUnitTests" FromRole="TrackedMethod" ToRole="UnitTest" />
+          <Property Type="Int32" Name="UnitTestId" Nullable="false" />
         </EntityType>
         <EntityType Name="UnitTest">
           <Key>
@@ -269,7 +268,6 @@
           <Property Name="UnitTestId" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
           <Property Name="TestProjectUniqueName" Type="String" MaxLength="1000" Unicode="true" FixedLength="false" />
           <Property Name="IsSuccessful" Type="Boolean" Nullable="false" />
-          <Property Name="MetadataToken" Type="Int32" />
           <NavigationProperty Name="TestProject" Relationship="TestifyModel.TestProject_UnitTests" FromRole="UnitTests" ToRole="TestProjects" />
           <NavigationProperty Name="TrackedMethods" Relationship="TestifyModel.TrackedMethodUnitTests" FromRole="UnitTest" ToRole="TrackedMethod" />
           <Property Type="String" Name="TestMethodName" Nullable="false" MaxLength="1000" />
@@ -313,7 +311,7 @@
           <End Type="TestifyModel.TrackedMethod" Role="TrackedMethod" Multiplicity="*" />
           <End Type="TestifyModel.UnitTest" Role="UnitTest" Multiplicity="*" />
         </Association>
-      </Schema>
+        </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
@@ -327,10 +325,10 @@
           <ScalarProperty Name="Class" ColumnName="Class" />
           <ScalarProperty Name="Method" ColumnName="Method" />
           <ScalarProperty Name="LineNumber" ColumnName="LineNumber" />
-          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
           <ScalarProperty Name="IsCode" ColumnName="IsCode" />
           <ScalarProperty Name="IsCovered" ColumnName="IsCovered" />
           <ScalarProperty Name="IsSuccessful" ColumnName="IsSuccessful" />
+          <ScalarProperty Name="UnitTestId" ColumnName="UnitTestId" />
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>
@@ -359,7 +357,7 @@
     <EntitySetMapping Name="TrackedMethods">
       <EntityTypeMapping TypeName="IsTypeOf(TestifyModel.TrackedMethod)">
         <MappingFragment StoreEntitySet="TrackedMethods">
-          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
+          <ScalarProperty Name="UnitTestId" ColumnName="UnitTestId" />
           <ScalarProperty Name="UniqueId" ColumnName="UniqueId" />
           <ScalarProperty Name="Name" ColumnName="Name" />
           <ScalarProperty Name="Strategy" ColumnName="Strategy" />
@@ -372,7 +370,6 @@
           <ScalarProperty Name="UnitTestId" ColumnName="UnitTestId" />
           <ScalarProperty Name="TestProjectUniqueName" ColumnName="TestProjectUniqueName" />
           <ScalarProperty Name="IsSuccessful" ColumnName="IsSuccessful" />
-          <ScalarProperty Name="MetadataToken" ColumnName="MetadataToken" />
           <ScalarProperty Name="TestMethodName" ColumnName="TestMethodName" />
           <ScalarProperty Name="NumberOfAsserts" ColumnName="NumberOfAsserts" />
           <ScalarProperty Name="Executed" ColumnName="Executed" />
@@ -389,12 +386,12 @@
         <ScalarProperty Name="CoveredLineId" ColumnName="CoveredLines_CoveredLineId" />
       </EndProperty>
       <EndProperty Name="TrackedMethod">
-        <ScalarProperty Name="MetadataToken" ColumnName="TrackedMethods_MetadataToken" />
+        <ScalarProperty Name="UnitTestId" ColumnName="TrackedMethods_UnitTestId" />
       </EndProperty>
     </AssociationSetMapping>
     <AssociationSetMapping Name="TrackedMethodUnitTests" TypeName="TestifyModel.TrackedMethodUnitTests" StoreEntitySet="TrackedMethodUnitTests">
       <EndProperty Name="TrackedMethod">
-        <ScalarProperty Name="MetadataToken" ColumnName="TrackedMethods_MetadataToken" />
+        <ScalarProperty Name="UnitTestId" ColumnName="TrackedMethods_UnitTestId" />
       </EndProperty>
       <EndProperty Name="UnitTest">
         <ScalarProperty Name="UnitTestId" ColumnName="UnitTests_UnitTestId" />
@@ -413,7 +410,7 @@
     <Options>
       <DesignerInfoPropertySet>
         <DesignerProperty Name="ValidateOnBuild" Value="true" />
-        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="EnablePluralization" Value="False" />
         <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
         <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
       </DesignerInfoPropertySet>

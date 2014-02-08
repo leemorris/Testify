@@ -110,6 +110,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EntityModel.Context.tt</DependentUpon>
+    </Compile>
     <Compile Include="EntityModel.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -127,6 +132,11 @@
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>EntityModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
+    <None Include="EntityModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>EntityModel.Context.cs</LastGenOutput>
+      <DependentUpon>EntityModel.edmx</DependentUpon>
+    </None>
     <None Include="EntityModel.edmx.diagram">
       <DependentUpon>EntityModel.edmx</DependentUpon>
       <SubType>Designer</SubType>

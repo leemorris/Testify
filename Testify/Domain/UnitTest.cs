@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Leem.Testify.Domain
+namespace Leem.Testify
 {
     using System;
     using System.Collections.Generic;
@@ -22,7 +22,6 @@ namespace Leem.Testify.Domain
         public int UnitTestId { get; set; }
         public string TestProjectUniqueName { get; set; }
         public bool IsSuccessful { get; set; }
-        public Nullable<int> MetadataToken { get; set; }
         public string TestMethodName { get; set; }
         public Nullable<int> NumberOfAsserts { get; set; }
         public bool Executed { get; set; }

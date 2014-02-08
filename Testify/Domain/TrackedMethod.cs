@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Leem.Testify.Domain
+namespace Leem.Testify
 {
     using System;
     using System.Collections.Generic;
@@ -19,8 +19,8 @@ namespace Leem.Testify.Domain
             this.CoveredLines = new HashSet<CoveredLine>();
             this.UnitTests = new HashSet<UnitTest>();
         }
-    
-        public int MetadataToken { get; set; }
+
+        public int UnitTestId { get; set; }
         public int UniqueId { get; set; }
         public string Name { get; set; }
         public string Strategy { get; set; }

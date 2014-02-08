@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Leem.Testify.Domain
+namespace Leem.Testify
 {
     using System;
     using System.Collections.Generic;
