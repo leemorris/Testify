@@ -1,0 +1,265 @@
+﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="CoverageSession">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Summary">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:int" name="numSequencePoints"/>
+                <xs:attribute type="xs:int" name="visitedSequencePoints"/>
+                <xs:attribute type="xs:int" name="numBranchPoints"/>
+                <xs:attribute type="xs:int" name="visitedBranchPoints"/>
+                <xs:attribute type="xs:int" name="sequenceCoverage"/>
+                <xs:attribute type="xs:int" name="branchCoverage"/>
+                <xs:attribute type="xs:int" name="maxCyclomaticComplexity"/>
+                <xs:attribute type="xs:int" name="minCyclomaticComplexity"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Modules">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Module" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Summary" minOccurs="0">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute type="xs:int" name="numSequencePoints"/>
+                            <xs:attribute type="xs:int" name="visitedSequencePoints"/>
+                            <xs:attribute type="xs:int" name="numBranchPoints"/>
+                            <xs:attribute type="xs:int" name="visitedBranchPoints"/>
+                            <xs:attribute type="xs:int" name="sequenceCoverage"/>
+                            <xs:attribute type="xs:int" name="branchCoverage"/>
+                            <xs:attribute type="xs:int" name="maxCyclomaticComplexity"/>
+                            <xs:attribute type="xs:int" name="minCyclomaticComplexity"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element type="xs:string" name="FullName"/>
+                    <xs:element type="xs:string" name="ModuleName"/>
+                    <xs:element name="Files" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="File">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:int" name="uid"/>
+                                  <xs:attribute type="xs:string" name="fullPath"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="Classes">
+                      <xs:complexType mixed="true">
+                        <xs:sequence>
+                          <xs:element name="Class" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="Summary">
+                                  <xs:complexType>
+                                    <xs:simpleContent>
+                                      <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:int" name="numSequencePoints" use="optional"/>
+                                        <xs:attribute type="xs:int" name="visitedSequencePoints" use="optional"/>
+                                        <xs:attribute type="xs:int" name="numBranchPoints" use="optional"/>
+                                        <xs:attribute type="xs:int" name="visitedBranchPoints" use="optional"/>
+                                        <xs:attribute type="xs:int" name="sequenceCoverage" use="optional"/>
+                                        <xs:attribute type="xs:int" name="branchCoverage" use="optional"/>
+                                        <xs:attribute type="xs:int" name="maxCyclomaticComplexity" use="optional"/>
+                                        <xs:attribute type="xs:int" name="minCyclomaticComplexity" use="optional"/>
+                                      </xs:extension>
+                                    </xs:simpleContent>
+                                  </xs:complexType>
+                                </xs:element>
+                                <xs:element type="xs:string" name="FullName"/>
+                                <xs:element name="Methods">
+                                  <xs:complexType mixed="true">
+                                    <xs:sequence>
+                                      <xs:element name="Method" maxOccurs="unbounded" minOccurs="0">
+                                        <xs:complexType>
+                                          <xs:sequence>
+                                            <xs:element name="Summary">
+                                              <xs:complexType>
+                                                <xs:simpleContent>
+                                                  <xs:extension base="xs:string">
+                                                    <xs:attribute type="xs:int" name="numSequencePoints" use="optional"/>
+                                                    <xs:attribute type="xs:int" name="visitedSequencePoints" use="optional"/>
+                                                    <xs:attribute type="xs:int" name="numBranchPoints" use="optional"/>
+                                                    <xs:attribute type="xs:int" name="visitedBranchPoints" use="optional"/>
+                                                    <xs:attribute type="xs:float" name="sequenceCoverage" use="optional"/>
+                                                    <xs:attribute type="xs:float" name="branchCoverage" use="optional"/>
+                                                    <xs:attribute type="xs:int" name="maxCyclomaticComplexity" use="optional"/>
+                                                    <xs:attribute type="xs:int" name="minCyclomaticComplexity" use="optional"/>
+                                                  </xs:extension>
+                                                </xs:simpleContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                            <xs:element type="xs:int" name="MetadataToken"/>
+                                            <xs:element type="xs:string" name="Name"/>
+                                            <xs:element name="FileRef" minOccurs="0">
+                                              <xs:complexType>
+                                                <xs:simpleContent>
+                                                  <xs:extension base="xs:string">
+                                                    <xs:attribute type="xs:int" name="uid" use="optional"/>
+                                                  </xs:extension>
+                                                </xs:simpleContent>
+                                              </xs:complexType>
+                                            </xs:element>
+                                            <xs:element name="SequencePoints">
+                                              <xs:complexType mixed="true">
+                                                <xs:sequence>
+                                                  <xs:element name="SequencePoint" maxOccurs="unbounded" minOccurs="0">
+                                                    <xs:complexType mixed="true">
+                                                      <xs:sequence>
+                                                        <xs:element name="TrackedMethodRefs" minOccurs="0">
+                                                          <xs:complexType>
+                                                            <xs:sequence>
+                                                              <xs:element name="TrackedMethodRef" maxOccurs="unbounded" minOccurs="0">
+                                                                <xs:complexType>
+                                                                  <xs:simpleContent>
+                                                                    <xs:extension base="xs:string">
+                                                                      <xs:attribute type="xs:int" name="uid" use="optional"/>
+                                                                      <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                                    </xs:extension>
+                                                                  </xs:simpleContent>
+                                                                </xs:complexType>
+                                                              </xs:element>
+                                                            </xs:sequence>
+                                                          </xs:complexType>
+                                                        </xs:element>
+                                                      </xs:sequence>
+                                                      <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="uspid" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="ordinal" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="offset" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="sl" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="sc" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="el" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="ec" use="optional"/>
+                                                    </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                              </xs:complexType>
+                                            </xs:element>
+                                            <xs:element name="BranchPoints">
+                                              <xs:complexType mixed="true">
+                                                <xs:sequence>
+                                                  <xs:element name="BranchPoint" maxOccurs="unbounded" minOccurs="0">
+                                                    <xs:complexType mixed="true">
+                                                      <xs:sequence>
+                                                        <xs:element name="TrackedMethodRefs" minOccurs="0">
+                                                          <xs:complexType>
+                                                            <xs:sequence>
+                                                              <xs:element name="TrackedMethodRef" maxOccurs="unbounded" minOccurs="0">
+                                                                <xs:complexType>
+                                                                  <xs:simpleContent>
+                                                                    <xs:extension base="xs:string">
+                                                                      <xs:attribute type="xs:int" name="uid" use="optional"/>
+                                                                      <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                                    </xs:extension>
+                                                                  </xs:simpleContent>
+                                                                </xs:complexType>
+                                                              </xs:element>
+                                                            </xs:sequence>
+                                                          </xs:complexType>
+                                                        </xs:element>
+                                                      </xs:sequence>
+                                                      <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="uspid" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="ordinal" use="optional"/>
+                                                      <xs:attribute type="xs:int" name="offset" use="optional"/>
+                                                      <xs:attribute type="xs:string" name="path" use="optional"/>
+                                                    </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                              </xs:complexType>
+                                            </xs:element>
+                                            <xs:element name="MethodPoint">
+                                              <xs:complexType mixed="true">
+                                                <xs:sequence>
+                                                  <xs:element name="TrackedMethodRefs" minOccurs="0">
+                                                    <xs:complexType>
+                                                      <xs:sequence>
+                                                        <xs:element name="TrackedMethodRef" maxOccurs="unbounded" minOccurs="0">
+                                                          <xs:complexType>
+                                                            <xs:simpleContent>
+                                                              <xs:extension base="xs:string">
+                                                                <xs:attribute type="xs:int" name="uid" use="optional"/>
+                                                                <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                              </xs:extension>
+                                                            </xs:simpleContent>
+                                                          </xs:complexType>
+                                                        </xs:element>
+                                                      </xs:sequence>
+                                                    </xs:complexType>
+                                                  </xs:element>
+                                                </xs:sequence>
+                                                <xs:attribute type="xs:int" name="vc" use="optional"/>
+                                                <xs:attribute type="xs:int" name="uspid" use="optional"/>
+                                                <xs:attribute type="xs:int" name="ordinal" use="optional"/>
+                                                <xs:attribute type="xs:int" name="offset" use="optional"/>
+                                                <xs:attribute type="xs:int" name="sl" use="optional"/>
+                                                <xs:attribute type="xs:int" name="sc" use="optional"/>
+                                                <xs:attribute type="xs:int" name="el" use="optional"/>
+                                                <xs:attribute type="xs:int" name="ec" use="optional"/>
+                                              </xs:complexType>
+                                            </xs:element>
+                                          </xs:sequence>
+                                          <xs:attribute type="xs:string" name="visited" use="optional"/>
+                                          <xs:attribute type="xs:int" name="cyclomaticComplexity" use="optional"/>
+                                          <xs:attribute type="xs:float" name="sequenceCoverage" use="optional"/>
+                                          <xs:attribute type="xs:float" name="branchCoverage" use="optional"/>
+                                          <xs:attribute type="xs:string" name="isConstructor" use="optional"/>
+                                          <xs:attribute type="xs:string" name="isStatic" use="optional"/>
+                                          <xs:attribute type="xs:string" name="isGetter" use="optional"/>
+                                          <xs:attribute type="xs:string" name="isSetter" use="optional"/>
+                                        </xs:complexType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="TrackedMethods" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="TrackedMethod" maxOccurs="unbounded" minOccurs="0">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute type="xs:int" name="uid" use="optional"/>
+                                  <xs:attribute type="xs:int" name="token" use="optional"/>
+                                  <xs:attribute type="xs:string" name="name" use="optional"/>
+                                  <xs:attribute type="xs:string" name="strategy" use="optional"/>
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute type="xs:string" name="skippedDueTo" use="optional"/>
+                  <xs:attribute type="xs:string" name="hash" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

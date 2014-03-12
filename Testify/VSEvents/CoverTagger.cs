@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
-using Leem.Testify.Domain;
+
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -12,7 +12,7 @@ using log4net;
 using System.Globalization;
 using Microsoft.Win32;
 
-namespace Leem.Testify.VSEvents
+namespace Leem.Testify
 {
     internal class CoverTagger : ITagger<CoverTag>
     {
@@ -28,13 +28,12 @@ namespace Leem.Testify.VSEvents
 
         internal CoverTagger(IClassifier classifier, ITextBuffer buffer, SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
         {
-
             Log.DebugFormat("Inside CoverTagger constructor");
             m_classifier = classifier;
             _buffer = buffer;
             _dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
-            _coverageProvider = coverageProviderBroker.GetCoverageProvider(buffer, _dte, serviceProvider );
+        //    _coverageProvider = coverageProviderBroker.GetCoverageProvider(buffer, _dte, serviceProvider );
             _serviceProvider = serviceProvider;
            
             ITextDocument document;
@@ -44,7 +43,6 @@ namespace Leem.Testify.VSEvents
                 _coverageService = CoverageService.Instance;
                 _coverageService.Document =  document;
                 _coverageService.SolutionName=_dte.Solution.FullName;
-          
             }
 
         }
@@ -52,43 +50,44 @@ namespace Leem.Testify.VSEvents
  
         IEnumerable<ITagSpan<CoverTag>> ITagger<CoverTag>.GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (_dte.ActiveDocument != null && _coverageService.Document != null && !_dte.ActiveDocument.Path.Contains(".test")) 
-            {
-                    foreach (SnapshotSpan span in spans)
-                {
-                    var coveredLinesForThisDocument = _coverageProvider.GetCoveredLines(span);
-                    // figure out which line number we are actually on.
-                    var line = span.Snapshot.Lines.Where(x => x.Start.Position.Equals(span.Start.Position)).First().LineNumber;
+            //if (_dte.ActiveDocument != null && _coverageService.Document != null && !_dte.ActiveDocument.Path.Contains(".test")) 
+            //{
+            //        foreach (SnapshotSpan span in spans)
+            //    {
+            //        var coveredLinesForThisDocument = _coverageProvider.GetCoveredLines(span);
+            //        // figure out which line number we are actually on.
+            //        var line = span.Snapshot.Lines.Where(x => x.Start.Position.Equals(span.Start.Position)).First().LineNumber;
 
-                    CoveredLine coveredLine;
+            //        CoveredLine coveredLine;
    
-                    if (coveredLinesForThisDocument.TryGetValue(line + 1, out coveredLine))
-                    {
-                        foreach (ClassificationSpan classification in m_classifier.GetClassificationSpans(span))
-                        {
+            //        if (coveredLinesForThisDocument.TryGetValue(line + 1, out coveredLine))
+            //        {
+            //            foreach (ClassificationSpan classification in m_classifier.GetClassificationSpans(span))
+            //            {
 
-                            if ( coveredLine.IsCode)
-                            {
-                                if (coveredLine.IsSuccessful)
-                                {
-                                    yield return new TagSpan<CoverTag>(span, new CoverTag(1)); // Green
-                                }
-                                else if (coveredLine.IsSuccessful == false)
-                                {
-                                    yield return new TagSpan<CoverTag>(span, new CoverTag(3)); // Red
-                                }
-                                if ( coveredLine.IsCovered == false)
-                                {
-                                    yield return new TagSpan<CoverTag>(span, new CoverTag(2)); // Orange
-                                }
+            //                if ( coveredLine.IsCode)
+            //                {
+            //                    if (coveredLine.IsSuccessful)
+            //                    {
+            //                        yield return new TagSpan<CoverTag>(span, new CoverTag(1)); // Green
+            //                    }
+            //                    else if (coveredLine.IsSuccessful == false)
+            //                    {
+            //                        yield return new TagSpan<CoverTag>(span, new CoverTag(3)); // Red
+            //                    }
+            //                    if ( coveredLine.IsCovered == false)
+            //                    {
+            //                        yield return new TagSpan<CoverTag>(span, new CoverTag(2)); // Orange
+            //                    }
 
-                            }
+            //                }
 
-                        }
-                    }
-                    _lastVersionTagged = spans.First().Snapshot.Version.VersionNumber;
-                }
-            }
+            //            }
+            //        }
+            //        _lastVersionTagged = spans.First().Snapshot.Version.VersionNumber;
+            //    }
+            //}
+            return null;
 
         }
     }

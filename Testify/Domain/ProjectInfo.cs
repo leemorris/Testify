@@ -8,7 +8,7 @@ namespace Leem.Testify.Domain
 {
     public class ProjectInfo
     {
-        public TestProject TestProject {get; set; }
+        public Poco.TestProject TestProject {get; set; }
         public string ProjectName { get; set; }
         public string ProjectAssemblyName { get; set; }
     }

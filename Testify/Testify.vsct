@@ -33,8 +33,19 @@
     called "command set" and is used to group different command inside a logically related  
     group; your package should define its own command set in order to avoid collisions  
     with command ids defined by other packages. -->
+    <Menus>
 
-    
+      <Menu guid="guidNumberedBookmarksCmdSet" id="SubMenu" priority="0x0100" type="Menu">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Numbered Bookmarks</ButtonText>
+          <CommandName>Numbered Bookmarks</CommandName>
+        </Strings>
+      </Menu>
+
+    </Menus>
+
+
     <!-- In this section you can define new menu groups. A menu group is a container for 
          other menus or buttons (commands); from a visual point of view you can see the 
          group as the part of a menu contained between two lines. The parent of a group 
@@ -44,7 +55,13 @@
       <Group guid="guidTestifyCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
-      
+      <Group guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+
+      <Group guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" priority="0x0000">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenu" />
+      </Group>
 
 
     </Groups>
@@ -77,7 +94,103 @@
           <ButtonText>My Tool Window</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark1" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpOne" />
+        <Strings>
+          <CommandName>cmdBookmark1</CommandName>
+          <ButtonText>Bookmark 1</ButtonText>
+        </Strings>
+      </Button>
 
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark2" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpTwo" />
+        <Strings>
+          <CommandName>cmdBookmark2</CommandName>
+          <ButtonText>Bookmark 2</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark3" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpThree" />
+        <Strings>
+          <CommandName>cmdBookmark3</CommandName>
+          <ButtonText>Bookmark 3</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark4" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpFour" />
+        <Strings>
+          <CommandName>cmdBookmark4</CommandName>
+          <ButtonText>Bookmark 4</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark5" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpFive" />
+        <Strings>
+          <CommandName>cmdBookmark5</CommandName>
+          <ButtonText>Bookmark 5</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark6" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpSix" />
+        <Strings>
+          <CommandName>cmdBookmark6</CommandName>
+          <ButtonText>Bookmark 6</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark7" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpSeven" />
+        <Strings>
+          <CommandName>cmdBookmark7</CommandName>
+          <ButtonText>Bookmark 7</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark8" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpEight" />
+        <Strings>
+          <CommandName>cmdBookmark8</CommandName>
+          <ButtonText>Bookmark 8</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark9" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpNine" />
+        <Strings>
+          <CommandName>cmdBookmark9</CommandName>
+          <ButtonText>Bookmark 9</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark0" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpZero" />
+        <Strings>
+          <CommandName>cmdBookmark0</CommandName>
+          <ButtonText>Bookmark 0</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdClearBookmarks" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Strings>
+          <CommandName>cmdClearBookmarks</CommandName>
+          <ButtonText>Clear Bookmarks</ButtonText>
+        </Strings>
+      </Button>
 
     </Buttons>
    
@@ -94,7 +207,19 @@
  
   </Commands>
 
-
+  <KeyBindings>
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark0" editor="guidVSStd97" key1="0" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark1" editor="guidVSStd97" key1="1" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark2" editor="guidVSStd97" key1="2" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark3" editor="guidVSStd97" key1="3" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark4" editor="guidVSStd97" key1="4" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark5" editor="guidVSStd97" key1="5" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark6" editor="guidVSStd97" key1="6" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark7" editor="guidVSStd97" key1="7" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark8" editor="guidVSStd97" key1="8" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdBookmark9" editor="guidVSStd97" key1="9" mod1="Control Alt" />
+    <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdClearBookmarks" editor="guidVSStd97" key1="VK_BACK" mod1="Control Alt" />
+  </KeyBindings>
 
 
 
@@ -108,9 +233,39 @@
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="cmdidSolutionTests" value="0x0100" />
       <IDSymbol name="cmdidMyTool" value="0x0101" />
+      
+      
+      
     </GuidSymbol>
-    
-    
+    <GuidSymbol name="guidNumberedBookmarksCmdSet" value="{c74fc9bd-32e1-4135-bddd-779021cc3630}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="SubMenuGroup" value="0x1150" />
+      <IDSymbol name="SubMenu" value="0x1100" />
+      <IDSymbol name="cmdBookmark0" value="0x0005" />
+      <IDSymbol name="cmdBookmark1" value="0x0015" />
+      <IDSymbol name="cmdBookmark2" value="0x0025" />
+      <IDSymbol name="cmdBookmark3" value="0x0035" />
+      <IDSymbol name="cmdBookmark4" value="0x0045" />
+      <IDSymbol name="cmdBookmark5" value="0x0055" />
+      <IDSymbol name="cmdBookmark6" value="0x0065" />
+      <IDSymbol name="cmdBookmark7" value="0x0075" />
+      <IDSymbol name="cmdBookmark8" value="0x0085" />
+      <IDSymbol name="cmdBookmark9" value="0x0095" />
+      <IDSymbol name="cmdClearBookmarks" value="0x0105" />
+    </GuidSymbol>
+    <GuidSymbol name="guidIcons" value="{1097bc53-206b-4232-a166-1dfe7cdaedf4}">
+      <IDSymbol name="bmpZero" value="1" />
+      <IDSymbol name="bmpOne" value="2" />
+      <IDSymbol name="bmpTwo" value="3" />
+      <IDSymbol name="bmpThree" value="4" />
+      <IDSymbol name="bmpFour" value="5" />
+      <IDSymbol name="bmpFive" value="6" />
+      <IDSymbol name="bmpSix" value="7" />
+      <IDSymbol name="bmpSeven" value="8" />
+      <IDSymbol name="bmpEight" value="9" />
+      <IDSymbol name="bmpNine" value="10" />
+      <IDSymbol name="bmpNumbers" value="11" />
+    </GuidSymbol>
     
     <GuidSymbol name="guidImages" value="{a4674c0e-71f6-49cc-b170-5ca62614f192}" >
       <IDSymbol name="bmpPic1" value="1" />

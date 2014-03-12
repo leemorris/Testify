@@ -26,6 +26,7 @@ namespace Leem.Testify.Wiring
             ObjectFactory.Configure(x=>
             {
                     x.For<ITestifyQueries>().Use<TestifyQueries>();
+
                 });
 
 

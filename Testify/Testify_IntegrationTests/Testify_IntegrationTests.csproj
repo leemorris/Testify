@@ -37,9 +37,6 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
-      <HintPath>..\..\..\..\..\..\..\..\WIP\Testify\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
     <Reference Include="envdte" />
     <Reference Include="envdte80" />
     <Reference Include="log4net">
@@ -65,11 +62,6 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.VSSDK.TestHostFramework" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\..\..\..\..\..\..\..\WIP\Testify\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <!--<Compile Include="Properties\AssemblyInfo.cs" />-->
@@ -90,7 +82,9 @@
     <Compile Include="SignOff-Tests\VBProjectTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Key.snk" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -103,7 +97,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-</PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

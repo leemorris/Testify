@@ -1,7 +1,7 @@
 namespace Leem.Testify.Migrations
 {
     using System;
-    using System.Data.Entity.Core;
+    using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
@@ -10,9 +10,8 @@ namespace Leem.Testify.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
         }
-//Enable-Migrations -ProjectName "DataLayer" -StartUpProjectName "Testify"
-//Add-Migration TestProjectAssemblyName -ProjectName "DataLayer" -StartUpProjectName "Testify"
 
         protected override void Seed(Leem.Testify.DataLayer.TestifyContext context)
         {
@@ -21,9 +20,13 @@ namespace Leem.Testify.Migrations
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
             //  to avoid creating duplicate seed data. E.g.
             //
-            context.Database.ExecuteSqlCommand("CREATE INDEX idxClass ON CoveredLines (Class);");
-            context.Database.ExecuteSqlCommand("CREATE INDEX idxModule ON CoveredLines (Module);");
-            context.Database.ExecuteSqlCommand("CREATE INDEX idxTestMethodName ON UnitTests(TestMethodName)");
+            //    context.People.AddOrUpdate(
+            //      p => p.FullName,
+            //      new Person { FullName = "Andrew Peters" },
+            //      new Person { FullName = "Brice Lambson" },
+            //      new Person { FullName = "Rowan Miller" }
+            //    );
+            //
         }
     }
 }

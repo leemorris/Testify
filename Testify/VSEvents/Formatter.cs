@@ -6,12 +6,11 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Diagnostics;
-using Leem.Testify.Domain;
-using Leem.Testify.DataLayer;
+
 using EnvDTE80;
 using log4net;
 
-namespace Leem.Testify.VSEvents
+namespace Leem.Testify
 {
     ///todo Change name of this class
     class Formatter
@@ -52,7 +51,7 @@ namespace Leem.Testify.VSEvents
 
                 var codeElement = GetMethodFromTextPoint(textPoint);
                 var projectItem = _dte.ActiveDocument.ProjectItem;
-                //RunTestsThatCoverMethod(textPoint, codeElement, projectItem);
+               // RunTestsThatCoverMethod(textPoint, codeElement, projectItem);
 
             }
         }

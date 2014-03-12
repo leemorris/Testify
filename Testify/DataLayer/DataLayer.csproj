@@ -69,11 +69,13 @@
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40">
-      <HintPath>..\..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
+    <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.4, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\packages\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
@@ -82,8 +84,9 @@
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Salient.Data">
-      <HintPath>..\..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\Salient.Data.dll</HintPath>
+    <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\Salient.Data.dll</HintPath>
     </Reference>
     <Reference Include="StructureMap">
       <HintPath>..\..\packages\structuremap.2.6.4.1\lib\net40\StructureMap.dll</HintPath>
@@ -97,61 +100,40 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.SqlServerCe.Entity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\EntityFramework.SqlServerCompact.4.3.6\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
+    <Reference Include="System.Data">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EntityModel.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EntityModel.Context.tt</DependentUpon>
+    <Compile Include="Migrations\201402181124546_Initial.cs" />
+    <Compile Include="Migrations\201402181124546_Initial.Designer.cs">
+      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
     </Compile>
-    <Compile Include="EntityModel.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EntityModel.edmx</DependentUpon>
+    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.cs" />
+    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.Designer.cs">
+      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
     </Compile>
-    <Compile Include="TestifyQueries.cs" />
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="TestifyContext.cs" />
+    <Compile Include="TestifyQueries.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <EntityDeploy Include="EntityModel.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>EntityModel.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="EntityModel.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityModel.Context.cs</LastGenOutput>
-      <DependentUpon>EntityModel.edmx</DependentUpon>
-    </None>
-    <None Include="EntityModel.edmx.diagram">
-      <DependentUpon>EntityModel.edmx</DependentUpon>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="EntityModel.edmx.sqlce" />
+    <None Include="ClassDiagram.cd" />
     <None Include="Key.snk" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TestifyCE.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -180,6 +162,14 @@
       <Project>{edd9ca67-be26-4501-a7d1-405b85e80588}</Project>
       <Name>Domain</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201402181124546_Initial.resx">
+      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.resx">
+      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

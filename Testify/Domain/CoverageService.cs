@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Leem.Testify.Domain.DaoInterfaces;
 using StructureMap;
 using log4net;
+using Leem.Testify.Poco;
 
 namespace Leem.Testify.Domain
 {
@@ -26,11 +27,14 @@ namespace Leem.Testify.Domain
         private ILog Log = LogManager.GetLogger(typeof(CoverageService));
         private DTE _dte; 
         private string _solutionName;
+        private ITestifyQueries _queries;
 
         public static CoverageService Instance
         {
             get
             {
+                
+
                 if (instance == null)
                 {
                     instance = new CoverageService();
@@ -105,9 +109,10 @@ namespace Leem.Testify.Domain
             return coveredLines;
         }
 
-        private static void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class codeClass, Method method)
+        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class codeClass, Method method)
         {
-            //Log.DebugFormat("Class: {0}", method.Name);
+
+
             var sequencePoints = method.SequencePoints;
             foreach (var sequencePoint in sequencePoints)
             {
@@ -118,24 +123,27 @@ namespace Leem.Testify.Domain
                     IsCovered = (sequencePoint.VisitCount > 0),
                     Module = module.FullName,
                     Class = codeClass.FullName,
-                    Method = method.Name
+                    Method = method.Name,
+                    UnitTests = new List<UnitTest>()
                 };
                 if (tests.Any())
                 {
-                    var coveringTests = new List<TrackedMethod>();
+                    var coveringTests = new Poco.TrackedMethod();
                     foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                     {
-                        var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
-                        foreach (var test in testsThatCoverLine)
+                        var trackedMethod = tests.FirstOrDefault(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
+
+                        coveredLine.IsCode = true;
+                        coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
+                        coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
-                            coveredLine.IsCode = true;
-                            coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
-                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, 
-                                                                            UnitTestId = test.UnitTestId, 
-                                                                            Strategy = test.Strategy, 
-                                                                            Name = test.Name,
-                                                                            MetadataToken = test.MetadataToken };
-                        }
+                            UniqueId = (int)trackedMethod.UniqueId,
+                            UnitTestId = trackedMethod.UnitTestId,
+                            Strategy = trackedMethod.Strategy,
+                            Name = trackedMethod.Name,
+                            MetadataToken = trackedMethod.MetadataToken
+                        });
+
                     }
 
                 }
@@ -145,20 +153,20 @@ namespace Leem.Testify.Domain
 
 
 
-
-        public object GetRetestedLinesFromCoverageSession(CoverageSession coverageSession, string projectAssemblyName, int metadataToken)
+        public List<LineCoverageInfo> GetRetestedLinesFromCoverageSession(CoverageSession coverageSession, string projectAssemblyName, List<int> metadataTokens)
         {
+
+            /// todo need to figure out how to remove a CoveredLine if an Edit has made it uncovered, 
+            /// without removing all lines that were not covered by the subset of tests that were run
+            /// One option: check all previously covered lines from this group of tests with the current covered lines list from this group.
+            /// 
+            //todo Handle case where a line that was "Code" and was covered is now not "Code"
             var coveredLines = new List<LineCoverageInfo>();
             
             var sessionModules = coverageSession.Modules;
-            Log.DebugFormat("Number of Modules: {0}", sessionModules.Count());
-            foreach (var sessionModule in sessionModules)
-            {
-                Log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
-            }
             var module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
-
             var tests = sessionModules.Where(x => x.TrackedMethods.Count() > 0).SelectMany(y => y.TrackedMethods);
+            // Get the MetadataTokens for the UnitTestIds that were run
 
             if (module != null)
             {
@@ -172,7 +180,7 @@ namespace Leem.Testify.Domain
                     var methods = codeClass.Methods;
                     foreach (var method in methods)
                     {
-                        if (method.MetadataToken.Equals(metadataToken))
+                        if (metadataTokens.Contains(method.MetadataToken))
                         {
                             //Log.DebugFormat("Class: {0}", method.Name);
                             var sequencePoints = method.SequencePoints;
@@ -189,7 +197,7 @@ namespace Leem.Testify.Domain
                                 };
                                 if (tests.Any())
                                 {
-                                    var coveringTests = new List<TrackedMethod>();
+                                    var coveringTests = new List<Poco.TrackedMethod>();
                                     foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                                     {
                                         var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
@@ -197,10 +205,10 @@ namespace Leem.Testify.Domain
                                         {
                                             coveredLine.IsCode = true;
                                             coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
-                                            coveredLine.CoveringTest = new TrackedMethod { UniqueId = (int)test.UniqueId, 
-
+                                            coveredLine.TrackedMethods.Add( new Poco.TrackedMethod { UniqueId = (int)test.UniqueId, 
+                                                                                            MetadataToken = method.MetadataToken,
                                                                                             Strategy = test.Strategy, 
-                                                                                            Name = test.Name };
+                                                                                            Name = test.Name });
                                         }
                                     }
 

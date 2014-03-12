@@ -8,31 +8,33 @@ using System.IO;
 using System.Data.Entity.Infrastructure;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Leem.Testify.Domain;
+using Leem.Testify.Poco;
+using System.Data.SqlServerCe;
 
 
 namespace Leem.Testify.DataLayer
 {
     public class TestifyContext : DbContext, IDisposable
     {
-        public TestifyContext()
+
+        public TestifyContext() : base("name=TestifyDb") { }
+
+
+        public TestifyContext(string solutionName)
+            : base(new SqlCeConnection(GetConnectionString(solutionName)),
+             contextOwnsConnection: true)
         {
-                
+            Database.SetInitializer<TestifyContext>(new DropCreateDatabaseIfModelChanges<TestifyContext>());
         }
-                     
-       public  TestifyContext (string solutionName)
-       {
-          
-           var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-          
-           var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
-           
-           // Set connection string
-           var connectionString = string.Format("Data Source={0}", path);
-           Database.DefaultConnectionFactory = new SqlCeConnectionFactory("System.Data.SqlServerCe.4.0", "", connectionString);
+        private static string GetConnectionString(string solutionName) 
+        {
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
 
-
-       }
+            // Set connection string
+           string connectionString = string.Format("Data Source={0}", path);
+           return connectionString;
+        }
         public DbSet<UnitTest> UnitTests { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<TestProject> TestProjects { get; set; }
@@ -42,21 +44,36 @@ namespace Leem.Testify.DataLayer
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UnitTest>().Property(x => x.UnitTestId).HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity); 
-               // .HasKey(x => x.UnitTestId);
+            modelBuilder.Entity<Poco.UnitTest>()
+                .HasKey(x => x.UnitTestId)
+                .Ignore(c => c.MetadataToken);
             modelBuilder.Entity<TrackedMethod>()
-                .HasKey(x => x.Name);
-            modelBuilder.Entity<TrackedMethod>().Property(x => x.UnitTestId); 
+                .HasKey(x => x.UnitTestId);
+            modelBuilder.Entity<TrackedMethod>()
+                .Ignore(t => t.MetadataToken);
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
             modelBuilder.Entity<CoveredLine>()
-                .HasKey(x => x.CoveredLineId);
-            modelBuilder.Entity<CoveredLine>()
-                .Property(x => x.CoveredLineId)
-                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
-            
+                .HasMany(c => c.UnitTests)
+                .WithMany(u => u.CoveredLines)
+                .Map(mc => 
+                {
+                    mc.MapLeftKey("CoveredLineId");
+                    mc.MapRightKey("UnitTestId");
+                    mc.ToTable("CoveredLineUnitTest");
+                });
+                //.HasRequired(y => y.UnitTests)
+                //.WithMany()
+                //.HasForeignKey(x=>x.CoveredLineId);
+                //.WithMany(x => x.CoveredLines);
+            //modelBuilder.Entity<CoveredLine>()
+            //    .Property(x => x.CoveredLineId)
+            //    .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+            //modelBuilder.Entity<CoveredLine>()
+            //    .HasMany(a => a.UnitTests);
+            modelBuilder.Entity<UnitTest>().Ignore(c => c.MetadataToken);
             base.OnModelCreating(modelBuilder);
 
         }

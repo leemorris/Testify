@@ -41,38 +41,56 @@
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework">
-      <HintPath>..\..\..\..\..\..\..\WIP\Testify\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40">
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
+    <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.4, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\..\..\..\..\..\WIP\Testify\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0">
-      <EmbedInteropTypes>true</EmbedInteropTypes>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Data, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.11.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" />
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\..\..\WIP\Testify\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Salient.Data">
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.3\lib\net40\Salient.Data.dll</HintPath>
+    <Reference Include="OpenCover.Extensions, Version=4.5.1604.1, Culture=neutral, PublicKeyToken=151da2c1c93a95e3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Rebuild\Testify\Testify\OpenCover\OpenCover.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenCover.Framework, Version=4.5.1604.1, Culture=neutral, PublicKeyToken=151da2c1c93a95e3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Rebuild\Testify\Testify\OpenCover\OpenCover.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\Salient.Data.dll</HintPath>
     </Reference>
     <Reference Include="StructureMap">
       <HintPath>..\..\..\..\..\..\..\WIP\Testify\packages\structuremap.2.6.4.1\lib\net40\StructureMap.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -81,8 +99,13 @@
       <Private>True</Private>
       <HintPath>..\..\..\..\..\..\..\WIP\Testify\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.SqlServerCe.Entity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\EntityFramework.SqlServerCompact.4.3.6\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
+    </Reference>
     <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="PresentationCore" />
@@ -100,27 +123,9 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
-    <COMReference Include="EnvDTE100">
-      <Guid>{26AD1324-4B7C-44BC-84F8-B86AED45729F}</Guid>
-      <VersionMajor>10</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
     <COMReference Include="EnvDTE80">
       <Guid>{1A31287A-4D7D-413E-8E32-3B374931BD89}</Guid>
       <VersionMajor>8</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="EnvDTE90">
-      <Guid>{2CE2370E-D744-4936-A090-3FFFE667B0E1}</Guid>
-      <VersionMajor>9</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
@@ -147,22 +152,108 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bookmark.cs" />
+    <Compile Include="BookmarkGlyph.xaml.cs" />
+    <Compile Include="BookmarkMargin.cs" />
+    <Compile Include="CodeMark.cs" />
+    <Compile Include="CodeMarkManager.cs" />
+    <Compile Include="CodeModelService.cs" />
+    <Compile Include="CoverageFileReader.cs" />
+    <Compile Include="CoverageMargin.cs" />
+    <Compile Include="CoverageMarginFactory.cs" />
+    <Compile Include="CoverageProvider.cs" />
+    <Compile Include="CoverageProviderBroker.cs" />
+    <Compile Include="CoverageService.cs" />
+    <Compile Include="CoveredLine.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CoverGlyph.cs" />
+    <Compile Include="CoverGlyphFactory.cs" />
+    <Compile Include="CoverGlyphFactoryProvider.cs" />
+    <Compile Include="CoverTag.cs" />
+    <Compile Include="CoverTagger.cs" />
+    <Compile Include="CoverTaggerProvider.cs" />
+    <Compile Include="EntityModel.cs" />
+    <Compile Include="Formatter.cs" />
+    <Compile Include="ICoverageProviderBroker.cs" />
+    <Compile Include="ICoverageService.cs" />
+    <Compile Include="ICoverTag.cs" />
+    <Compile Include="ITestifyQueries.cs" />
+    <Compile Include="LineCoverageInfo.cs" />
+    <Compile Include="LineCoverageResult.cs" />
+    <Compile Include="MarginFactory.cs" />
+    <Compile Include="Migrations\201402181124546_Initial.cs" />
+    <Compile Include="Migrations\201402181124546_Initial.Designer.cs">
+      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.cs" />
+    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.Designer.cs">
+      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201403010146430_Renamed CoveredLine.cs" />
+    <Compile Include="Migrations\201403010146430_Renamed CoveredLine.Designer.cs">
+      <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\BranchPoint.cs" />
+    <Compile Include="Model\Class.cs" />
+    <Compile Include="Model\CoverageSession.cs" />
+    <Compile Include="Model\File.cs" />
+    <Compile Include="Model\InstrumentationPoint.cs" />
+    <Compile Include="Model\Method.cs" />
+    <Compile Include="Model\Module.cs" />
+    <Compile Include="Model\SequencePoint.cs" />
+    <Compile Include="Model\SkippedEntity.cs" />
+    <Compile Include="Model\SkippedMethod.cs" />
+    <Compile Include="Model\Summary.cs" />
+    <Compile Include="Model\TrackedMethod.cs" />
+    <Compile Include="Model\TrackedMethodRef.cs" />
     <Compile Include="MyControl.xaml.cs">
       <DependentUpon>MyControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="NunitSchema\TestOutput.cs" />
+    <Compile Include="opencover.designer.cs" />
+    <Compile Include="Poco\CoveredLinePoco.cs" />
+    <Compile Include="Poco\Project.cs" />
+    <Compile Include="Poco\TestProject.cs" />
+    <Compile Include="Poco\TrackedMethod.cs" />
+    <Compile Include="Poco\UnitTest.cs" />
+    <Compile Include="Project.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ProjectInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="StringExtensions.cs" />
+    <Compile Include="TestifyContext.cs" />
     <Compile Include="TestifyPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
+    <Compile Include="TestifyQueries.cs" />
+    <Compile Include="TestifyType.cs" />
+    <Compile Include="TestOutputFileReader.cs" />
+    <Compile Include="TextViewCreationListener.cs" />
+    <Compile Include="UnCoverGlyphFactory.cs" />
+    <Compile Include="UnitTestService.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Migrations\201402181124546_Initial.resx">
+      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.resx">
+      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201403010146430_Renamed CoveredLine.resx">
+      <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -171,10 +262,13 @@
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="NUnit.Runners.2.6.2\nunit-agent-x86.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -275,6 +369,9 @@
     <Content Include="NUnit.Runners.2.6.2\nunit-console.exe.config">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="opencover.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
@@ -335,30 +432,14 @@
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="BookmarkGlyph.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MyControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="DataLayer\DataLayer.csproj">
-      <Project>{cbc295df-0810-4fa3-bf63-86f24b645b10}</Project>
-      <Name>DataLayer</Name>
-    </ProjectReference>
-    <ProjectReference Include="Domain\Domain.csproj">
-      <Project>{edd9ca67-be26-4501-a7d1-405b85e80588}</Project>
-      <Name>Domain</Name>
-    </ProjectReference>
-    <ProjectReference Include="VSEvents\VSEvents.csproj">
-      <Project>{634B640C-58D1-4AA4-8811-D6EABC7AFDB6}</Project>
-      <Name>VSEvents</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
-    <ProjectReference Include="Wiring\Wiring.csproj">
-      <Project>{341ef969-5693-4344-89ba-ab378f1979f3}</Project>
-      <Name>Wiring</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup>

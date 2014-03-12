@@ -11,5 +11,13 @@ namespace Leem.Testify
         public const string guidToolWindowPersistanceString = "36c4a332-1b9b-49ce-9e45-da8bd399092c";
 
         public static readonly Guid guidTestifyCmdSet = new Guid(guidTestifyCmdSetString);
+
+
+        //////Bookmarks
+        // guid for the command set
+        public const string guidNumberedBookmarksCmdSetString = "c74fc9bd-32e1-4135-bddd-779021cc3630";
+
+        // create a new Guid object with the guid string for the command string
+        public static readonly Guid guidNumberedBookmarksCmdSet = new Guid(guidNumberedBookmarksCmdSetString);
     };
 }

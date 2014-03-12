@@ -8,7 +8,6 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Leem.Testify.Domain;
 using log4net;
 using System.IO;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -20,12 +19,14 @@ using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using EnvDTE80;
 using log4net.Appender;
-using Leem.Testify.DataLayer;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using System.Collections.Concurrent;
+using Microsoft.VisualStudio.Text.Editor;
+using System.Collections.Concurrent;
+using Leem.Testify.Poco;
 
-namespace Leem.Testify.VSEvents
+namespace Leem.Testify
 {
 
     public class CoverageProvider//: IVsSolutionEvents3
@@ -33,7 +34,7 @@ namespace Leem.Testify.VSEvents
 
         internal SVsServiceProvider _serviceProvider;
 
-        private Microsoft.VisualStudio.Text.ITextBuffer buffer;
+        private IWpfTextView textView;
         private ICoverageService _coverageService;
         private EnvDTE.DTE _dte;
         private ConcurrentDictionary<int, CoveredLine> _coveredLines;
@@ -48,15 +49,15 @@ namespace Leem.Testify.VSEvents
         private volatile bool _IsRebuilding;
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        public CoverageProvider(ITextBuffer buffer, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyQueries testifyQueries)
+        public CoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyQueries testifyQueries)
         {
             _serviceProvider = serviceProvider;
 
-            this.buffer = buffer;
+            this.textView = textView;
             _coverageService = CoverageService.Instance;
-            buffer.Changed += new EventHandler<TextContentChangedEventArgs>(TextBuffer_Changed);
+            textView.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(TextView_Changed);
             _dte = dte;
-            _coveredLines = new ConcurrentDictionary<int, CoveredLine>();
+            _coveredLines = new ConcurrentDictionary<int, Poco.CoveredLine>();
             _coverageService.DTE = _dte;
             _dteSolution = dte.Solution;
             _coverageService.DTE = (DTE)dte;
@@ -66,8 +67,8 @@ namespace Leem.Testify.VSEvents
             _queries = testifyQueries;
             _coverageService.Queries = _queries;
             Log.DebugFormat("Creating CoverageProvider - For First Time");
-            var documentName = GetFileName(buffer);
-            RebuildCoverage(buffer.CurrentSnapshot, documentName);
+            var documentName = GetFileName(textView.TextBuffer);
+            RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
         }
         public static string GetFileName(ITextBuffer buffer)
         {
@@ -83,7 +84,8 @@ namespace Leem.Testify.VSEvents
             }
             else return null;
             return null;
-        }        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        }
+        private void TextView_Changed(object sender, TextContentChangedEventArgs e)
         {
             List<int> linesEdited;
             if ( e.Changes.IncludesLineChanges)
@@ -276,7 +278,7 @@ namespace Leem.Testify.VSEvents
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 var assemblyName = GetAssemblyName(project);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
-                projects.Add(new Project
+                projects.Add(new Poco.Project
                 {
                     Name = project.Name,
                     AssemblyName = assemblyName,
@@ -399,14 +401,14 @@ namespace Leem.Testify.VSEvents
         }
 
 
-        internal ConcurrentDictionary<int, CoveredLine> GetCoveredLines(SnapshotSpan snapshotSpan)
+        internal ConcurrentDictionary<int, Poco.CoveredLine> GetCoveredLines(IWpfTextView textView)
         {
 //            Log.DebugFormat("GetCoveredLines for version: {0}, Current Version: {1}, Number of Covered Lines {2}", snapshotSpan.Snapshot.Version.VersionNumber, _currentVersion, _coveredLines.Count());
-            if(snapshotSpan.Snapshot.Version.VersionNumber != _currentVersion )
+            if(textView.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion )
             {
                 Log.DebugFormat("Launching RebuildCoverage");
-                var documentName = GetFileName(buffer);
-                RebuildCoverage(snapshotSpan.Snapshot, documentName);
+                var documentName = GetFileName(textView.TextBuffer);
+                RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
             }
             return  _coveredLines;
         }

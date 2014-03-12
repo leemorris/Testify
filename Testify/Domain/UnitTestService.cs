@@ -121,19 +121,23 @@ namespace Leem.Testify.Domain
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, List<string> individualTests, string resultFilename, string fileToRead)
         {
             CoverageSession coverageSession = new CoverageSession();
+            resultType testOutput= new resultType();
             await System.Threading.Tasks.Task.Run(() =>
             {
                 coverageSession = GetCoverageSessionFile(fileToRead);
                 TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
-                resultType testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
-                _queries.SaveUnitTestResults(testOutput);
-            });
+                 testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
+            });
+            _queries.SaveUnitTestResults(testOutput);
+            //_queries.SaveResults(coverageSession, testOutput, projectInfo, individualTests);
             var changedClasses = await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, individualTests);
             if (changedClasses.Any())
             {
 
             }
+
+            //_queries.SaveResults(coverageSession, testOutput, projectInfo, individualTests);
             System.IO.File.Delete(fileToRead);
         }
         public void RunAllNunitTestsForSolution()

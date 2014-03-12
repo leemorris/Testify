@@ -8,30 +8,20 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Editor;
 using EnvDTE80;
-using Leem.Testify.Domain;
 using System.Collections.Generic;
 using log4net;
 using System.IO;
 using log4net.Appender;
-using Leem.Testify.Wiring;
-using Leem.Testify.DataLayer;
-using System.Data.Entity;
 using EnvDTE;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Leem.Testify
 {
 
-    /// <summary>
-    /// This is the class that implements the package exposed by this assembly.
-    ///
-    /// The minimum requirement for a class to be considered a valid package for Visual Studio
-    /// is to implement the IVsPackage interface and register itself with the shell.
-    /// This package uses the helper classes defined inside the Managed Package Framework (MPF)
-    /// to do it: it derives from the Package class that provides the implementation of the 
-    /// IVsPackage interface and uses the registration attributes defined in the framework to 
-    /// register itself and its components with the shell.
-    /// </summary>
+
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
     // a package.
     [PackageRegistration(UseManagedResourcesOnly = true)]
@@ -54,6 +44,9 @@ namespace Leem.Testify
         private string _solutionName;
         private EnvDTE.DTE _dte;
         private bool isFirstBuild = true;
+        private DocumentEvents _documentEvents;
+        public delegate void CoverageChangedEventHandler(string className, string methodName);
+        public EventArgs e = null;
 
 
         public TestifyPackage()
@@ -72,13 +65,14 @@ namespace Leem.Testify
 #endif
                 Debug.WriteLine("Log4net.config path: " + file.ToString());
                 ConfigureLogging(file);
-                AppDomain.CurrentDomain.Load("Wiring");
-                var boot = new ContainerBootstrapper();
-                boot.BootstrapStructureMap();
+                //AppDomain.CurrentDomain.Load("Wiring");
+                //var boot = new ContainerBootstrapper();
+                //boot.BootstrapStructureMap();
                 //todo look into why this directory is needed
                 var directory = @"c:\WIP\Testify\DataLayer\";
                 var path = Path.Combine(directory, @"TestifyCE.sdf;password=lactose");
-                Database.SetInitializer(new DropCreateDatabaseIfModelChanges<TestifyContext>());
+
+                AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
             }
             catch (Exception ex)
@@ -164,6 +158,55 @@ namespace Leem.Testify
                 CommandID toolwndCommandID = new CommandID(GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidTestTool);
                 MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
+
+                //////// Bookmark 
+                // add commands for adding all bookmarks
+                // in each one of them I have used an anonymous method to call AddBookmark method
+                //CommandID menuCommandBookmark0 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark0);
+                //MenuCommand subItemBookmark0 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(0); }), menuCommandBookmark0);
+                //mcs.AddCommand(subItemBookmark0);
+
+                //CommandID menuCommandBookmark1 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark1);
+                //MenuCommand subItemBookmark1 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(1); }), menuCommandBookmark1);
+                //mcs.AddCommand(subItemBookmark1);
+
+                //CommandID menuCommandBookmark2 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark2);
+                //MenuCommand subItemBookmark2 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(2); }), menuCommandBookmark2);
+                //mcs.AddCommand(subItemBookmark2);
+
+                //CommandID menuCommandBookmark3 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark3);
+                //MenuCommand subItemBookmark3 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(3); }), menuCommandBookmark3);
+                //mcs.AddCommand(subItemBookmark3);
+
+                //CommandID menuCommandBookmark4 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark4);
+                //MenuCommand subItemBookmark4 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(4); }), menuCommandBookmark4);
+                //mcs.AddCommand(subItemBookmark4);
+
+                //CommandID menuCommandBookmark5 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark5);
+                //MenuCommand subItemBookmark5 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(5); }), menuCommandBookmark5);
+                //mcs.AddCommand(subItemBookmark5);
+
+                //CommandID menuCommandBookmark6 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark6);
+                //MenuCommand subItemBookmark6 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(6); }), menuCommandBookmark6);
+                //mcs.AddCommand(subItemBookmark6);
+
+                //CommandID menuCommandBookmark7 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark7);
+                //MenuCommand subItemBookmark7 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(7); }), menuCommandBookmark7);
+                //mcs.AddCommand(subItemBookmark7);
+
+                //CommandID menuCommandBookmark8 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark8);
+                //MenuCommand subItemBookmark8 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(8); }), menuCommandBookmark8);
+                //mcs.AddCommand(subItemBookmark8);
+
+                //CommandID menuCommandBookmark9 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark9);
+                //MenuCommand subItemBookmark9 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(9); }), menuCommandBookmark9);
+                //mcs.AddCommand(subItemBookmark9);
+
+                //// add command for Clearing Bookmarks
+                //// again I have opted for an anonymous method
+                //CommandID menuCommandClearBookmark = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdClearBookmarks);
+                //MenuCommand subItemClearBookmark = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { ClearAllBookmarks(); }), menuCommandClearBookmark);
+                //mcs.AddCommand(subItemClearBookmark);
             }
         }
 
@@ -254,7 +297,7 @@ namespace Leem.Testify
 #endif
                 try
                 {
-                    System.IO.File.Copy(initialDatabasePath.ToString(), databasePath);
+              //      System.IO.File.Copy(initialDatabasePath.ToString(), databasePath);
                 }
                 catch (Exception ex)
                 {
@@ -269,16 +312,17 @@ namespace Leem.Testify
         {
 
             List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
-            var projects = new List<Project>();
+            var projects = new List<Poco.Project>();
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
                 Log.DebugFormat("Verify project name: {0}", project.Name);
-
+                this._documentEvents = _dte.Events.DocumentEvents;
+                this._documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
                 var outputPath = GetProjectOutputBuildFolder(project);
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 var assemblyName = GetAssemblyName(project);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
-                projects.Add(new Project
+                projects.Add(new Poco.Project
                 {
                     Name = project.Name,
                     AssemblyName = assemblyName,
@@ -291,17 +335,21 @@ namespace Leem.Testify
             queries.MaintainProjects(projects);
 
         }
-  
+        private void OnDocumentSaved(Document document)
+        {
+            var project = document.ProjectItem;
+            _service.RunAllNunitTestsForProject(project.ContainingProject.UniqueName, null);
+        }
         public void VerifyProjects(EnvDTE.Project project)
         {
-            var projects = new List<Project>();
+            var projects = new List<Poco.Project>();
             Log.DebugFormat("Verify project name: {0}", project.Name);
 
             var outputPath = GetProjectOutputBuildFolder(project);
             Log.DebugFormat("  outputPath: {0}", outputPath);
             var assemblyName = GetAssemblyName(project);
             Log.DebugFormat("  Assembly name: {0}", assemblyName);
-            projects.Add(new Project
+            projects.Add(new Poco.Project
             {
                 Name = project.Name,
                 AssemblyName = assemblyName,
@@ -471,6 +519,7 @@ namespace Leem.Testify
             return VSConstants.S_OK;
 
         }
+
         private void ProjectBuildEventHandler(string project, string projectConfig, string platform, string solutionConfig, bool success)
         {
             var sw = new Stopwatch();
@@ -478,6 +527,7 @@ namespace Leem.Testify
             Log.DebugFormat("Project Build occurred project name: {0}", project);
             if (success)
             {
+                
                 if(isFirstBuild)
                 {
                     IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
@@ -553,5 +603,154 @@ namespace Leem.Testify
 
         }
         #endregion
+
+        //#region Bookmarks
+        //// add a bookmark if it is not present otherwise
+        //// move to the specified bookmark location
+        //private void AddOrMoveToBookmark(int bookmarkNumber)
+        //{
+        //    // get the instance of bookmark manager
+        //    BookmarkManager bookmarkManager = GetBookMarkManager();
+        //    if (!bookmarkManager.Bookmarks.ContainsKey(bookmarkNumber))
+        //    {
+        //        // the bookmark does not exist so add it
+        //        AddBookmark(bookmarkNumber);
+        //    }
+        //    else
+        //    {
+        //        // the bookmark is already there, so move to its location
+        //        bookmarkManager.GotoBookmark(bookmarkNumber);
+        //    }
+        //}
+        //private void AddBookmark(int bookmarkNumber)
+        //{
+        //    // get an instance of bookmark manager
+        //    BookmarkManager bookmarkManager = GetBookMarkManager();
+        //    // get the currently active document
+        //    string documentName = GetDocumentName();
+        //    // get current line number (cursor position)
+        //    int lineNumber = GetLineNumber();
+        //    // get current column number (cursor position)
+        //    int columnNumber = GetColumnNumber();
+        //    // if some values are invalid, don't add the bookmark
+        //    if (string.IsNullOrEmpty(documentName) || lineNumber <= 0 || columnNumber <= 0)
+        //    {
+        //        return;
+        //    }
+
+        //    // everything is fine so let's add the bookmark by using AddBookmark of the bookmark manager
+        //    bookmarkManager.AddBookmark(bookmarkNumber, documentName, lineNumber, columnNumber, GetDTE2());
+        //}
+
+        //// remove all bookmarks from the margin
+        //private void ClearAllBookmarks()
+        //{
+        //    // get the instance associated with this margin
+        //    BookmarkManager bookmarkManager = GetBookMarkManager();
+        //    // remove all bookmarks from the manager
+        //    bookmarkManager.ClearAllBookmarks();
+        //}
+        private string GetDocumentName()
+        {
+            // get the DTE2 object
+            DTE2 dte2 = GetDTE2();
+            if (dte2 == null)
+            {
+                return string.Empty;
+            }
+
+            // get the ActiveDocument name from DTE2 object
+            return dte2.ActiveDocument.Name;
+        }
+
+        private int GetLineNumber()
+        {
+            // get the DTE2 object
+            DTE2 dte2 = GetDTE2();
+            if (dte2 == null)
+            {
+                return 0;
+            }
+
+            // get currently active cursor location
+            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+            VirtualPoint point = selection.ActivePoint;
+            return point.Line; // get the line number from the location
+        }
+
+        private int GetColumnNumber()
+        {
+            // get the DTE2 object
+            DTE2 dte2 = GetDTE2();
+            if (dte2 == null)
+            {
+                return 0;
+            }
+
+            // get currently active cursor position
+            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+            VirtualPoint point = selection.ActivePoint;
+            return point.DisplayColumn; // get the column number from the location
+        }
+
+        private DTE2 GetDTE2()
+        {
+            // get the instance of DTE
+            DTE dte = (DTE)GetService(typeof(DTE));
+            // cast it as DTE2, historical reasons
+            DTE2 dte2 = dte as DTE2;
+
+            if (dte2 == null)
+            {
+                return null;
+            }
+
+            return dte2;
+        }
+        // finds the instance of IWpfTextViewHost associated with this margin
+        public IWpfTextViewHost GetIWpfTextViewHost()
+        {
+            // get an instance of IVsTextManager
+            IVsTextManager txtMgr = (IVsTextManager)GetService(typeof(SVsTextManager));
+            IVsTextView vTextView = null;
+            int mustHaveFocus = 1;
+            // get the active view from the TextManager
+            txtMgr.GetActiveView(mustHaveFocus, null, out vTextView);
+
+            // cast as IVsUSerData
+            IVsUserData userData = vTextView as IVsUserData;
+            if (userData == null)
+            {
+                Trace.WriteLine("No text view is currently open");
+                return null;
+            }
+
+            IWpfTextViewHost viewHost;
+            object holder;
+            // get the IWpfTextviewHost using the predefined guid for it
+            Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
+            userData.GetData(ref guidViewHost, out holder);
+            // convert to IWpfTextviewHost
+            viewHost = (IWpfTextViewHost)holder;
+            return viewHost;
+        }
+
+
+        //private BookmarkManager GetBookMarkManager()
+        //{
+        //    // get an instance of the associated IWpfTextViewHost
+        //    IWpfTextViewHost viewHost = GetIWpfTextViewHost();
+        //    if (viewHost == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    // try to get the associated bookmark manager from the IWpfTextView otherwise create a new instance for it
+        //    BookmarkManager bookmarkManager = viewHost.TextView.Properties.GetOrCreateSingletonProperty<BookmarkManager>
+        //        (delegate { return new BookmarkManager(); });
+
+        //    return bookmarkManager;
+        //}
+        //#endregion
     }
 }

@@ -13,7 +13,7 @@ namespace Leem.Testify
         ITextDocument Document { get; set; }
         EnvDTE.DTE DTE { set; }
         IList<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectName);
-        IList<CoveredLine> GetCoveredLinesForClass(string className);
+        IList<Poco.CoveredLine> GetCoveredLinesForClass(string className);
         ITestifyQueries Queries { get; set; }
         string SolutionName { get; set; }
     }
