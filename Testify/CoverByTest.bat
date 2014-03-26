@@ -1,1 +1,0 @@
-﻿OpenCover.Console.exe -register:user -target:"C:\WIP\UnitTestExperiment\packages\NUnit.Runners.2.6.2\tools\nunit-console.exe" -targetargs:"C:\WIP\UnitTestExperiment\Domain\bin\Debug\Domain.dll /noshadow" -coverbytest<+["C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.dll"]>: -output:..\..\opencover.xml 

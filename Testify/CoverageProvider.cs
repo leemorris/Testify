@@ -42,11 +42,14 @@ namespace Leem.Testify
         private ILog Log = LogManager.GetLogger(typeof(CoverageProvider));
         private IVsSolution _solution = null;
         private EnvDTE.Solution _dteSolution = null;
-        private UnitTestService _service;
+        string _documentName;
         private int _currentVersion;
-        private TestifyQueries _queries ;
+       
         private volatile bool _IsRebuilding;
+
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+        public TestifyQueries Queries {get; set;}
 
         public CoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyQueries testifyQueries)
         {
@@ -54,7 +57,7 @@ namespace Leem.Testify
 
             this.textView = textView;
             _coverageService = CoverageService.Instance;
-            textView.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(TextView_Changed);
+            textView.TextBuffer.Changed += TextView_Changed;
             _dte = dte;
             _coveredLines = new ConcurrentDictionary<int, Poco.CoveredLinePoco>();
             _coverageService.DTE = _dte;
@@ -63,12 +66,27 @@ namespace Leem.Testify
 
             _coverageService.SolutionName = _dte.Solution.FullName;
 
-            _queries = testifyQueries;
-            _coverageService.Queries = _queries;
-            Log.DebugFormat("Creating CoverageProvider - For First Time");
-            var documentName = GetFileName(textView.TextBuffer);
+            Queries = testifyQueries;
+            _coverageService.Queries = Queries;
+            Queries.ClassChanged += ClassChanged;
 
-            RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
+            Log.DebugFormat("Creating CoverageProvider - For First Time");
+            _documentName = GetFileName(textView.TextBuffer);
+
+            RebuildCoverage(textView.TextBuffer.CurrentSnapshot, _documentName);
+        }
+        internal virtual void ClassChanged(object sender, ClassChangedEventArgs e) 
+        {
+            if(_coveredLines.Any(x=> e.ChangedClasses.Contains(x.Value.Class)))
+            {
+                _documentName = GetFileName(textView.TextBuffer);
+                if (_documentName != null)
+                {
+                    RecreateCoverage(textView);
+                    RebuildCoverage(textView.TextBuffer.CurrentSnapshot, _documentName);
+                }
+
+            }
         }
         public static string GetFileName(ITextBuffer buffer)
         {
@@ -91,22 +109,9 @@ namespace Leem.Testify
             if ( e.Changes.IncludesLineChanges)
             {
                 Debug.WriteLine("Line Changed");
-                //var editRange = new List<int>();
-                //editRange.Add(_dte.ActiveDocument.Selection.ActivePoint.Line);
-      
-                //editRange.Add(editRange.First() - e.Changes.First().LineCountDelta);
-                //editRange.Sort();
-
-                //int delta = Math.Abs(e.Changes.First().LineCountDelta) + 1;
-
-                //linesEdited = Enumerable.Range(editRange.First(), delta).ToList();
 
                 var modifiedMethod = GetModifiedMethod();
-                _queries.GetUnitTestsCoveringMethod(modifiedMethod);
-                //CodeModelService.GetMethodFromLine(fcm);
-                //_service.AddTestsToQueue(_coveredLines.Where(x=>x.Class == )
-                //_coverageService.RunTestsThatCoverLine(linesEdited, _dte.ActiveDocument.ProjectItem, ref _testQueue,_dte.Solution.FullName);
-
+                Queries.GetUnitTestsCoveringMethod(modifiedMethod);
             }
         }
 
@@ -115,7 +120,7 @@ namespace Leem.Testify
         {
             try
             {
-              
+                _documentName = documentName;
                 Log.DebugFormat("Rebuilding Covered Lines - inside RebuildCoverageAsync Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
                 ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
 
@@ -128,7 +133,8 @@ namespace Leem.Testify
                     }
                     else 
                     {
-                        System.Threading.Tasks.Task.Run(() => GetCoveredLinesFromCodeModel( fcm));
+                        System.Threading.Tasks.Task.Run(() => GetCoveredLinesFromCodeModel(fcm));
+                        //GetCoveredLinesFromCodeModel( fcm);
                     }
 
                     _currentVersion = snapshot.Version.VersionNumber;
@@ -148,7 +154,7 @@ namespace Leem.Testify
 
         public FileCodeModel GetFileCodeModel(string documentName)
         {
-            Log.DebugFormat("Rebuilding Covered Lines -  we have an Active Document that is not a Test  IsRebuilding = {0}, Project: {1}", _IsRebuilding, _dte.ActiveDocument.Name);
+           // Log.DebugFormat("Rebuilding Covered Lines -  we have an Active Document that is not a Test  IsRebuilding = {0}, Project: {1}", _IsRebuilding, _dte.ActiveDocument.Name);
             ProjectItem projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject, documentName, true);
 
             if (projectItem == null)
@@ -173,7 +179,7 @@ namespace Leem.Testify
             {
                 using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
                 {
-                    var lines = _queries.GetCoveredLines(context, codeClass.FullName);
+                    var lines = Queries.GetCoveredLines(context, codeClass.FullName);
                     // var lines = _coverageService.GetCoveredLinesForClass(codeClass.FullName);
                     Log.DebugFormat("Got Lines Elapsed Time  {0}", sw.ElapsedMilliseconds);
                     coveredLines.AddRange(lines);
@@ -186,44 +192,22 @@ namespace Leem.Testify
             {
                 foreach (var line in coveredLines)
                 {
-                    _coveredLines.TryAdd(line.LineNumber, line);
+                    var lineNumber = line.LineNumber;
+                    var isAdded = _coveredLines.TryAdd(lineNumber, line);
+                    if (!isAdded)
+                    {
+                        Poco.CoveredLinePoco currentValue;
+                        var canGetValue = _coveredLines.TryGetValue(lineNumber,out currentValue);
+                        var canUpdateValue = _coveredLines.TryUpdate(line.LineNumber, currentValue, line);
+                        _coveredLines.AddOrUpdate(lineNumber, line, (oldKey, oldValue) => line);
+                    }
                 }
             }
         }
-        //private ProjectItem GetProjectItem(ProjectItems projectItems, string fileName)
-        //{
-        //    Log.DebugFormat("The FileName we are looking for: {0}", fileName);
-        //    ProjectItem matchingItem = null ;
- 
-        //    foreach (ProjectItem item in projectItems)
-        //    {
-        //        if (item.ProjectItems.Count > 1)
-        //        {
-        //            var result = GetProjectItem(item.ProjectItems, fileName);
-        //            if (result != null)
-        //            {
-        //                matchingItem = result;
-        //                break;
-        //            }
-        //        }
-        //        var path = item.Properties.Item("FullPath").Value;
-        //        Log.DebugFormat("The Path of the current ProjectItem: {0}", path);
-        //        if (fileName.Equals(path, StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            Log.DebugFormat("Found a match");
-        //            matchingItem = item;
-        //            return matchingItem;
-
-        //        }
-        //    }
-  
-        //    return matchingItem;
-        //}
 
         public ProjectItem FindProjectItemInProject(EnvDTE.Project project, string name, bool recursive)
         {
-            Log.DebugFormat("FindProjectItemInProject -  Name: {0}", project.Name);
-            Log.DebugFormat("FindProjectItemInProject -  Kind: {0}", project.Kind);
+
             
             ProjectItem projectItem = null;
 
@@ -231,22 +215,13 @@ namespace Leem.Testify
 	            {	        
 		            if (project.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}")
                     {
-                        Log.DebugFormat("Is not a Solution Folder");
                         if (project.ProjectItems != null && project.ProjectItems.Count > 0)
                         {
-                            var sw = new Stopwatch();
-                            sw.Restart();
-
-
                             var returnedItem = _dteSolution.FindProjectItem(name);
-                            Log.DebugFormat("Calling GetProjectItem for Project {0}", project.Name);
-                            //var returnedItem = GetProjectItem(project.ProjectItems, name);
-                            sw.Stop();
-                            Log.DebugFormat("GetProjectItem took {0} ms", sw.ElapsedMilliseconds);
+
                             if (returnedItem != null)
                             {
                                 projectItem = returnedItem;
-                                Log.DebugFormat("Found ProjectItem - Returning");
                                 return projectItem;
                             }
 
@@ -301,7 +276,7 @@ namespace Leem.Testify
                     Path = outputPath
                 });
             }
-            _queries.MaintainProjects(projects);
+            Queries.MaintainProjects(projects);
 
         }
 
@@ -382,12 +357,18 @@ namespace Leem.Testify
 
         private string GetModifiedMethod()
         {
+            var newName = string.Empty;
             Document activeDoc = _dte.ActiveDocument;
             TextSelection textSelection = activeDoc.Selection as TextSelection;
             CodeElement2 codeElement = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementFunction) as CodeElement2;
-            var methodName = codeElement.FullName;
-            var positionOfLastPeriod = methodName.LastIndexOf('.');
-            var newName = methodName.ReplaceAt(positionOfLastPeriod, "::");
+            if (codeElement != null)
+            {
+                var methodName = codeElement.FullName;
+                var positionOfLastPeriod = methodName.LastIndexOf('.');
+                newName = methodName.ReplaceAt(positionOfLastPeriod, "::");
+            }
+
+            
             return newName;
         }
 
@@ -421,94 +402,19 @@ namespace Leem.Testify
 //            Log.DebugFormat("GetCoveredLines for version: {0}, Current Version: {1}, Number of Covered Lines {2}", snapshotSpan.Snapshot.Version.VersionNumber, _currentVersion, _coveredLines.Count());
             if(textView.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion )
             {
-                Log.DebugFormat("Launching RebuildCoverage");
-                var documentName = GetFileName(textView.TextBuffer);
-                RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
+                RecreateCoverage(textView);
             }
             return  _coveredLines;
         }
+
+        internal void RecreateCoverage(IWpfTextView textView)
+        {
+            Log.DebugFormat("Launching RebuildCoverage");
+            var documentName = GetFileName(textView.TextBuffer);
+            RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
+        }
          
-        //#region Interface Methods
-
-
-        //public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
-        //{
-        //    Log.DebugFormat("Hit OnAfterOpenSolution in CoverageProvider");
-        //    IVsSolution pSolution = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-        //    string solutionDirectory;
-        //    string solutionOptions;
-        //    string solutionFile;
-        //    pSolution.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionOptions);
-        //    _solutionDirectory = solutionDirectory;
-        //    _solutionName = Path.GetFileNameWithoutExtension(solutionFile);
-        //    Log.DebugFormat("Solution Opened: {0}", _solutionName);
-
-        //    _dte = (DTE)_serviceProvider.GetService(typeof(DTE));
-
-        //    var projectEvents = ((Events2)_dte.Events).BuildEvents;
-        //    projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
-        //    _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
-
-        //    //_service.SetS)olution( _solutionDirectory, _solutionName);
-        //    VerifyProjects();
-        //    //_service.RunAllNunitTestsForSolution();
-
-        //    return VSConstants.S_OK;
-
-        //}
-        //private void ProjectBuildEventHandler(string project, string projectConfig, string platform, string solutionConfig, bool success)
-        //{
-        //    Log.DebugFormat("Project Build occurred project name: {0}", project);
-        //    if (success)
-        //    {
-        //        //VerifyProjects();
-        //        Log.DebugFormat("Project Build Successful for project name: {0}", project);
-
-        //        _service.RunAllNunitTestsForProject(project);
-        //    }
-
-        //}
-        //public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
-        //{
-        //    // Do something
-        //    return VSConstants.E_NOTIMPL;
-        //}
-        //public int OnAfterOpenProject(IVsHierarchy hierarchy, int fAdded)
-        //{
-
-        //    // VerifyProjects(_solution);
-        //    return VSConstants.S_OK;
-        //}
-        //public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-        //{
-        //    //Do something
-        //    return VSConstants.E_NOTIMPL;
-        //}
-        //public int OnAfterCloseSolution(object pUnkReserved)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnAfterClosingChildren(IVsHierarchy pHierarchy)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnAfterMergeSolution(object pUnkReserved)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnAfterOpeningChildren(IVsHierarchy pHierarchy)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnBeforeClosingChildren(IVsHierarchy pHierarchy)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnBeforeOpeningChildren(IVsHierarchy pHierarchy)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnBeforeCloseSolution(object pUnkReserved)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
-        //{ return VSConstants.E_NOTIMPL; }
-        //public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
-        //{ return VSConstants.E_NOTIMPL; }
-        //void OnBeforeQueryStatus(object sender, EventArgs e)
-        //{ }
-        //#endregion
+       
 
 
     }

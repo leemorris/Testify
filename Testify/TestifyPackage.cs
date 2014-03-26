@@ -17,6 +17,8 @@ using System.IO;
 using log4net.Appender;
 using EnvDTE;
 using Microsoft.VisualStudio.TextManager.Interop;
+using System.Timers;
+
 
 namespace Leem.Testify
 {
@@ -34,12 +36,14 @@ namespace Leem.Testify
     [ProvideToolWindow(typeof(MyToolWindow))]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
     [Guid(GuidList.guidTestifyPkgString)]
+
     public sealed class TestifyPackage : Package, IVsSolutionEvents3
     {
         private ILog Log = LogManager.GetLogger(typeof(TestifyPackage));
         private IVsSolution _solution = null;
         private uint _solutionCookie;
         private UnitTestService _service;
+        private ITestifyQueries _queries;
         private string _solutionDirectory;
         private string _solutionName;
         private EnvDTE.DTE _dte;
@@ -47,11 +51,12 @@ namespace Leem.Testify
         private DocumentEvents _documentEvents;
         public delegate void CoverageChangedEventHandler(string className, string methodName);
         public EventArgs e = null;
-
+        private static Timer _timer;
+        private int _testRunId;
 
         public TestifyPackage()
         {
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            Log.DebugFormat(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
             try
             {
 
@@ -63,17 +68,20 @@ namespace Leem.Testify
 #if (DEBUG == false)
                 file = new FileInfo(Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\log4net.config");
 #endif
-                Debug.WriteLine("Log4net.config path: " + file.ToString());
+                Log.DebugFormat("Log4net.config path: " + file.ToString());
                 ConfigureLogging(file);
-                //AppDomain.CurrentDomain.Load("Wiring");
-                //var boot = new ContainerBootstrapper();
-                //boot.BootstrapStructureMap();
+                
                 //todo look into why this directory is needed
-                var directory = @"c:\WIP\Testify\DataLayer\";
-                var path = Path.Combine(directory, @"TestifyCE.sdf;password=lactose");
-
+                //var directory = @"c:\WIP\Testify\DataLayer\";
+                //var path = Path.Combine(directory, @"TestifyCE.sdf;password=lactose");
+   
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
-
+                _timer = new Timer();
+                _timer.Interval = 5000;
+                _timer.Enabled = true;
+                _timer.AutoReset = true;
+                _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
+                _timer.Elapsed += new ElapsedEventHandler(ProcessProjectLevelQueue);
             }
             catch (Exception ex)
             {
@@ -98,7 +106,7 @@ namespace Leem.Testify
                     var logFileLocation = string.Format(@"{0}\Testify\{1}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), fileInfo.Name);
                     fa.File = logFileLocation;
                     fa.ActivateOptions();
-                    Debug.WriteLine("FileAppender is writing to: " + fa.File);
+                    Log.DebugFormat("FileAppender is writing to: " + fa.File);
                     Log.Debug("Log4net is configured");
                     break;
                 }
@@ -219,7 +227,8 @@ namespace Leem.Testify
 
         private void ProjectTestsCallback(object sender, EventArgs e)
         {
-            _service.RunAllNunitTestsForProject(_dte.ActiveDocument.ProjectItem.ContainingProject.Name.ToString(),null);
+            var projectName = _dte.ActiveDocument.ProjectItem.ContainingProject.Name.ToString();
+            _queries.AddToTestQueue(projectName);
             ShowToolWindow(sender, e);
         }
 
@@ -283,27 +292,35 @@ namespace Leem.Testify
         }
         public void CheckForDatabase(string databasePath)
         {
-            Log.DebugFormat("CheckForDatabase: ", databasePath);
+            Log.DebugFormat("CheckForDatabase: {0}", databasePath);
             if (!System.IO.File.Exists(databasePath))
             {
+                Log.ErrorFormat("Database was not found");
                 // Todo, Determine where the app will actually be executing from and where the initial database file will be.
-                string initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\DataLayer\TestifyCE.sdf");
-#if (DEBUG == true)
-                initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\Testify\DataLayer\TestifyCE.sdf");
-#endif
+                //string initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\Testify\TestifyCE.sdf");
+//#if (DEBUG == true)
+                //initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\Testify\TestifyCE.sdf");
+//#endif
 
-#if (DEBUG == false)
-                        initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
-#endif
+//#if (DEBUG == false)
+                //initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
+//#endif
+
+                // Get copy of blank database from the VSIX folder
+                string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
                 try
                 {
-              //      System.IO.File.Copy(initialDatabasePath.ToString(), databasePath);
+                    Log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
+                    System.IO.File.Copy(initialDatabasePath.ToString(), databasePath);
                 }
                 catch (Exception ex)
                 {
                     Log.ErrorFormat("Error Copying database " + ex.Message);
-                    Debug.WriteLine("Error Copying database " + ex.Message);
                 }
+            }
+            else 
+            {
+                Log.DebugFormat("Database was found");
             }
 
         }
@@ -312,6 +329,15 @@ namespace Leem.Testify
         {
 
             List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
+            if (_queries == null)
+            {
+                object solutionName;
+                solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out solutionName);
+                _solutionName = solutionName.ToString();
+                _queries = TestifyQueries.Instance;
+                TestifyQueries.SolutionName = _solutionName;
+            }
+
             var projects = new List<Poco.Project>();
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
@@ -331,24 +357,21 @@ namespace Leem.Testify
                 });
             }
 
-            var queries = new TestifyQueries(_dte.Solution.FullName);
-            queries.MaintainProjects(projects);
+           // var queries = new TestifyQueries(_dte.Solution.FullName);
+            _queries.MaintainProjects(projects);
 
         }
         private void OnDocumentSaved(Document document)
         {
             var project = document.ProjectItem;
-            _service.RunAllNunitTestsForProject(project.ContainingProject.UniqueName, null);
+            _queries.AddToTestQueue(project.ContainingProject.UniqueName);
         }
         public void VerifyProjects(EnvDTE.Project project)
         {
             var projects = new List<Poco.Project>();
-            Log.DebugFormat("Verify project name: {0}", project.Name);
-
             var outputPath = GetProjectOutputBuildFolder(project);
-            Log.DebugFormat("  outputPath: {0}", outputPath);
             var assemblyName = GetAssemblyName(project);
-            Log.DebugFormat("  Assembly name: {0}", assemblyName);
+
             projects.Add(new Poco.Project
             {
                 Name = project.Name,
@@ -356,9 +379,10 @@ namespace Leem.Testify
                 UniqueName = project.UniqueName,
                 Path = outputPath
             });
+            _queries = TestifyQueries.Instance;
+            TestifyQueries.SolutionName = _dte.Solution.FullName;
 
-            var queries = new TestifyQueries(_dte.Solution.FullName);
-            queries.MaintainProjects(projects);
+            _queries.MaintainProjects(projects);
 
         }
 
@@ -478,25 +502,19 @@ namespace Leem.Testify
 
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            Log.DebugFormat("Hit OnAfterOpenSolution in TestifyPackage" );
-            IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-            string solutionDirectory;
-            string solutionOptions;
-            string solutionFile;
-            pSolution.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionOptions);
-            _solutionDirectory = solutionDirectory;
-            _solutionName = Path.GetFileNameWithoutExtension(solutionFile);
-            Log.DebugFormat("Solution Opened: {0}", _solutionName);
-
-            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = Path.Combine(directory, "Testify", _solutionName);
-
-            var appDataExists = Directory.Exists(Path.Combine(path));
-            if (!appDataExists)
+            // if the user closes a solution and opens another, we need to rebuild the ConnectionString
+            if( _queries != null)
             {
-                Directory.CreateDirectory(path);
+                _queries = null;
             }
-            var databasePath = Path.Combine(path, "TestifyCE.sdf");
+
+            IVsSolution solution = SetSolutionValues();
+
+            Log.DebugFormat("Solution Opened: {0}", _solutionName);
+            _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
+            var appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            
+            var databasePath = GetDatabasePath(appDataDirectory);
             CheckForDatabase(databasePath);
 
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -506,18 +524,39 @@ namespace Leem.Testify
             var projectTestsMenuCommand = mcs.FindCommand(new CommandID(Testify.GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests));
             projectTestsMenuCommand.Enabled = true;
 
+            // Setup Project Build Event Handler
             _dte = (DTE)GetService(typeof(DTE));
-
             var projectEvents = ((Events2)_dte.Events).BuildEvents;
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
-            _service = new UnitTestService(_dte,_solutionDirectory, _solutionName);
 
-
-            VerifyProjects(pSolution);
-            //_service.RunAllNunitTestsForSolution();
+            VerifyProjects(solution);
 
             return VSConstants.S_OK;
+        }
 
+        private IVsSolution SetSolutionValues()
+        {
+            IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+            string solutionDirectory;
+            string solutionOptions;
+            string solutionFile;
+            pSolution.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionOptions);
+            _solutionDirectory = solutionDirectory;
+            _solutionName = Path.GetFileNameWithoutExtension(solutionFile);
+            return pSolution;
+        }
+
+        private string GetDatabasePath(string directory)
+        {
+            var path = Path.Combine(directory, "Testify", _solutionName);
+
+            var appDataExists = Directory.Exists(Path.Combine(path));
+            if (!appDataExists)
+            {
+                Directory.CreateDirectory(path);
+            }
+            var databasePath = Path.Combine(path, "TestifyCE.sdf");
+            return databasePath;
         }
 
         private void ProjectBuildEventHandler(string project, string projectConfig, string platform, string solutionConfig, bool success)
@@ -536,7 +575,7 @@ namespace Leem.Testify
                 isFirstBuild = false;
                 Log.DebugFormat("Project Build Successful for project name: {0}", project);
 
-                _service.RunAllNunitTestsForProject(project,null);
+                _queries.AddToTestQueue(project);
 
             }
            sw.Stop();
@@ -604,52 +643,6 @@ namespace Leem.Testify
         }
         #endregion
 
-        //#region Bookmarks
-        //// add a bookmark if it is not present otherwise
-        //// move to the specified bookmark location
-        //private void AddOrMoveToBookmark(int bookmarkNumber)
-        //{
-        //    // get the instance of bookmark manager
-        //    BookmarkManager bookmarkManager = GetBookMarkManager();
-        //    if (!bookmarkManager.Bookmarks.ContainsKey(bookmarkNumber))
-        //    {
-        //        // the bookmark does not exist so add it
-        //        AddBookmark(bookmarkNumber);
-        //    }
-        //    else
-        //    {
-        //        // the bookmark is already there, so move to its location
-        //        bookmarkManager.GotoBookmark(bookmarkNumber);
-        //    }
-        //}
-        //private void AddBookmark(int bookmarkNumber)
-        //{
-        //    // get an instance of bookmark manager
-        //    BookmarkManager bookmarkManager = GetBookMarkManager();
-        //    // get the currently active document
-        //    string documentName = GetDocumentName();
-        //    // get current line number (cursor position)
-        //    int lineNumber = GetLineNumber();
-        //    // get current column number (cursor position)
-        //    int columnNumber = GetColumnNumber();
-        //    // if some values are invalid, don't add the bookmark
-        //    if (string.IsNullOrEmpty(documentName) || lineNumber <= 0 || columnNumber <= 0)
-        //    {
-        //        return;
-        //    }
-
-        //    // everything is fine so let's add the bookmark by using AddBookmark of the bookmark manager
-        //    bookmarkManager.AddBookmark(bookmarkNumber, documentName, lineNumber, columnNumber, GetDTE2());
-        //}
-
-        //// remove all bookmarks from the margin
-        //private void ClearAllBookmarks()
-        //{
-        //    // get the instance associated with this margin
-        //    BookmarkManager bookmarkManager = GetBookMarkManager();
-        //    // remove all bookmarks from the manager
-        //    bookmarkManager.ClearAllBookmarks();
-        //}
         private string GetDocumentName()
         {
             // get the DTE2 object
@@ -735,22 +728,18 @@ namespace Leem.Testify
             return viewHost;
         }
 
+        public void ProcessIndividualTestQueue(object source, ElapsedEventArgs e)
+        {
+            Log.DebugFormat("ProcessQueue ");
+            _service.ProcessQueue(++_testRunId, false);
 
-        //private BookmarkManager GetBookMarkManager()
-        //{
-        //    // get an instance of the associated IWpfTextViewHost
-        //    IWpfTextViewHost viewHost = GetIWpfTextViewHost();
-        //    if (viewHost == null)
-        //    {
-        //        return null;
-        //    }
+        }
 
-        //    // try to get the associated bookmark manager from the IWpfTextView otherwise create a new instance for it
-        //    BookmarkManager bookmarkManager = viewHost.TextView.Properties.GetOrCreateSingletonProperty<BookmarkManager>
-        //        (delegate { return new BookmarkManager(); });
+        public void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
+        {
+            Log.DebugFormat("ProcessQueue ");
+            _service.ProcessQueue(++_testRunId, true);
 
-        //    return bookmarkManager;
-        //}
-        //#endregion
+        }
     }
 }

@@ -10,11 +10,15 @@ namespace Leem.Testify
     public interface ICoverageService
     {
         List<LineCoverageInfo> CoveredLines { get; set; }
+
         ITextDocument Document { get; set; }
+
         EnvDTE.DTE DTE { set; }
+
         IList<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectName);
-        //IEnumerable<Poco.CoveredLinePoco> GetCoveredLinesForClass(string className);
+
         ITestifyQueries Queries { get; set; }
+
         string SolutionName { get; set; }
     }
 }

@@ -12,32 +12,54 @@ using System.Data.Entity;
 using System.IO;
 using Leem.Testify.Model;
 using Leem.Testify.Poco;
+using System.ComponentModel.Composition;
 
 namespace Leem.Testify
 {
+
+    [Export(typeof(ITestifyQueries))]
     public class TestifyQueries :ITestifyQueries
     {
-        private Stopwatch _sw;
+        // static holder for instance, need to use lambda to construct since constructor private
+        private static readonly Lazy<TestifyQueries> _instance = new Lazy<TestifyQueries>(() => new TestifyQueries());
+
+        private static Stopwatch _sw;
         private ILog Log = LogManager.GetLogger(typeof(TestifyQueries));
-        private string _solutionName;
-        private string _connectionString;
-        public TestifyQueries()
+        private static string _solutionName;
+        private static string _connectionString;
+
+        public event EventHandler<ClassChangedEventArgs> ClassChanged;
+
+        // private to prevent direct instantiation.
+        private TestifyQueries()
         {
             _sw = new Stopwatch();
         }
-        public TestifyQueries(string solutionName)
+
+        // accessor for instance
+        public static TestifyQueries Instance
         {
-            _solutionName = solutionName;
-            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
-
-            // Set connection string
-            _connectionString = string.Format("Data Source={0}", path);
-
-            _sw = new Stopwatch();
+            get
+            {
+                return _instance.Value;
+            }
         }
 
-        public void SaveUnitTest(Poco.UnitTest test)
+        public static string SolutionName
+        {
+            set
+            {
+                _solutionName = value;
+                var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(value), "TestifyCE.sdf;password=lactose");
+
+                // Set connection string
+                _connectionString = string.Format("Data Source={0}", path);
+            }
+        }  
+
+        
+        public void SaveUnitTest(UnitTest test)
         {
             using (var context = new TestifyContext(_solutionName))
             {
@@ -59,9 +81,8 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
                 var result = from project in context.Projects
-                             from testProject in context.TestProjects
+                             join testProject in context.TestProjects on project.UniqueName equals testProject.ProjectUniqueName
                              where testProject.UniqueName == uniqueName
-                             && testProject.ProjectUniqueName == project.UniqueName
                              select new ProjectInfo { ProjectName = project.Name,
                                                          ProjectAssemblyName = project.AssemblyName,
                                                          TestProject = testProject};
@@ -77,9 +98,8 @@ namespace Leem.Testify
                 {
 
                     var result = from project in context.Projects
-                                 from testProject in context.TestProjects
-                                 where project.UniqueName == uniqueName
-                                 && testProject.ProjectUniqueName == project.UniqueName
+                                 join testProject in context.TestProjects on project.UniqueName equals uniqueName
+                                 where testProject.ProjectUniqueName == project.UniqueName
                                  select new ProjectInfo
                                  {
                                      ProjectName = project.Name,
@@ -97,7 +117,7 @@ namespace Leem.Testify
             }
            
         }
-        public IList<Poco.TestProject> GetTestProjects()
+        public IList<TestProject> GetTestProjects()
         {
             using (var context = new TestifyContext(_solutionName))
             {
@@ -105,7 +125,7 @@ namespace Leem.Testify
             }
         }
 
-        public async void MaintainProjects(IList<Poco.Project> projects)
+        public async void MaintainProjects(IList<Project> projects)
         {
 
             using (var context = new TestifyContext(_solutionName))
@@ -187,19 +207,19 @@ namespace Leem.Testify
  
         }
 
-        private bool CheckForChanges(TestifyContext context)
-        {
-            context.ChangeTracker.DetectChanges();
-            var isModified = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Modified);
-            var isAdded = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Added);
-            var isDeleted = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Deleted);
-            var isDirty = context.ChangeTracker.Entries()
-                      .Any(e => e.State == System.Data.EntityState.Added
-                             || e.State == System.Data.EntityState.Deleted
-                             || e.State == System.Data.EntityState.Modified);
-            Debug.WriteLine("IsDirty = ", isDirty);
-            return isDirty;
-        }
+        //private bool CheckForChanges(TestifyContext context)
+        //{
+        //    context.ChangeTracker.DetectChanges();
+        //    var isModified = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Modified);
+        //    var isAdded = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Added);
+        //    var isDeleted = context.ChangeTracker.Entries().Any(e => e.State == System.Data.EntityState.Deleted);
+        //    var isDirty = context.ChangeTracker.Entries()
+        //              .Any(e => e.State == System.Data.EntityState.Added
+        //                     || e.State == System.Data.EntityState.Deleted
+        //                     || e.State == System.Data.EntityState.Modified);
+        //    Debug.WriteLine("IsDirty = ", isDirty);
+        //    return isDirty;
+        //}
 
         private List<string> GetChangedMethods(TestifyContext context)
         {
@@ -300,17 +320,17 @@ namespace Leem.Testify
             }
         }
 
-        public IEnumerable<Poco.CoveredLinePoco> GetCoveredLines(TestifyContext context,string className) 
+        public IEnumerable<Poco.CoveredLinePoco> GetCoveredLines(TestifyContext context, string className) 
         {
 
             //using (var context = new TestifyContext(_solutionName))
             //{
-                var coveredLines = new List<Poco.CoveredLinePoco>();
+                
                 var sw = new Stopwatch();
                 sw.Restart();
-           
-                return context.CoveredLines.Include(u => u.UnitTests).Where(x => x.Class.Equals(className));
-           // }
+                var coveredLines = context.CoveredLines.Include(u => u.UnitTests).Where(x => x.Class.Equals(className));
+                return coveredLines;
+            //}
 
         }
 
@@ -320,8 +340,7 @@ namespace Leem.Testify
             coverageService.SolutionName = _solutionName;
             var changedClasses = new List<string>();
 
-           // var unitTestsFromTestOutput = GetUnitTests(testOutput.testsuite);
-            
+               
             IList<LineCoverageInfo> newCoveredLineInfos = new List<LineCoverageInfo>();
             var module = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
             var moduleName = module != null ? module.FullName : string.Empty;
@@ -366,10 +385,7 @@ namespace Leem.Testify
 
                                     if (existingLine.IsCovered != line.IsCovered)
                                         existingLine.IsCovered = line.IsCovered;
-                                    //if (existingLine.UnitTests != line.UnitTests)
-                                    //    existingLine.UnitTests = line.UnitTests;
-                                    //if (existingLine.TrackedMethods != line.TrackedMethods)
-                                    //    existingLine.TrackedMethods = line.TrackedMethods;
+  
                                 }
                                 else
                                 {
@@ -418,7 +434,7 @@ namespace Leem.Testify
                         }
 
                             DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
-                            var isDirty = CheckForChanges(context);
+                           // var isDirty = CheckForChanges(context);
       
 
                             context.SaveChanges();
@@ -430,13 +446,13 @@ namespace Leem.Testify
                 {
                     // Only a single unit test was run, so only the lines in the CoverageSession will be updated
                     // Get the MetadataTokens for the unitTests we just ran
-                    var individualTestMetadataTokens = new List<int>();
+                    var individualTestUniqueIds = new List<int>();
                     foreach (var test in individualTests)
                     {
                         var testMethodName = ConvertUnitTestFormatToFormatTrackedMethod(test);
-                        individualTestMetadataTokens.Add(testModule.TrackedMethods
+                        individualTestUniqueIds.Add((int)testModule.TrackedMethods
                                                                  .Where(x => x.Name.Contains(testMethodName))
-                                                                 .FirstOrDefault().MetadataToken);
+                                                                 .FirstOrDefault().UniqueId);
                     }
                     // GetMetadatTokenForUnitTest(individualTests);                     
                     List<int> unitTestIds;
@@ -446,7 +462,7 @@ namespace Leem.Testify
                         unitTestIds = unitTests.Select(x => x.UnitTestId).ToList();
                         if (unitTestIds != null)
                         {
-                            newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestMetadataTokens);
+                            newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestUniqueIds);
                             changedClasses = newCoveredLineInfos.Select(x=>x.Class).Distinct().ToList();
                         }
                         context.SaveChanges();
@@ -455,6 +471,7 @@ namespace Leem.Testify
 
                 }
                 RefreshUnitTestIds(newCoveredLineInfos, module, testModule);
+                OnClassChanged(changedClasses);
                 return changedClasses;
 
             }
@@ -465,7 +482,16 @@ namespace Leem.Testify
                 return new List<string>();
             }
         }
+        protected virtual void OnClassChanged(List<string> changedClasses)
+        {
 
+            var args = new ClassChangedEventArgs();
+            args.ChangedClasses = changedClasses;
+            if (ClassChanged != null)
+            {
+                ClassChanged(this, args);
+            }
+        }
         private void RefreshUnitTestIds(IList<LineCoverageInfo> newCoveredLineInfos, Module module, Module testModule)
         {
             var trackedMethodLists = (from testInfo in newCoveredLineInfos
@@ -514,13 +540,29 @@ namespace Leem.Testify
                         testMethodName = line.TrackedMethods.FirstOrDefault().NameInUnitTestFormat;
 
                     }
-
-                    var unitTest = context.UnitTests.FirstOrDefault(x => x.TestMethodName == testMethodName);
-                    if (unitTest != null)
+                    //This was setting the IsSuccessful based on the FIRST unit test not checking all
+                    //var unitTest = context.UnitTests.FirstOrDefault(x => x.TestMethodName == testMethodName);
+                    //if (unitTest != null)
+                    //{
+                    //   // coveredLine.UnitTestId = unitTest.UnitTestId; 
+                    //    coveredLine.IsSuccessful = unitTest.IsSuccessful;
+                    //}
+                    var unitTests = context.UnitTests.Where(x => x.TestMethodName == testMethodName);
+                    foreach(var test in unitTests)
                     {
-                       // coveredLine.UnitTestId = unitTest.UnitTestId; 
-                        coveredLine.IsSuccessful = unitTest.IsSuccessful;
+                        coveredLine.UnitTests.Add(test);
                     }
+
+                    if (unitTests.Any(x=>x.IsSuccessful == true))
+                    {
+                        coveredLine.IsSuccessful = true;
+                    }
+                    
+                    if (unitTests.Any(x=>x.IsSuccessful == false))
+                    {
+                        coveredLine.IsSuccessful = false;
+                    }
+
 
                  }
                 context.SaveChanges();
@@ -544,7 +586,12 @@ namespace Leem.Testify
                         foreach (var trackedMethod in distinctTrackedMethods)
                         {
                             var testMethodName = ConvertTrackedMethodFormatToUnitTestFormat(trackedMethod.Name);
-
+                            //Todo modify the next line to properly handle TestCases, The Tracking method
+                            // The TrackedMethod contains the argument Type in parenthesis
+                            //"System.Void Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.PatientMergeServiceTest::CanGetHealthAssessmentsByQMedPidNumber(System.String)"
+                            // The UnitTest is saved with the actual value of the argument in parenthesis
+                            // Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.PatientMergeServiceTest.CanGetHealthAssessmentsByQMedPidNumber("110989")
+                            // The Unit test doesn't match because  (System.String) <> ("110989")
                             var matchingUnitTest = context.UnitTests.FirstOrDefault(x => x.TestMethodName.Equals(testMethodName));
                             if (matchingUnitTest != null)
                             {
@@ -617,9 +664,9 @@ namespace Leem.Testify
 
         }
 
-        private static Poco.CoveredLinePoco ConstructCoveredLine(LineCoverageInfo line)
+        private static CoveredLinePoco ConstructCoveredLine(LineCoverageInfo line)
         {
-            var newCoverage = new Poco.CoveredLinePoco
+            var newCoverage = new CoveredLinePoco
             {
                 LineNumber = line.LineNumber,
                 Method = line.Method,
@@ -718,6 +765,10 @@ namespace Leem.Testify
                 {
                     test.LastSuccessfulRunDatetime = DateTime.Parse(test.LastRunDatetime);
    
+                }
+                if(test.TestMethodName.Contains("("))
+                {
+                    Debug.WriteLine("test.TestMethodName= {0}", test.TestMethodName);
                 }
             }
 
@@ -837,109 +888,6 @@ namespace Leem.Testify
         }
 
 
-        //public List<string> SaveResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo, List<string> individualTests)
-        //{
-        //    var coverageService = CoverageService.Instance;
-        //    var changedClasses = new List<string>();
-
-        //   // var unitTestsFromTestOutput = GetUnitTests(testOutput.testsuite);
-            
-        //    IList<LineCoverageInfo> newCoveredLineInfos = new List<LineCoverageInfo>();
-        //    var module = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
-        //    var moduleName = module != null ? module.FullName : string.Empty;
-
-        //    var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
-
-        //    try
-        //    {
-        //        if (individualTests == null || !individualTests.Any())
-        //        {
-        //            // Tests have been run on the whole module, so any line not in CoverageSession is not "Covered"
-
-        //            newCoveredLineInfos = coverageService.GetCoveredLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName);
-
-        //            var newCoveredLineList = new List<Poco.CoveredLine>();
-        //            using (var context = new TestifyContext(_solutionName))
-        //            {
-        //                var existingCoveredLines = GetCoveredLinesForModule(moduleName, context);
-
-        //                foreach (var line in newCoveredLineInfos)
-        //                {
-        //                    var existingLine = GetCoveredLinesByClassAndLine(existingCoveredLines, line);
-
-        //                    if (existingLine != null)
-        //                    {
-        //                        existingLine.IsCode = line.IsCode;
-        //                        existingLine.IsCovered = line.IsCovered;
-        //                    }
-        //                    else
-        //                    {
-        //                        var newCoverage = ConstructCoveredLine(line);
-        //                        newCoveredLineList.Add(newCoverage);
-        //                    }
-        //                    var unitTests = context.UnitTests.Where(x => x.AssemblyName.Contains(projectInfo.TestProject.Path));
-        //                    UpdateUnitTests(module, testModule);     
-        //                    foreach (var coveringTest in line.TrackedMethods)
-        //                    {
-        //                        var matchingUnitTest = unitTests
-        //                                                    .FirstOrDefault(x => coveringTest.NameInUnitTestFormat
-        //                                                        .Contains(x.TestMethodName));
-        //                        if (matchingUnitTest != null && existingLine != null)
-        //                        {
-        //                            if (existingLine.UnitTests.Any(x => x.TestMethodName == matchingUnitTest.TestMethodName))
-        //                            {
-        //                                existingLine.UnitTests.Add(matchingUnitTest);
-        //                            }
-        //                        }
-
-        //                    }
-        //                }
-
-        //                DoBulkCopy("CoveredLines", newCoveredLineList, context);
-        //                var isDirty = CheckForChanges(context);
-
-        //                context.SaveChanges();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // Only a single unit test was run, so only the lines in the CoverageSession will be updated
-        //            // Get the MetadataTokens for the unitTests we just ran
-        //            var individualTestMetadataTokens = new List<int>();
-        //            foreach (var test in individualTests)
-        //            {
-        //                var testMethodName = ConvertUnitTestFormatToFormatTrackedMethod(test);
-        //                individualTestMetadataTokens.Add(testModule.TrackedMethods
-        //                                                         .Where(x => x.Name.Contains(testMethodName))
-        //                                                         .FirstOrDefault().MetadataToken);
-        //            }
-        //            // GetMetadatTokenForUnitTest(individualTests);                     
-        //            List<int> unitTestIds;
-        //            using (var context = new TestifyContext(_solutionName))
-        //            {
-        //                var unitTests = context.UnitTests.Where(x => individualTests.Contains(x.TestMethodName));
-        //                unitTestIds = unitTests.Select(x => x.UnitTestId).ToList();
-        //                if (unitTestIds != null)
-        //                {
-        //                    newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestMetadataTokens);
-
-        //                }
-        //                context.SaveChanges();
-        //            }
-
-        //        }
-        //        RefreshUnitTestIds(newCoveredLineInfos, module, testModule);
-        //        return changedClasses;
-
-        //    }
-
-        //    catch (Exception ex)
-        //    {
-        //        Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
-        //        return new List<string>();
-        //    }
-        //}
-
         private static Poco.CoveredLinePoco GetCoveredLinesByClassAndLine(ILookup<int, Poco.CoveredLinePoco> existingCoveredLines, LineCoverageInfo line)
         {
             var existingLine = existingCoveredLines[line.LineNumber].FirstOrDefault(x => x.Method.Equals(line.Method)
@@ -955,23 +903,189 @@ namespace Leem.Testify
             return existingCoveredLines;
         }
         
-        //private void ConstructUnitTestsFromTrackedMethods(LineCoverageInfo lineInfo)
-        //{
-        //    using(var context = new TestifyContext(_solutionName))
-        //    {
-        //        foreach(var method in lineInfo.TrackedMethods)
-        //        {
-        //            var matchingTest = context.UnitTests.Find(method.NameInUnitTestFormat);
-        //            if(matchingTest == null)
-        //            {
-        //                var newTest = new Poco.UnitTest { TestMethodName = method.NameInUnitTestFormat};
-        //            }
-        //        }
 
-        //    }
-        //}
+        public async Task RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber)
+        {
+            try
+            {
+                var unitTestNames = GetUnitTestsThatCoverLines(className.Substring(0, className.IndexOf('.')), methodName, lineNumber);
+
+                var projectInfo = GetProjectInfo(projectName);
+
+                if (projectInfo != null && projectInfo.TestProject != null)
+                {
+                    var testQueueItem = new QueuedTest { ProjectName = projectName, IndividualTests = unitTestNames };
+                    using (var context = new TestifyContext(_solutionName))
+                    {
+                        if (testQueueItem.IndividualTests.Any())
+                        {
+                            foreach (var test in testQueueItem.IndividualTests)
+                            {
+                                var testQueue = new TestQueue { ProjectName = testQueueItem.ProjectName, IndividualTest = test };
+                                context.TestQueue.Add(testQueue);
+                            }
+                        }
+                        else
+                        {
+                            var testQueue = new TestQueue { ProjectName = testQueueItem.ProjectName };
+                            context.TestQueue.Add(testQueue);
+                        }
+
+                        context.SaveChanges();
+                    }
+
+                }
+                else
+                {
+                    Log.DebugFormat("GetProjectInfo returned a null TestProject for {0}", projectName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorFormat("Error in RunTestsThatCoverLine {0}", ex);
+            }
 
 
+        }
+
+        public void AddToTestQueue(string projectName)
+        {
+            try
+            {
+                // make sure this is not a test project
+                if (!projectName.Contains(".Test"))
+                {
+                    var projectInfo = GetProjectInfo(projectName);
+
+                    // make sure there is a matching test project
+                    if (projectInfo != null && projectInfo.TestProject != null)
+                    {
+                        var testQueue = new TestQueue { ProjectName = projectName,
+                                                        QueuedDateTime = DateTime.Now};
+                        using (var context = new TestifyContext(_solutionName))
+                        {
+                            context.TestQueue.Add(testQueue);
+                            context.SaveChanges();
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex )
+            {
+                Log.ErrorFormat("Error in AddToTestQueue {0}", ex);
+            }
+        }
+        public void AddToTestQueue(TestQueue testQueue)
+        {
+            try
+            {
+                using (var context = new TestifyContext(_solutionName))
+                {
+                    context.TestQueue.Add(testQueue);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorFormat("Error in AddToTestQueue {0}", ex);
+            }
+        }
+
+        public QueuedTest GetTestQueue(int testRunId, bool isProjectLevel) // List<TestQueueItem> 
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                QueuedTest nextItem = null;
+                if (context.TestQueue.All(x => x.TestRunId == 0))// there aren't any tests currently running
+                {
+                    if (isProjectLevel)
+                    {
+                        var query = (from queueItem in context.TestQueue
+                                     where queueItem.IndividualTest == null
+                                     orderby queueItem.QueuedDateTime
+                                     group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
+                                     {  ProjectName = x.Key});
+                          nextItem = query.FirstOrDefault();
+                    }
+                    else
+                    {
+                        var individual = (from queueItem in context.TestQueue
+                                          where queueItem.IndividualTest != null
+                                     group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
+                                     {
+                                         ProjectName = x.Key,
+                                         IndividualTests = (from test in context.TestQueue
+                                                            where test.ProjectName == x.Key
+                                                            && test.IndividualTest != null
+                                                            select test.IndividualTest).ToList()
+                                     }).OrderBy(o => o.IndividualTests.Count());
+
+                        nextItem = individual.FirstOrDefault();
+                    }
+
+                }
+
+                var testsToMarkInProgress= new List<TestQueue>();
+                if (nextItem != null)
+                {
+                    nextItem.TestRunId = testRunId;
+                    // if the queued item has individual tests, we will remove all of these individual tests from queue.
+                    if (nextItem.IndividualTests == null)
+                    {
+                        testsToMarkInProgress = context.TestQueue.Where(x => x.ProjectName == nextItem.ProjectName).ToList();
+                    }
+                    else if (nextItem.IndividualTests.Any()) 
+                    {
+                        // if we are running all the tests for the project, we can remove all the individual and Project tests 
+                        foreach (var testToRun in nextItem.IndividualTests)
+                        {
+                            testsToMarkInProgress = context.TestQueue.Where(x => x.IndividualTest == testToRun).ToList();
+                        }
+                    }
+
+                    
+
+
+                    foreach (var test in testsToMarkInProgress.ToList())
+                    {
+                        test.TestRunId = testRunId;
+                      }
+                    context.SaveChanges();
+                }
+
+
+                return nextItem;
+            }
+
+        }
+        public void RemoveFromQueue(QueuedTest testQueueItem)
+        {
+            Log.DebugFormat("Test Completed: {0} Elapsed Time {1}",testQueueItem.ProjectName,DateTime.Now -testQueueItem.TestStartTime);
+            var testsToDelete = new List<TestQueue>();
+            using (var context = new TestifyContext(_solutionName))
+            {
+                testsToDelete = context.TestQueue.Where(x => x.TestRunId == testQueueItem.TestRunId).ToList();
+                foreach (var test in testsToDelete.ToList())
+                {
+                    context.TestQueue.Remove(test);
+                }
+                context.SaveChanges();
+            }
+        }
+        public void SetAllQueuedTestsToNotRunning()
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+              
+                foreach (var test in context.TestQueue)
+                {
+                    test.TestRunId = 0;
+                }
+                context.SaveChanges();
+            }
+        }
     }
 
 }
+                   

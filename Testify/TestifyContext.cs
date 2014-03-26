@@ -40,12 +40,15 @@ namespace Leem.Testify
         public DbSet<TestProject> TestProjects { get; set; }
 
         public DbSet<TrackedMethod> TrackedMethods { get; set; }
-        public DbSet<CoveredLinePoco> CoveredLines { get; set; }
+        public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
+        public DbSet<TestQueue> TestQueue { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-            modelBuilder.Entity<Poco.UnitTest>()
+            modelBuilder.Entity<TestQueue>()
+                .HasKey(x => x.TestQueueId);
+            modelBuilder.Entity<UnitTest>()
                 .HasKey(x => x.UnitTestId)
                 .Ignore(c => c.MetadataToken);
             modelBuilder.Entity<TrackedMethod>()
@@ -66,8 +69,9 @@ namespace Leem.Testify
                     mc.ToTable("CoveredLineUnitTest");
                 });
 
-            modelBuilder.Entity<UnitTest>().Ignore(c => c.MetadataToken);
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<UnitTest>()
+                .Ignore(c => c.MetadataToken);
+
 
         }
 

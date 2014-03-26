@@ -8,10 +8,11 @@ using Leem.Testify.Model;
 using System.Timers;
 using EnvDTE80;
 using EnvDTE;
-using StructureMap;
+
 using OpenCover;
 using log4net;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Leem.Testify
 {
@@ -19,7 +20,7 @@ namespace Leem.Testify
 
     public class UnitTestService
     {
-        private static List<LineCoverageInfo> _testQueue;
+        private  List<TestQueue> _testQueue;
         private string _testOutputDirectory;
         private string _solutionDirectory;
         private string _solutionName;
@@ -32,15 +33,17 @@ namespace Leem.Testify
         private string _nunitPath;
         public event CoverageChangedHandler CoverageChanged;
 
+
+
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
             Log.DebugFormat("Inside 3 argument Constructor");
-            _queries = new TestifyQueries(solutionName);//ObjectFactory.With("solutionName").EqualTo(solutionName).GetInstance<ITestifyQueries>();
+            _queries = TestifyQueries.Instance;
+            TestifyQueries.SolutionName = solutionName;
+
             _dte = dte;
             _solutionName = solutionName;
             _solutionDirectory = solutionDirectory;
-       
-            //todo find a way to avoid calling EXE, can I call a DLL instead?
 
             Log.DebugFormat("Load file paths for Release Mode");
             _openCoverCommandLine = Path.GetDirectoryName(typeof(UnitTestService).Assembly.Location) + @"\OpenCover\OpenCover.console.exe";
@@ -51,6 +54,8 @@ namespace Leem.Testify
             Log.DebugFormat("Nunit Path: {0}", _nunitPath);
 
             _outputFolder = GetOutputFolder();
+
+
         }
 
         public string ProjectFileName { get; set; }
@@ -60,11 +65,14 @@ namespace Leem.Testify
         private string GetTarget()
         {
             Log.Debug("Inside GetTarget");
-            string target = string.Empty;
             Log.DebugFormat("Solution Directory: {0}", _solutionDirectory.ToString());
+
+            string target = string.Empty;
+
             try
             {
                 target = " -target:" + "\"" + _nunitPath + "\" -targetargs:\"";
+
                 Log.DebugFormat("Target: {0}", target);
             }
             catch(Exception ex) 
@@ -75,27 +83,38 @@ namespace Leem.Testify
             return target;
         }
 
-        private async Task RunNunitTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, List<string> individualTests)
+        private async Task RunNunitTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
-            await RunTests(openCoverCommandLine, arguments, projectInfo, fileNameGuid, individualTests);
+            await RunTests(openCoverCommandLine, arguments, projectInfo, fileNameGuid, testQueueItem);
 
         }
-        private async Task RunTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, List<string> individualTests)
+        private async Task RunTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
             Log.DebugFormat("Verify project executing on Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             var coverFilename = fileNameGuid.ToString() + "-cover.xml";
+
             var resultFilename = fileNameGuid.ToString() + "-result.xml";
+
             var startInfo = new System.Diagnostics.ProcessStartInfo { FileName = openCoverCommandLine,
-                                                                  Arguments = arguments + coverFilename,
-                                                                  RedirectStandardOutput = true,
-                                                                  WindowStyle = ProcessWindowStyle.Hidden,
-                                                                  UseShellExecute = false,
-                                                                  CreateNoWindow = true
+                                                                      Arguments = arguments + coverFilename,
+                                                                      RedirectStandardOutput = true,
+                                                                      WindowStyle = ProcessWindowStyle.Hidden,
+                                                                      UseShellExecute = false,
+                                                                      CreateNoWindow = true
             };
 
             Log.DebugFormat("ProcessStartInfo.Arguments: {0}", startInfo.Arguments.ToString());
             Log.DebugFormat("ProcessStartInfo.FileName: {0}", startInfo.FileName.ToString());
+            var args = new string[] {@"-target:C:\USERS\LEE\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\11.0EXP\EXTENSIONS\LEEM\TESTIFY\1.0\NUnit.Runners.2.6.2\nunit-console.exe ",
+                                     @"-targetargs:C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.Test.dll /result:C:\Users\Lee\AppData\Local\Testify\UnitTestExperiment\5ce700cd-e242-46fd-b817-ff276495e958-result.xml /noshadow", 
+                                     @"-coverbytest:*.Test.dll",
+                                     @"-hideskipped: Domain",
+                                     @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
+                                     @"-register:user"  };
+            //var launcher = new OpenCoverLauncher(args);
+
+
             string stdout ;
             try
             {
@@ -104,9 +123,12 @@ namespace Leem.Testify
                  using (System.Diagnostics.Process exeProcess = System.Diagnostics.Process.Start(startInfo))
                 {
                     exeProcess.StartInfo.RedirectStandardOutput = true;
+
                     stdout = exeProcess.StandardOutput.ReadToEnd(); 
+
                     await Task.Run(() => exeProcess.WaitForExit());
-                    Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+
+                    //Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                 }
             }
             catch(Exception ex)
@@ -115,100 +137,81 @@ namespace Leem.Testify
                 Log.ErrorFormat("Error ocurred while RunTest for Project: {0}: Error:{1}", projectInfo.ProjectAssemblyName, ex.Message);
             }
             string fileToRead = GetOutputFolder() + coverFilename;
-            await ProcessCoverageSessionResults(projectInfo, individualTests, resultFilename, fileToRead);
+            await ProcessCoverageSessionResults(projectInfo, testQueueItem, resultFilename, fileToRead);
             
         }
 
-        private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, List<string> individualTests, string resultFilename, string fileToRead)
+        private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
             CoverageSession coverageSession = new CoverageSession();
             resultType testOutput= new resultType();
+
             await System.Threading.Tasks.Task.Run(() =>
             {
                 coverageSession = GetCoverageSessionFile(fileToRead);
+
                 TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
+
                  testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
             });
+
             _queries.SaveUnitTestResults(testOutput);
-            //_queries.SaveResults(coverageSession, testOutput, projectInfo, individualTests);
-            var changedClasses = await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, individualTests);
-            if (changedClasses.Any())
-            {
-                var del = CoverageChanged as CoverageChangedHandler;
-                foreach( var changedClass in changedClasses)
-                {
-                    if (del != null)
-                    {
-                        del(changedClass);
-                    }
-                }
+            
+            await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, testQueueItem.IndividualTests);
 
-            }
+            _queries.RemoveFromQueue(testQueueItem);
 
-            //_queries.SaveResults(coverageSession, testOutput, projectInfo, individualTests);
+            Log.DebugFormat("Test Completed, Name: {0}, Individual Test Count: {1}, ElapsedTime {2}",
+
+            testQueueItem.ProjectName, testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
+
             System.IO.File.Delete(fileToRead);
         }
-        public void RunAllNunitTestsForSolution()
+
+
+
+
+
+        public async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
         {
-            string testOutputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _solutionName, "OpenCover.xml");
 
-            var nunitDirectories = Directory.GetDirectories(_solutionDirectory + @"\packages", "NUnit.Runners*");
-            var openCoverDirectories = Directory.GetDirectories(_solutionDirectory + @"\packages", "OpenCover*");
-            var nunit = Directory.GetFiles(nunitDirectories.First() + @"\tools\", "nunit-console.exe /out:" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _solutionName, "TestResult.txt"));
-            var openCover = Directory.GetFiles(openCoverDirectories.First(), "OpenCover.Console.exe");
-            var proc = new System.Diagnostics.Process();
+            Log.DebugFormat("Test Started on Project {0}", item.ProjectName);
 
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.CreateNoWindow = true;
-
-            var testProjects = _queries.GetTestProjects().ToList();
-            foreach (var project in testProjects)
-            {
-                string arguments = " -target:" + "\"" + nunit.First() + "\" -targetargs:\"" + project.Path + " /noshadow\"" + " -output:\"" + testOutputDirectory + "\\opencover.xml\"";
-                proc.StartInfo = new System.Diagnostics.ProcessStartInfo(openCover.First(), arguments);
-                proc.Start();
-            }
-
-        }
-
-     
-        public async Task RunAllNunitTestsForProject(string projectName, List<string> individualTests)
-        {
-            Debug.WriteLine("Run Tests for " + projectName);
-            Log.DebugFormat("RunAllNunitTestsForProject for project name: {0}", projectName);
             var projectInfo = new ProjectInfo();
 
-            if (individualTests == null || !individualTests.Any())
+            if (item.IndividualTests == null || !item.IndividualTests.Any())
             {
-                projectInfo = _queries.GetProjectInfo(projectName);
+                projectInfo = _queries.GetProjectInfo(item.ProjectName);
             }
             else 
             {
-                projectInfo = _queries.GetProjectInfoFromTestProject(projectName);
+                projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
             }
             
 
             if(projectInfo.TestProject != null)
             {
-                Log.DebugFormat("projectInfo for projectName: {0}, Test Project.Name: {1}, Test Project.UniqueName: {2}", projectInfo.ProjectName, projectInfo.TestProject.Name, projectInfo.TestProject.UniqueName);
-                Log.DebugFormat("Called GetProjectInfo for Project: {0}: .TestProject.AssemblyName:{1}", projectName, projectInfo.TestProject.AssemblyName);
+               // Log.DebugFormat("projectInfo for projectName: {0}, Test Project.Name: {1}, Test Project.UniqueName: {2}", projectInfo.ProjectName, projectInfo.TestProject.Name, projectInfo.TestProject.UniqueName);
+                Log.DebugFormat("Called GetProjectInfo for Project: {0}: .TestProject.AssemblyName:{1}", item.ProjectName, projectInfo.TestProject.AssemblyName);
+                
                 var fileNameGuid = Guid.NewGuid();
-                StringBuilder testParameters = GetTestParameters(projectName, individualTests, projectInfo, fileNameGuid);
+                
+                StringBuilder testParameters = GetTestParameters(item.ProjectName, item.IndividualTests, projectInfo, fileNameGuid);
+               
                 Log.DebugFormat("openCoverCommandLine: {0}", _openCoverCommandLine.ToString());
                 Log.DebugFormat("Test Parameters: {0}", testParameters.ToString());
+                
                 await System.Threading.Tasks.Task.Run(() =>
                     {
-                         RunNunitTests(_openCoverCommandLine, testParameters.ToString(), projectInfo, fileNameGuid, individualTests);
+                        RunNunitTests(_openCoverCommandLine, testParameters.ToString(), projectInfo, fileNameGuid, item);
                     });
             }
             else
             {
-                Log.DebugFormat("GetProjectInfo returned a null TestProject for {0}", projectName);
+                Log.DebugFormat("GetProjectInfo returned a null TestProject for {0}", item.ProjectName);
             }
-
+            Log.DebugFormat("Test Finished on Project {0} Elapsed Time {1}", item.ProjectName,DateTime.Now-item.TestStartTime);
         }
 
         private StringBuilder GetTestParameters(string projectName, List<string> individualTests, ProjectInfo projectInfo, Guid fileNameGuid)
@@ -244,10 +247,13 @@ namespace Leem.Testify
             foreach(var test in individualTests)
             {
                 listOfTests.Append(test);
+               
                 listOfTests.Append(",");
             }
+           
             // remove the last coma
             listOfTests.Remove(listOfTests.Length - 1, 1);
+            
             return listOfTests;
             
         }
@@ -271,24 +277,24 @@ namespace Leem.Testify
             return codeCoverage;
         }
 
-
-        public async Task  RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber)
+        public void ProcessQueue(int testRunId, bool isProjectLevel)
         {
-            var unitTestNames = _queries.GetUnitTestsThatCoverLines(className.Substring(0, className.IndexOf('.')), methodName, lineNumber);
-           
-             var projectInfo =  _queries.GetProjectInfo(projectName);
+            Log.DebugFormat("ProcessQueue ");
+            var queuedTest = _queries.GetTestQueue(testRunId, isProjectLevel);
+             if (queuedTest != null)
+             {
+                 Log.DebugFormat("Ready to run another test");
 
-            if(projectInfo.TestProject != null)
-            {
-                await RunAllNunitTestsForProject(projectInfo.TestProject.UniqueName, unitTestNames);
-            }
-            else
-            {
-                Log.DebugFormat("GetProjectInfo returned a null TestProject for {0}", projectName);
-            }
-            
-            
+                 queuedTest.TestStartTime = DateTime.Now;
+
+                 RunAllNunitTestsForProject(queuedTest);
+
+             }
+
+
         }
+
+
     }
 }
       

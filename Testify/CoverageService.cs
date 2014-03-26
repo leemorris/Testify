@@ -10,13 +10,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
-
-using StructureMap;
 using log4net;
 using Leem.Testify.Poco;
 
 namespace Leem.Testify
 {
+    
     public  class CoverageService : ICoverageService
     {
         private IList<CodeElement> _classes;
@@ -29,13 +28,14 @@ namespace Leem.Testify
         private string _solutionName;
         private ITestifyQueries _queries;
 
-    
+
+
+
+
         public static CoverageService Instance
         {
             get
             {
-
-
                 if (instance == null)
                 {
                     instance = new CoverageService();
@@ -46,14 +46,7 @@ namespace Leem.Testify
                 return instance;
             }
         }
-        //private void OnCoverageChanged() 
-        //{
-        //    if (CoverageChanged != null)
-        //    {
-        //        EventArgs args = new EventArgs();
-        //        CoverageChanged(this, args);
-        //    }
-        //}
+
 
         public DTE DTE { set { _dte = value; } }
 
@@ -71,14 +64,7 @@ namespace Leem.Testify
         public ITextDocument Document { get { return _document; } set { _document = value; } }
         public List<LineCoverageInfo> CoveredLines { get; set; }
 
-        //public IEnumerable<Poco.CoveredLinePoco> GetCoveredLinesForClass(string className)
-        //{
-        //    if (Queries == null)
-        //    {
-        //        Log.DebugFormat("ERROR TestifyQueries is null");
-        //    }
-        //    return Queries.GetCoveredLines(className);
-        //}
+
 
         public IList<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName)
         {
@@ -162,7 +148,7 @@ namespace Leem.Testify
 
 
 
-        public List<LineCoverageInfo> GetRetestedLinesFromCoverageSession(CoverageSession coverageSession, string projectAssemblyName, List<int> metadataTokens)
+        public List<LineCoverageInfo> GetRetestedLinesFromCoverageSession(CoverageSession coverageSession, string projectAssemblyName, List<int> uniqueIds)
         {
 
             /// todo need to figure out how to remove a CoveredLine if an Edit has made it uncovered, 
@@ -189,26 +175,27 @@ namespace Leem.Testify
                     var methods = codeClass.Methods;
                     foreach (var method in methods)
                     {
-                        if (metadataTokens.Contains(method.MetadataToken))
-                        {
+                        //if (uniqueIds.Contains(method.))
+                        //{
                             //Log.DebugFormat("Class: {0}", method.Name);
                             var sequencePoints = method.SequencePoints;
                             foreach (var sequencePoint in sequencePoints)
                             {
-                                var coveredLine = new LineCoverageInfo
-                                {
-                                    IsCode = true,
-                                    LineNumber = sequencePoint.StartLine,
-                                    IsCovered = (sequencePoint.VisitCount > 0),
-                                    Module = module.FullName,
-                                    Class = codeClass.FullName,
-                                    Method = method.Name
-                                };
+
                                 if (tests.Any())
                                 {
                                     var coveringTests = new List<Poco.TrackedMethod>();
                                     foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                                     {
+                                        var coveredLine = new LineCoverageInfo
+                                        {
+                                            IsCode = true,
+                                            LineNumber = sequencePoint.StartLine,
+                                            IsCovered = (sequencePoint.VisitCount > 0),
+                                            Module = module.FullName,
+                                            Class = codeClass.FullName,
+                                            Method = method.Name
+                                        };
                                         var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
                                         foreach (var test in testsThatCoverLine)
                                         {
@@ -219,12 +206,13 @@ namespace Leem.Testify
                                                                                             Strategy = test.Strategy, 
                                                                                             Name = test.Name });
                                         }
+                                        coveredLines.Add(coveredLine);
                                     }
 
                                 }
-                                coveredLines.Add(coveredLine);
+                                
                             }
-                        }
+                        //}
                        
                     }
                 }

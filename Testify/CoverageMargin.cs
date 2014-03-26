@@ -37,16 +37,19 @@ namespace Leem.Testify
         private string _documentName;
         private UnitTestService _unitTestService;
         private ITextDocument _document;
+        //private ITestifyQueries _queries;
 
         public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
         {
             _textViewHost = textViewHost;
-          
+
             _dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            //_queries = new TestifyQueries(_dte.Solution.FullName);
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
             _codeMarkManager = new CodeMarkManager();
 
             _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider);
+      
             _codeMarks = GetAllCodeMarksForMargin(); 
             // subscribe to LayoutChanged event of text view, so we can change the
             // positions of the glyphs when the layout changes
@@ -63,7 +66,7 @@ namespace Leem.Testify
             this.ClipToBounds = true;
             this.Background = _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
             this.BorderBrush = _textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
-            this.Width = 18;
+            this.Width = 8;
             this.BorderThickness = new Thickness(0.5);
 
 			// add margin canvas to the children list
@@ -71,7 +74,7 @@ namespace Leem.Testify
 
             UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
             _textViewHost.TextView.TextBuffer.Properties.TryGetProperty(typeof(Microsoft.VisualStudio.Text.ITextDocument), out _document);
-            _unitTestService = new UnitTestService(_dte, _dte.Solution.FullName, System.IO.Path.GetFileNameWithoutExtension(_dte.Solution.FullName));
+           // _unitTestService = new UnitTestService(_dte, _dte.Solution.FullName, System.IO.Path.GetFileNameWithoutExtension(_dte.Solution.FullName));
         }
 
         public void Coverage_Changed(string className, string methodName)
@@ -98,7 +101,7 @@ namespace Leem.Testify
             // layout have changed so update all glyphs
             // todo update the glyphs
             List<int> linesEdited;
-            if (e.VerticalTranslation)
+            if (e.VerticalTranslation || e.TranslatedLines.Any())
             {
                 UpdateCodeMarks();
             }
@@ -107,7 +110,7 @@ namespace Leem.Testify
         }
         void TextView_GotAggregateFocus (object sender, EventArgs e)
         {
-
+            _coverageProvider.RecreateCoverage((IWpfTextView)sender);
             this.UpdateCodeMarks();
         }
         void TextView_ViewportHeightChanged(object sender, EventArgs e)
@@ -120,17 +123,38 @@ namespace Leem.Testify
             List<int> linesEdited;
             if (e.Changes.IncludesLineChanges)
             {
+                
+                
                 vsCMElement kind = vsCMElement.vsCMElementFunction;
                 var textPoint = GetCursorTextPoint();
 
                 var codeElement = GetMethodFromTextPoint(textPoint);
                 var projectItem = _dte.ActiveDocument.ProjectItem;
-                // Fire and Forget
-                System.Threading.Tasks.Task.Run(() => RunTestsThatCoverMethod(textPoint, codeElement, projectItem));
-                //RunTestsThatCoverMethod(textPoint, codeElement, projectItem);
+                if (projectItem != null && codeElement != null)
+                {
+                    if (projectItem.ContainingProject.Name.Contains(".Test"))
+                    {
+                        //This is a test project
+                        var testQueue = new TestQueue { ProjectName = projectItem.ContainingProject.UniqueName, 
+                                                        IndividualTest = codeElement.FullName,
+                                                        QueuedDateTime = DateTime.Now};
+                        _coverageProvider.Queries.AddToTestQueue(testQueue);
+                        _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName,true); 
+                    }
+                    else
+                    {
+                        _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName); 
+                        // Fire and Forget
+                        System.Threading.Tasks.Task.Factory.StartNew(() => {
+                            RunTestsThatCoverMethod(textPoint, codeElement, projectItem);
+                        });
+                       
+                    }
 
+                }
             }
         }
+
         private void ThrowIfDisposed()
         {
             if (_isDisposed)
@@ -189,12 +213,7 @@ namespace Leem.Testify
         private void UpdateCodeMarks2(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines)
         {
             var fcm = _coverageProvider.GetFileCodeModel(_documentName);
-            //var firstLineNumber = _textViewHost.TextView.TextViewLines.FirstVisibleLine.Start.GetContainingLine().LineNumber + 1;
-            //var lastLineNumber = _textViewHost.TextView.TextViewLines.LastVisibleLine.End.GetContainingLine().LineNumber + 1;
-            //var first = _textViewHost.TextView.TextViewLines.FirstOrDefault(x => x.VisibilityState == Microsoft.VisualStudio.Text.Formatting.VisibilityState.FullyVisible);
-            //var ii = first.Start.GetContainingLine();
 
-            //for (var i=firstLineNumber; i < lastLineNumber ; i++)
             foreach (var textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
                 //var textViewLine = _textViewHost.TextView.TextViewLines[i];
@@ -288,7 +307,7 @@ namespace Leem.Testify
         #endregion
 
         // create a bookmark glyph for numbered bookmarks
-        private CodeMarkGlyph CreateCodeMarkGlyph(Leem.Testify.Poco.CoveredLinePoco line, double yPos)
+        private CodeMarkGlyph CreateCodeMarkGlyph(Poco.CoveredLinePoco line, double yPos)
         {
             // create a glyph
             CodeMarkGlyph glyph = new CodeMarkGlyph(line);
@@ -363,9 +382,13 @@ namespace Leem.Testify
             var first = wpfTextView.TextViewLines.FirstOrDefault(x => x.VisibilityState == Microsoft.VisualStudio.Text.Formatting.VisibilityState.FullyVisible);
             return firstLineNumber;
         }
-        private async System.Threading.Tasks.Task RunTestsThatCoverMethod(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
+        private void RunTestsThatCoverMethod(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
         {
-            await _unitTestService.RunTestsThatCoverLine(projectItem.ContainingProject.UniqueName, projectItem.Name, codeElement.Name, textPoint.Line);
+            var projectName = projectItem.ContainingProject.UniqueName;
+            var className = projectItem.Name;
+            var methodName = codeElement.Name;
+            var lineNumber = textPoint.Line;
+            _coverageProvider.Queries.RunTestsThatCoverLine(projectName, className, methodName, lineNumber);
         }
 
 
@@ -413,7 +436,6 @@ namespace Leem.Testify
         private CodeElement GetCodeElementAtTextPoint(vsCMElement codeElementKind, CodeElements codeElements, TextPoint textPoint)
         {
 
-            //EnvDTE.CodeElement objCodeElement = default(EnvDTE.CodeElement);
             EnvDTE.CodeElement resultCodeElement = default(EnvDTE.CodeElement);
             EnvDTE.CodeElements colCodeElementMembers = default(EnvDTE.CodeElements);
             EnvDTE.CodeElement memberCodeElement = default(EnvDTE.CodeElement);

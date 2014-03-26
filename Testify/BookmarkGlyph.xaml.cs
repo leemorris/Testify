@@ -9,10 +9,7 @@ namespace Leem.Testify
 {
     public partial class CodeMarkGlyph : UserControl
     {
-		// bookmark number with which this glyph is associated
-        public int BookmarkNumber { get; set; }
 
-		// bookmark manager associated with current margin and this glyph
         private CodeMarkManager _codeMarkManager;
 
         public CodeMarkGlyph()
@@ -21,33 +18,12 @@ namespace Leem.Testify
             InitializeComponent();
         }
 
-        public CodeMarkGlyph(Leem.Testify.Poco.CoveredLinePoco line)
+        public CodeMarkGlyph(Poco.CoveredLinePoco line)
             : this()
         {
-            var number = 1;
-			// assign the bookmark number
-            BookmarkNumber = number;
 
-			// create a text block to hold the text of glyph (0, 1... ?)
-            //TextBlock text = new TextBlock();
-            //if (number != BookmarkManager.HelpBookmarkNumber)
-            //{
-            //    // this is not a help bookmark so write the number
-            //    text.Text = number.ToString();
-            //}
-            //else
-            //{
-            //    // yes this is a help bookmark
-            //    text.Text = "M"; // change the text to '?'
-				// change the background fill to a new radient brush of green color
-				// so that we can identify help bookmark from other bookmarks
-               // RadialGradientBrush brush = new RadialGradientBrush();
-               // brush.GradientOrigin = new Point(0.25, 0.15);
-               // GradientStopCollection stops = new GradientStopCollection();
-               // stops.Add(new GradientStop(Colors.LimeGreen, 0.2));
-               // stops.Add(new GradientStop(Colors.Green, 0.9));
-               // brush.GradientStops = stops;
-               //this.ellipse.Stroke = new SolidColorBrush(Colors.Green);
+
+            ellipse.Width = 6;
             if (!line.UnitTests.Any()&& line.IsCode)
             {
                 ellipse.Fill = new SolidColorBrush(Colors.Orange);

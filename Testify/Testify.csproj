@@ -152,9 +152,8 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bookmark.cs" />
     <Compile Include="BookmarkGlyph.xaml.cs" />
-    <Compile Include="BookmarkMargin.cs" />
+    <Compile Include="ClassChangedEventArgs.cs" />
     <Compile Include="CodeMark.cs" />
     <Compile Include="CodeMarkManager.cs" />
     <Compile Include="CodeModelService.cs" />
@@ -164,24 +163,11 @@
     <Compile Include="CoverageProvider.cs" />
     <Compile Include="CoverageProviderBroker.cs" />
     <Compile Include="CoverageService.cs" />
-    <Compile Include="CoveredLine.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="CoverGlyph.cs" />
-    <Compile Include="CoverGlyphFactory.cs" />
-    <Compile Include="CoverGlyphFactoryProvider.cs" />
-    <Compile Include="CoverTag.cs" />
-    <Compile Include="CoverTagger.cs" />
-    <Compile Include="CoverTaggerProvider.cs" />
-    <Compile Include="EntityModel.cs" />
-    <Compile Include="Formatter.cs" />
     <Compile Include="ICoverageProviderBroker.cs" />
     <Compile Include="ICoverageService.cs" />
-    <Compile Include="ICoverTag.cs" />
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="MarginFactory.cs" />
     <Compile Include="Migrations\201402181124546_Initial.cs" />
     <Compile Include="Migrations\201402181124546_Initial.Designer.cs">
       <DependentUpon>201402181124546_Initial.cs</DependentUpon>
@@ -218,12 +204,11 @@
     <Compile Include="Poco\CoveredLinePoco.cs" />
     <Compile Include="Poco\Project.cs" />
     <Compile Include="Poco\TestProject.cs" />
+    <Compile Include="Poco\TestQueue.cs" />
     <Compile Include="Poco\TrackedMethod.cs" />
     <Compile Include="Poco\UnitTest.cs" />
-    <Compile Include="Project.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ProjectInfo.cs" />
+    <Compile Include="QueuedTest.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -238,8 +223,6 @@
     <Compile Include="TestifyQueries.cs" />
     <Compile Include="TestifyType.cs" />
     <Compile Include="TestOutputFileReader.cs" />
-    <Compile Include="TextViewCreationListener.cs" />
-    <Compile Include="UnCoverGlyphFactory.cs" />
     <Compile Include="UnitTestService.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -266,6 +249,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="TestifyCE.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
