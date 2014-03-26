@@ -222,7 +222,7 @@ namespace Leem.Testify
             {
                 testParameters.Append("/run:");
                 
-                testParameters.Append(GetComaSeparatedListOfTests(individualTests));
+                testParameters.Append(GetCommaSeparatedListOfTests(individualTests));
                 testParameters.Append(" ");
             }
             testParameters.Append(projectInfo.TestProject.Path);
@@ -241,7 +241,7 @@ namespace Leem.Testify
             return testParameters;
         }
 
-        private StringBuilder GetComaSeparatedListOfTests(List<string> individualTests)
+        private StringBuilder GetCommaSeparatedListOfTests(List<string> individualTests)
         {
             var listOfTests = new StringBuilder();
             foreach(var test in individualTests)
@@ -277,23 +277,33 @@ namespace Leem.Testify
             return codeCoverage;
         }
 
-        public void ProcessQueue(int testRunId, bool isProjectLevel)
+        public void ProcessIndividualTestQueue(int testRunId)
         {
-            Log.DebugFormat("ProcessQueue ");
-            var queuedTest = _queries.GetTestQueue(testRunId, isProjectLevel);
+
+            var queuedTest = _queries.GetIndividualTestQueue(testRunId);
              if (queuedTest != null)
              {
-                 Log.DebugFormat("Ready to run another test");
+                 Log.DebugFormat("Ready to run another test from Individual Test queue");
 
                  queuedTest.TestStartTime = DateTime.Now;
 
                  RunAllNunitTestsForProject(queuedTest);
 
              }
-
-
         }
+        public void ProcessProjectTestQueue(int testRunId)
+        {
+            var queuedTest = _queries.GetProjectTestQueue(testRunId);
+            if (queuedTest != null)
+            {
+                Log.DebugFormat("Ready to run another test from Project Test queue");
 
+                queuedTest.TestStartTime = DateTime.Now;
+
+                RunAllNunitTestsForProject(queuedTest);
+
+            }
+        }
 
     }
 }

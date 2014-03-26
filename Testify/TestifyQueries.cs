@@ -523,14 +523,17 @@ namespace Leem.Testify
 
         private void UpdateCoveredLines(string moduleName, List<Poco.TrackedMethod> trackedMethods, IList<LineCoverageInfo> newCoveredLineInfos)
         {
-
+            var newCoveredMethods = newCoveredLineInfos.GroupBy(g => g.Method)
+                                                        .Select(m => m.First().Method)
+                                                        .ToList();
             using (var context = new TestifyContext(_solutionName))
             {
 
-                var coveredLines = (from line in context.CoveredLines
-                                    where line.Module.Equals(moduleName)
-                                    select line);
-
+                //var coveredLines = (from line in context.CoveredLines
+                //                    from newLine in newCoveredMethods
+                //                    where line.Method == newLine.Method
+                //                    select line);
+                var coveredLines = context.CoveredLines.Where(x => newCoveredMethods.Contains(x.Method));
                 foreach (var coveredLine in coveredLines)
                 {
                     var line = newCoveredLineInfos.FirstOrDefault(x => x.Method == coveredLine.Method && x.LineNumber == coveredLine.LineNumber);
@@ -992,66 +995,33 @@ namespace Leem.Testify
             }
         }
 
-        public QueuedTest GetTestQueue(int testRunId, bool isProjectLevel) // List<TestQueueItem> 
+        public QueuedTest GetIndividualTestQueue(int testRunId) // List<TestQueueItem> 
         {
             using (var context = new TestifyContext(_solutionName))
             {
                 QueuedTest nextItem = null;
-                if (context.TestQueue.All(x => x.TestRunId == 0))// there aren't any tests currently running
+                if (context.TestQueue.Where(i => i.IndividualTest != null).All(x => x.TestRunId == 0))// there aren't any Individual tests currently running
                 {
-                    if (isProjectLevel)
-                    {
-                        var query = (from queueItem in context.TestQueue
-                                     where queueItem.IndividualTest == null
-                                     orderby queueItem.QueuedDateTime
-                                     group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
-                                     {  ProjectName = x.Key});
-                          nextItem = query.FirstOrDefault();
-                    }
-                    else
-                    {
-                        var individual = (from queueItem in context.TestQueue
-                                          where queueItem.IndividualTest != null
-                                     group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
-                                     {
-                                         ProjectName = x.Key,
-                                         IndividualTests = (from test in context.TestQueue
-                                                            where test.ProjectName == x.Key
-                                                            && test.IndividualTest != null
-                                                            select test.IndividualTest).ToList()
-                                     }).OrderBy(o => o.IndividualTests.Count());
 
-                        nextItem = individual.FirstOrDefault();
-                    }
+                    var individual = (from queueItem in context.TestQueue
+                                        where queueItem.IndividualTest != null
+                                    group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
+                                    {
+                                        ProjectName = x.Key,
+                                        IndividualTests = (from test in context.TestQueue
+                                                        where test.ProjectName == x.Key
+                                                        && test.IndividualTest != null
+                                                        select test.IndividualTest).ToList()
+                                    }).OrderBy(o => o.IndividualTests.Count());
+
+                    nextItem = individual.FirstOrDefault();
 
                 }
 
                 var testsToMarkInProgress= new List<TestQueue>();
                 if (nextItem != null)
                 {
-                    nextItem.TestRunId = testRunId;
-                    // if the queued item has individual tests, we will remove all of these individual tests from queue.
-                    if (nextItem.IndividualTests == null)
-                    {
-                        testsToMarkInProgress = context.TestQueue.Where(x => x.ProjectName == nextItem.ProjectName).ToList();
-                    }
-                    else if (nextItem.IndividualTests.Any()) 
-                    {
-                        // if we are running all the tests for the project, we can remove all the individual and Project tests 
-                        foreach (var testToRun in nextItem.IndividualTests)
-                        {
-                            testsToMarkInProgress = context.TestQueue.Where(x => x.IndividualTest == testToRun).ToList();
-                        }
-                    }
-
-                    
-
-
-                    foreach (var test in testsToMarkInProgress.ToList())
-                    {
-                        test.TestRunId = testRunId;
-                      }
-                    context.SaveChanges();
+                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
                 }
 
 
@@ -1059,6 +1029,61 @@ namespace Leem.Testify
             }
 
         }
+
+        public QueuedTest GetProjectTestQueue(int testRunId) // List<TestQueueItem> 
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                QueuedTest nextItem = null;
+                if (context.TestQueue.Where(i => i.IndividualTest == null).All(x => x.TestRunId == 0))// there aren't any Project tests currently running
+                {
+
+                    var query = (from queueItem in context.TestQueue
+                                    where queueItem.IndividualTest == null
+                                    orderby queueItem.QueuedDateTime
+                                    group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest { ProjectName = x.Key });
+ 
+                    nextItem = query.FirstOrDefault();
+
+                }
+
+                var testsToMarkInProgress = new List<TestQueue>();
+
+                if (nextItem != null)
+                {
+                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
+                }
+
+                return nextItem;
+            }
+
+        }
+
+        private static List<TestQueue> MarkTestAsInProgress(int testRunId, TestifyContext context, QueuedTest nextItem, List<TestQueue> testsToMarkInProgress)
+        {
+            nextItem.TestRunId = testRunId;
+            // if the queued item has individual tests, we will remove all of these individual tests from queue.
+            if (nextItem.IndividualTests == null)
+            {
+                testsToMarkInProgress = context.TestQueue.Where(x => x.ProjectName == nextItem.ProjectName).ToList();
+            }
+            else if (nextItem.IndividualTests.Any())
+            {
+                // if we are running all the tests for the project, we can remove all the individual and Project tests 
+                foreach (var testToRun in nextItem.IndividualTests)
+                {
+                    testsToMarkInProgress = context.TestQueue.Where(x => x.IndividualTest == testToRun).ToList();
+                }
+            }
+
+            foreach (var test in testsToMarkInProgress.ToList())
+            {
+                test.TestRunId = testRunId;
+            }
+            context.SaveChanges();
+            return testsToMarkInProgress;
+        }
+
         public void RemoveFromQueue(QueuedTest testQueueItem)
         {
             Log.DebugFormat("Test Completed: {0} Elapsed Time {1}",testQueueItem.ProjectName,DateTime.Now -testQueueItem.TestStartTime);

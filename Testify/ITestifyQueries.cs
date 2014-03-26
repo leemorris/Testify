@@ -36,11 +36,13 @@ namespace Leem.Testify
         void AddToTestQueue(string projectName);
 
         void AddToTestQueue(TestQueue testQueue);
-        
-        QueuedTest GetTestQueue(int testRunId, bool isProjectLevel);
+
+        QueuedTest GetProjectTestQueue(int testRunId);
+
+        QueuedTest GetIndividualTestQueue(int testRunId);
 
         void RemoveFromQueue(QueuedTest testQueueItem);
-
+        
         void SetAllQueuedTestsToNotRunning();
     }
 }

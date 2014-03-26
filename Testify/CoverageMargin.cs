@@ -97,16 +97,13 @@ namespace Leem.Testify
 
         void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-           // _textView = _textViewHost.TextView;
-            // layout have changed so update all glyphs
-            // todo update the glyphs
-            List<int> linesEdited;
+
+
             if (e.VerticalTranslation || e.TranslatedLines.Any())
             {
                 UpdateCodeMarks();
             }
-            
-            //
+
         }
         void TextView_GotAggregateFocus (object sender, EventArgs e)
         {
@@ -186,32 +183,6 @@ namespace Leem.Testify
 
         private void UpdateCodeMarks(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines)
         {
-            UpdateCodeMarks2(coveredLines);
-            //var fcm = _coverageProvider.GetFileCodeModel(_documentName);
-            //foreach (var line in coveredLines)
-            //{
-            //    // calculate y postion for this particular bookmark
-            //    double yPos = GetYCoordinateForBookmark(line.Value);
-
-            //    yPos = AdjustYCoordinateForBoundaries(yPos);
-
-            //    CodeMarkGlyph glyph;
-
-            //    var g =_textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(x=>x.LineNumber.Equals(line.Key - 1));
-            //    var lineNumber = g.End.GetContainingLine().LineNumber;
-            //    if (g.Extent.IsEmpty == false) 
-            //    { 
-             
-            //        //line.Value.IsCode = false; 
-            //        glyph = CreateCodeMarkGlyph(line.Value, yPos);
-            //        marginCanvas.Children.Add(glyph);
-            //    }
-            //}
-
-        }
-
-        private void UpdateCodeMarks2(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines)
-        {
             var fcm = _coverageProvider.GetFileCodeModel(_documentName);
 
             foreach (var textViewLine in _textViewHost.TextView.TextViewLines.ToList())
@@ -222,15 +193,15 @@ namespace Leem.Testify
                     var hj = textViewLine.Start.GetContainingLine().LineNumber;
                     // calculate y postion for this particular bookmark
                     var coveredLine = new Poco.CoveredLinePoco();
-               
+
 
                     var g = _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(x => x.LineNumber.Equals(hj));
                     var lineNumber = g.End.GetContainingLine().LineNumber;
                     var isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
                     if (g.Extent.IsEmpty == false && isCovered)
                     {
-                        Debug.WriteLine("Text for Line # "+ (hj+1)+" = " + g.Extent.GetText());
-                        
+                        Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
+
                         double yPos = GetYCoordinateForBookmark(coveredLine);
 
                         yPos = AdjustYCoordinateForBoundaries(yPos);
@@ -244,6 +215,8 @@ namespace Leem.Testify
             }
 
         }
+
+
         #region IWpfTextViewMargin Members
 
         /// <summary>

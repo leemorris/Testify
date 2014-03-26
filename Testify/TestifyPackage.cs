@@ -52,7 +52,7 @@ namespace Leem.Testify
         public delegate void CoverageChangedEventHandler(string className, string methodName);
         public EventArgs e = null;
         private static Timer _timer;
-        private int _testRunId;
+        private volatile int _testRunId;
 
         public TestifyPackage()
         {
@@ -77,7 +77,7 @@ namespace Leem.Testify
    
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
                 _timer = new Timer();
-                _timer.Interval = 5000;
+                _timer.Interval = 3000;
                 _timer.Enabled = true;
                 _timer.AutoReset = true;
                 _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
@@ -357,7 +357,6 @@ namespace Leem.Testify
                 });
             }
 
-           // var queries = new TestifyQueries(_dte.Solution.FullName);
             _queries.MaintainProjects(projects);
 
         }
@@ -530,7 +529,7 @@ namespace Leem.Testify
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
 
             VerifyProjects(solution);
-
+            _queries.SetAllQueuedTestsToNotRunning();
             return VSConstants.S_OK;
         }
 
@@ -730,16 +729,12 @@ namespace Leem.Testify
 
         public void ProcessIndividualTestQueue(object source, ElapsedEventArgs e)
         {
-            Log.DebugFormat("ProcessQueue ");
-            _service.ProcessQueue(++_testRunId, false);
-
+            _service.ProcessIndividualTestQueue(++_testRunId);
         }
 
         public void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
         {
-            Log.DebugFormat("ProcessQueue ");
-            _service.ProcessQueue(++_testRunId, true);
-
+            _service.ProcessProjectTestQueue(++_testRunId);
         }
     }
 }
