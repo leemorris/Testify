@@ -33,6 +33,7 @@ namespace Leem.Testify.VSEvents
         public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider)
         {
             CoverageProvider provider;
+
             if (dictionary.TryGetValue(textView, out provider))
             {
                 return provider;
@@ -40,6 +41,7 @@ namespace Leem.Testify.VSEvents
             else 
             {
                 provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries);
+
                 dictionary.Add(textView, provider);
             }
 

@@ -14,6 +14,7 @@ namespace Leem.Testify
         {
             TrackedMethods = new List<Poco.TrackedMethod>();
         }
+
         public string Module { get; set; }
         public string Class { get; set; }
         public string Method { get; set; }

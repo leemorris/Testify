@@ -3,10 +3,7 @@
 //
 // This source code is released under the MIT License; see the accompanying license file.
 //
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace Leem.Testify.Model
@@ -31,13 +28,16 @@ namespace Leem.Testify.Model
         /// Control serialization of the Summary  object
         /// </summary>
         /// <returns></returns>
-        public bool ShouldSerializeSummary() { return !ShouldSerializeSkippedDueTo(); }
+        public bool ShouldSerializeSummary()
+        {
+            return !ShouldSerializeSkippedDueTo();
+        }
 
         /// <summary>
         /// The full name of the class
         /// </summary>
         public string FullName { get; set; }
-        
+
         [XmlIgnore]
         internal List<File> Files { get; set; }
 

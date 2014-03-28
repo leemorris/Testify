@@ -20,7 +20,7 @@ namespace Leem.Testify.Model
         {
             Summary = new Summary();
         }
-        
+
         /// <summary>
         /// A Summary of the instrumentation
         /// </summary>
@@ -30,7 +30,10 @@ namespace Leem.Testify.Model
         /// Control serialization of the Summary  object
         /// </summary>
         /// <returns></returns>
-        public bool ShouldSerializeSummary() { return !ShouldSerializeSkippedDueTo(); }
+        public bool ShouldSerializeSummary()
+        {
+            return !ShouldSerializeSkippedDueTo();
+        }
 
         /// <summary>
         /// The MetadataToken used to identify this entity within the assembly
@@ -106,7 +109,7 @@ namespace Leem.Testify.Model
         /// </summary>
         [XmlAttribute("isGetter")]
         public bool IsGetter { get; set; }
-        
+
         /// <summary>
         /// Is this method a property setter
         /// </summary>

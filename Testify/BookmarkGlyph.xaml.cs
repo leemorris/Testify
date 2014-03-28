@@ -1,30 +1,25 @@
-﻿using System.Windows;
+﻿using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Leem.Testify
 {
     public partial class CodeMarkGlyph : UserControl
     {
-
         private CodeMarkManager _codeMarkManager;
 
         public CodeMarkGlyph()
         {
-			// initialize all components
+            // initialize all components
             InitializeComponent();
         }
 
         public CodeMarkGlyph(Poco.CoveredLinePoco line)
             : this()
         {
-
-
             ellipse.Width = 6;
-            if (!line.UnitTests.Any()&& line.IsCode)
+            if (!line.UnitTests.Any() && line.IsCode)
             {
                 ellipse.Fill = new SolidColorBrush(Colors.Orange);
                 ellipse.Stroke = new SolidColorBrush(Colors.Orange);
@@ -34,14 +29,14 @@ namespace Leem.Testify
                 ellipse.Fill = new SolidColorBrush(Colors.Green);
                 ellipse.Stroke = new SolidColorBrush(Colors.Green);
             }
-            else 
+            else
             {
                 ellipse.Fill = new SolidColorBrush(Colors.Red);
                 ellipse.Stroke = new SolidColorBrush(Colors.Red);
             }
-   
-           // }
-			// position the text bloc
+
+            // }
+            // position the text bloc
             //text.HorizontalAlignment = HorizontalAlignment.Center;
             //text.VerticalAlignment = VerticalAlignment.Center;
             //// change font settings
@@ -58,19 +53,19 @@ namespace Leem.Testify
         }
 
         public CodeMarkGlyph(Poco.CoveredLinePoco line, CodeMarkManager codeMarkManager)
-          //  : this(number)
+        //  : this(number)
         {
-			// assign the bookmark manager with which this glyph is associated
+            // assign the bookmark manager with which this glyph is associated
             _codeMarkManager = codeMarkManager;
-			// subscribe mouse events
+            // subscribe mouse events
             this.MouseLeftButtonDown += new MouseButtonEventHandler(CodeMarkGlyph_MouseLeftButtonDown);
             //this.MouseRightButtonDown += new MouseButtonEventHandler(CodeMarkGlyph_MouseRightButtonDown);
         }
 
-        void CodeMarkGlyph_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void CodeMarkGlyph_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-			// call GoToBookmark function of the manager on left mouse button down event
-           // _coverageManager.GotoBookmark(BookmarkNumber);
+            // call GoToBookmark function of the manager on left mouse button down event
+            // _coverageManager.GotoBookmark(BookmarkNumber);
         }
 
         //void CodeMarkGlyph_MouseRightButtonDown(object sender, MouseButtonEventArgs e)

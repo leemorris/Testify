@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 
-
 namespace Leem.Testify
 {
-
     public class CodeMark
     {
         public string FileName { get; set; } // name of the active document
-        public int LineNumber { get; set; } // current line number (cursor position)
-        public IList<Poco.UnitTest> UnitTests { get; set; } 
 
+        public int LineNumber { get; set; } // current line number (cursor position)
+
+        public IList<Poco.UnitTest> UnitTests { get; set; }
 
         public CodeMark()
         {

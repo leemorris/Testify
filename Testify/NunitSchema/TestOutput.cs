@@ -6,23 +6,14 @@
 // ------------------------------------------------------------------------------
 namespace Leem.Testify
 {
-    using System;
-    using System.Diagnostics;
-    using System.Xml.Serialization;
-    using System.Collections;
-    using System.Xml.Schema;
-    using System.ComponentModel;
-    using System.IO;
-    using System.Text;
     using System.Collections.Generic;
-
+    using System.ComponentModel;
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlRootAttribute("test-results", Namespace = "", IsNullable = false)]
     public partial class resultType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private environmentType environmentField;
 
@@ -98,7 +89,6 @@ namespace Leem.Testify
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string time { get; set; }
 
-
         /// <summary>
         /// resultType class constructor
         /// </summary>
@@ -154,7 +144,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class environmentType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string nunitversionField;
 
@@ -202,7 +191,6 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlAttributeAttribute("user-domain")]
         public string userdomain { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
@@ -247,7 +235,6 @@ namespace Leem.Testify
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string result { get; set; }
 
-
         /// <summary>
         /// testcaseType class constructor
         /// </summary>
@@ -291,13 +278,11 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class categoryType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string nameField;
 
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string name { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
@@ -305,7 +290,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class propertyType //: EntityBase<propertyType>
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string nameField;
 
@@ -317,7 +301,6 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string value { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
@@ -325,7 +308,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class failureType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string messageField;
 
@@ -337,7 +319,6 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlElementAttribute("stack-trace", Order = 1)]
         public string stacktrace { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
@@ -345,22 +326,19 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class reasonType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string messageField;
 
         [System.Xml.Serialization.XmlElementAttribute(Order = 0)]
         public string message { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
-    public partial class resultsType 
+    public partial class resultsType
     {
-
-         private List<object> itemsField;
+        private List<object> itemsField;
 
         /// <summary>
         /// resultsType class constructor
@@ -372,7 +350,7 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlElementAttribute("test-case", typeof(testcaseType), Order = 0)]
         [System.Xml.Serialization.XmlElementAttribute("test-suite", typeof(testsuiteType), Order = 0)]
-        public List<object> Items 
+        public List<object> Items
         {
             get
             {
@@ -391,7 +369,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute("test-suiteType", Namespace = "", IsNullable = true)]
     public partial class testsuiteType
     {
-
         private List<categoryType> categoriesField;
         private List<propertyType> propertiesField;
         private object itemField;
@@ -441,7 +418,6 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string result { get; set; }
-
 
         /// <summary>
         /// testsuiteType class constructor
@@ -501,7 +477,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute("culture-infoType", Namespace = "", IsNullable = true)]
     public partial class cultureinfoType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private string currentcultureField;
 
@@ -513,16 +488,13 @@ namespace Leem.Testify
 
         [System.Xml.Serialization.XmlAttributeAttribute("current-uiculture")]
         public string currentuiculture { get; set; }
-
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class categoriesType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private List<categoryType> categoryField;
 
@@ -553,7 +525,6 @@ namespace Leem.Testify
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = true)]
     public partial class propertiesType
     {
-
         [EditorBrowsable(EditorBrowsableState.Never)]
         private List<propertyType> propertyField;
 

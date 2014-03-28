@@ -5,8 +5,6 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Xml.Serialization;
 
@@ -27,7 +25,7 @@ namespace Leem.Testify.Model
     public class File : FileRef
     {
         private static int _uId;
-        
+
         /// <summary>
         /// A standard constructor
         /// </summary>

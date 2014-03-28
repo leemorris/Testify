@@ -27,6 +27,7 @@ namespace Leem.Testify
                         {
                             _classes.Add(classElement);
                         }
+
                         foreach (CodeElement methodElement in classElement.Children)
                         {
                             foreach (CodeElement method in classElement.Children)
@@ -41,7 +42,9 @@ namespace Leem.Testify
                 }
                 
             }
+
             methods = _methods.ToList();
+
             classes = _classes.ToList();
         }
 
@@ -56,6 +59,7 @@ namespace Leem.Testify
                     constructors.Add((CodeFunction2)codeElement);
                 }
             }
+
             return constructors;
         }
         public static CodeElements GetCodeElementMembers(CodeElement codeElement)

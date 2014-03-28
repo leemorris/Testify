@@ -32,18 +32,13 @@ namespace Leem.Testify
 
         public CodeMarkManager()
         {
-			// initialize the dictionary
             CodeMarks = new Dictionary<int, CodeMark>();
-
-           
-            //// add a bookmark for help
-            //// we just pass the bookmark number and rest of the things are empty/null/zero values
-            //AddBookmark(CoverageManager.HelpBookmarkNumber, string.Empty, 0, 0, null);
         }
 
-		// delagate for BookmarksUpdated event
+        // delegate for CodeMarks event
         public delegate void CodeMarksEventHandler(object sender, EventArgs e);
-		// BookmarksUpdated event
+
+        // CodeMarks event
         public event CodeMarksEventHandler CodeMarksUpdated;
 
         protected virtual void OnUpdate(EventArgs args)
@@ -56,16 +51,18 @@ namespace Leem.Testify
 
         public void GotoUnitTest(int position)
         {
-            // get the bookmark object out of the list
+
             CodeMark codeMark = CodeMarks[position];
+
             // get the project item object by using the file name and dte
             EnvDTE.ProjectItem document = dte2.Solution.FindProjectItem(codeMark.FileName);
-            // activate the doucment (open if not already open)
-          //  document.Open(BookmarkMargin.vsViewKindCode).Activate();
+
             // create a selection object
             EnvDTE.TextSelection selection = dte2.ActiveDocument.Selection as EnvDTE.TextSelection;
+
             // move to the start of the document
             selection.StartOfDocument();
+
             // move to the location specified by the line number and column number stored in bookmark
             selection.MoveToLineAndOffset(codeMark.LineNumber, 0);
         }

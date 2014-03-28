@@ -3,10 +3,7 @@
 //
 // This source code is released under the MIT License; see the accompanying license file.
 //
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace Leem.Testify.Model
@@ -30,7 +27,7 @@ namespace Leem.Testify.Model
         /// </summary>
         public Summary Summary { get; set; }
 
-         /// <summary>
+        /// <summary>
         /// The full path name to the module
         /// </summary>
         public string FullName { get; set; }
@@ -39,7 +36,7 @@ namespace Leem.Testify.Model
         /// A list of aliases
         /// </summary>
         [XmlIgnore]
-        public IList<string> Aliases { get; private set; } 
+        public IList<string> Aliases { get; private set; }
 
         /// <summary>
         /// The name of the module

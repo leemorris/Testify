@@ -3,10 +3,7 @@
 //
 // This source code is released under the MIT License; see the accompanying license file.
 //
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using System.Xml.Serialization;
 
@@ -26,6 +23,7 @@ namespace Leem.Testify.Model
             Modules = new List<Module>();
             Summary = new Summary();
         }
+
         /// <summary>
         /// A unique session identifier
         /// </summary>
@@ -40,8 +38,5 @@ namespace Leem.Testify.Model
         /// A list of modules that have been profiled under the session
         /// </summary>
         public List<Module> Modules { get; set; }
-        
     }
-
-
 }

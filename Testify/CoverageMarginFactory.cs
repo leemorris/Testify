@@ -16,7 +16,6 @@ namespace Leem.Testify
     [MarginContainer(PredefinedMarginNames.Left)]
     [ContentType("code")] //Show this margin for all text-based types
     [TextViewRole(PredefinedTextViewRoles.Document)]
-
     internal sealed class MarginFactory : IWpfTextViewMarginProvider
     {
         [Import]

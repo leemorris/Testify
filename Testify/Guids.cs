@@ -4,7 +4,7 @@ using System;
 
 namespace Leem.Testify
 {
-    static class GuidList
+    internal static class GuidList
     {
         public const string guidTestifyPkgString = "a9bce903-55a5-4a94-979c-2d4e5bb7a93e";
         public const string guidTestifyCmdSetString = "91732380-9d7a-46ea-9128-757bdaee759f";
@@ -12,8 +12,6 @@ namespace Leem.Testify
 
         public static readonly Guid guidTestifyCmdSet = new Guid(guidTestifyCmdSetString);
 
-
-        //////Bookmarks
         // guid for the command set
         public const string guidNumberedBookmarksCmdSetString = "c74fc9bd-32e1-4135-bddd-779021cc3630";
 

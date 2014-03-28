@@ -26,43 +26,46 @@ namespace Leem.Testify
         {
             Database.SetInitializer<TestifyContext>(new DropCreateDatabaseIfModelChanges<TestifyContext>());
         }
-        private static string GetConnectionString(string solutionName) 
-        {
-            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
 
-            // Set connection string
-           string connectionString = string.Format("Data Source={0}", path);
-           return connectionString;
-        }
-        public DbSet<UnitTest> UnitTests { get; set; }
+        public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
+
         public DbSet<Project> Projects { get; set; }
+
         public DbSet<TestProject> TestProjects { get; set; }
 
-        public DbSet<TrackedMethod> TrackedMethods { get; set; }
-        public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
         public DbSet<TestQueue> TestQueue { get; set; }
+
+        public DbSet<TrackedMethod> TrackedMethods { get; set; }
+
+        public DbSet<UnitTest> UnitTests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+
             modelBuilder.Entity<TestQueue>()
                 .HasKey(x => x.TestQueueId);
+
             modelBuilder.Entity<UnitTest>()
                 .HasKey(x => x.UnitTestId)
                 .Ignore(c => c.MetadataToken);
+
             modelBuilder.Entity<TrackedMethod>()
                 .HasKey(x => x.UnitTestId);
+
             modelBuilder.Entity<Poco.TrackedMethod>()
                 .Ignore(t => t.MetadataToken);
+
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
+
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
-            modelBuilder.Entity<Poco.CoveredLinePoco>().HasKey(y=>y.CoveredLineId)
+
+            modelBuilder.Entity<Poco.CoveredLinePoco>().HasKey(y => y.CoveredLineId)
                 .HasMany(c => c.UnitTests)
                 .WithMany(u => u.CoveredLines)
-                .Map(mc => 
+                .Map(mc =>
                 {
                     mc.MapLeftKey("CoveredLineId");
                     mc.MapRightKey("UnitTestId");
@@ -75,7 +78,15 @@ namespace Leem.Testify
 
         }
 
+        private static string GetConnectionString(string solutionName) 
+        {
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
 
+            // Set connection string
+           string connectionString = string.Format("Data Source={0}", path);
+           return connectionString;
+        }
     }
 
 }

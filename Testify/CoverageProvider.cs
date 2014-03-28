@@ -106,11 +106,13 @@ namespace Leem.Testify
         private void TextView_Changed(object sender, TextContentChangedEventArgs e)
         {
             List<int> linesEdited;
+
             if ( e.Changes.IncludesLineChanges)
             {
                 Debug.WriteLine("Line Changed");
 
                 var modifiedMethod = GetModifiedMethod();
+
                 Queries.GetUnitTestsCoveringMethod(modifiedMethod);
             }
         }
@@ -134,7 +136,6 @@ namespace Leem.Testify
                     else 
                     {
                         System.Threading.Tasks.Task.Run(() => GetCoveredLinesFromCodeModel(fcm));
-                        //GetCoveredLinesFromCodeModel( fcm);
                     }
 
                     _currentVersion = snapshot.Version.VersionNumber;
@@ -154,7 +155,7 @@ namespace Leem.Testify
 
         public FileCodeModel GetFileCodeModel(string documentName)
         {
-           // Log.DebugFormat("Rebuilding Covered Lines -  we have an Active Document that is not a Test  IsRebuilding = {0}, Project: {1}", _IsRebuilding, _dte.ActiveDocument.Name);
+
             ProjectItem projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject, documentName, true);
 
             if (projectItem == null)
@@ -180,25 +181,30 @@ namespace Leem.Testify
                 using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
                 {
                     var lines = Queries.GetCoveredLines(context, codeClass.FullName);
-                    // var lines = _coverageService.GetCoveredLinesForClass(codeClass.FullName);
-                    Log.DebugFormat("Got Lines Elapsed Time  {0}", sw.ElapsedMilliseconds);
+
                     coveredLines.AddRange(lines);
-                    Log.DebugFormat("Added Lines Elapsed Time  {0}", sw.ElapsedMilliseconds);
                 }
             }
+
             sw.Stop();
+
             Log.DebugFormat("Get Covered lines from Classes Elapsed Time {0} Number of Classes {1}", sw.ElapsedMilliseconds, classes.Count());
             lock (_coveredLines)
             {
                 foreach (var line in coveredLines)
                 {
                     var lineNumber = line.LineNumber;
+
                     var isAdded = _coveredLines.TryAdd(lineNumber, line);
+
                     if (!isAdded)
                     {
                         Poco.CoveredLinePoco currentValue;
+
                         var canGetValue = _coveredLines.TryGetValue(lineNumber,out currentValue);
+
                         var canUpdateValue = _coveredLines.TryUpdate(line.LineNumber, currentValue, line);
+
                         _coveredLines.AddOrUpdate(lineNumber, line, (oldKey, oldValue) => line);
                     }
                 }
@@ -208,7 +214,6 @@ namespace Leem.Testify
         public ProjectItem FindProjectItemInProject(EnvDTE.Project project, string name, bool recursive)
         {
 
-            
             ProjectItem projectItem = null;
 
              try 
@@ -260,14 +265,19 @@ namespace Leem.Testify
         {
 
             List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
+
             var projects = new List<Poco.Project>();
+
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
-                Log.DebugFormat("Verify project name: {0}", project.Name);
                 var outputPath = GetProjectOutputBuildFolder(project);
-                Log.DebugFormat("  outputPath: {0}", outputPath);
+
                 var assemblyName = GetAssemblyName(project);
+
+                Log.DebugFormat("Verify project name: {0}", project.Name);
+                Log.DebugFormat("  outputPath: {0}", outputPath);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
+
                 projects.Add(new Poco.Project
                 {
                     Name = project.Name,
@@ -276,6 +286,7 @@ namespace Leem.Testify
                     Path = outputPath
                 });
             }
+
             Queries.MaintainProjects(projects);
 
         }
@@ -283,9 +294,13 @@ namespace Leem.Testify
         public string GetProjectOutputBuildFolder(EnvDTE.Project proj)
         {
             EnvDTE.Configuration activeConfiguration = default(EnvDTE.Configuration);
+
             EnvDTE.ConfigurationManager configManager = default(EnvDTE.ConfigurationManager);
+
             string outputPath = null;
+
             string absoluteOutputPath = null;
+
             string projectFolder = null;
 
             try
@@ -348,7 +363,6 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                //MessageBox.Show(ex.ToString());
                 return string.Empty;
             }
 
@@ -358,13 +372,19 @@ namespace Leem.Testify
         private string GetModifiedMethod()
         {
             var newName = string.Empty;
+
             Document activeDoc = _dte.ActiveDocument;
+
             TextSelection textSelection = activeDoc.Selection as TextSelection;
+
             CodeElement2 codeElement = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementFunction) as CodeElement2;
+
             if (codeElement != null)
             {
                 var methodName = codeElement.FullName;
+
                 var positionOfLastPeriod = methodName.LastIndexOf('.');
+
                 newName = methodName.ReplaceAt(positionOfLastPeriod, "::");
             }
 
@@ -379,9 +399,11 @@ namespace Leem.Testify
             try
             {
                 var item = proj.Properties.GetEnumerator();
+
                 while (item.MoveNext())
                 {
                     var property = item.Current as EnvDTE.Property;
+
                     if (property.Name == "AssemblyName")
                     {
                         return property.Value.ToString();
@@ -399,18 +421,20 @@ namespace Leem.Testify
 
         internal ConcurrentDictionary<int, Poco.CoveredLinePoco> GetCoveredLines(IWpfTextView textView)
         {
-//            Log.DebugFormat("GetCoveredLines for version: {0}, Current Version: {1}, Number of Covered Lines {2}", snapshotSpan.Snapshot.Version.VersionNumber, _currentVersion, _coveredLines.Count());
             if(textView.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion )
             {
                 RecreateCoverage(textView);
             }
+
             return  _coveredLines;
         }
 
         internal void RecreateCoverage(IWpfTextView textView)
         {
             Log.DebugFormat("Launching RebuildCoverage");
+
             var documentName = GetFileName(textView.TextBuffer);
+
             RebuildCoverage(textView.TextBuffer.CurrentSnapshot, documentName);
         }
          

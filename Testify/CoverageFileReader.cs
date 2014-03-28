@@ -20,15 +20,15 @@ namespace Leem.Testify
         public CoverageSession ReadCoverageFile(string path)
         {
             StreamReader file;
+
             CoverageSession summary = new CoverageSession();
+
             try
             {
                 Log.DebugFormat("ReadCoverageFile for file name: {0}", path);
                 file = new StreamReader(path);
-                Log.DebugFormat("Created StreamReader:");
-                
+                   
                 XmlSerializer reader = new XmlSerializer(typeof(CoverageSession));
-                Log.DebugFormat("Created XmlSerializer:");
                 
                 summary = (CoverageSession)reader.Deserialize(file);
                 Log.DebugFormat("BranchCoverage: {0}", summary.Summary.BranchCoverage);

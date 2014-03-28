@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Xml.Serialization;
 
 namespace Leem.Testify.Model
 {
-
     /// <summary>
     /// A method being tracked
     /// </summary>
-       public class TrackedMethod
+    public class TrackedMethod
     {
         /// <summary>
-        /// unique id assigned 
+        /// unique id assigned
         /// </summary>
         [XmlAttribute("uid")]
         public UInt32 UniqueId { get; set; }
@@ -36,7 +31,6 @@ namespace Leem.Testify.Model
         /// </summary>
         [XmlAttribute("strategy")]
         public string Strategy { get; set; }
-
 
         public int UnitTestId { get; set; }
     }

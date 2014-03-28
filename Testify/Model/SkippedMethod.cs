@@ -1,4 +1,3 @@
-
 namespace Leem.Testify.Model
 {
     /// <summary>
@@ -17,7 +16,7 @@ namespace Leem.Testify.Model
         File = 4,
 
         /// <summary>
-        /// Entity was skipped due to a matching exclusion module/class filter 
+        /// Entity was skipped due to a matching exclusion module/class filter
         /// </summary>
         Filter = 2,
 

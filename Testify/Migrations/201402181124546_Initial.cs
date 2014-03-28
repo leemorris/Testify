@@ -1,8 +1,7 @@
 namespace Leem.Testify.Migrations
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class Initial : DbMigration
     {
         public override void Up()
@@ -27,7 +26,7 @@ namespace Leem.Testify.Migrations
                 .PrimaryKey(t => t.UnitTestId)
                 .ForeignKey("dbo.TestProjects", t => t.TestProjectUniqueName)
                 .Index(t => t.TestProjectUniqueName);
-            
+
             CreateTable(
                 "dbo.TestProjects",
                 c => new
@@ -42,7 +41,7 @@ namespace Leem.Testify.Migrations
                 .PrimaryKey(t => t.UniqueName)
                 .ForeignKey("dbo.Projects", t => t.ProjectUniqueName)
                 .Index(t => t.ProjectUniqueName);
-            
+
             CreateTable(
                 "dbo.Projects",
                 c => new
@@ -53,7 +52,7 @@ namespace Leem.Testify.Migrations
                         AssemblyName = c.String(maxLength: 4000),
                     })
                 .PrimaryKey(t => t.UniqueName);
-            
+
             CreateTable(
                 "dbo.TrackedMethods",
                 c => new
@@ -64,7 +63,7 @@ namespace Leem.Testify.Migrations
                         Strategy = c.String(maxLength: 4000),
                     })
                 .PrimaryKey(t => t.UnitTestId);
-            
+
             CreateTable(
                 "dbo.CoveredLines",
                 c => new
@@ -80,7 +79,7 @@ namespace Leem.Testify.Migrations
                         UnitTestId = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.CoveredLineId);
-            
+
             CreateTable(
                 "dbo.CoveredLineTrackedMethods",
                 c => new
@@ -93,7 +92,7 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.TrackedMethods", t => t.TrackedMethod_UnitTestId, cascadeDelete: true)
                 .Index(t => t.CoveredLine_CoveredLineId)
                 .Index(t => t.TrackedMethod_UnitTestId);
-            
+
             CreateTable(
                 "dbo.CoveredLineUnitTest",
                 c => new
@@ -106,7 +105,7 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.UnitTests", t => t.UnitTestId, cascadeDelete: true)
                 .Index(t => t.CoveredLineId)
                 .Index(t => t.UnitTestId);
-            
+
             CreateTable(
                 "dbo.TrackedMethodUnitTests",
                 c => new
@@ -119,9 +118,8 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.UnitTests", t => t.UnitTest_UnitTestId, cascadeDelete: true)
                 .Index(t => t.TrackedMethod_UnitTestId)
                 .Index(t => t.UnitTest_UnitTestId);
-            
         }
-        
+
         public override void Down()
         {
             DropIndex("dbo.TrackedMethodUnitTests", new[] { "UnitTest_UnitTestId" });

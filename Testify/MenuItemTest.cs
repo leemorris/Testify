@@ -53,6 +53,7 @@ namespace Testify_IntegrationTests
                     purger.Start();
 
                     TestUtils testUtils = new TestUtils();
+
                     testUtils.ExecuteCommand(menuItemCmd);
                 }
                 finally

@@ -55,13 +55,18 @@
       <Group guid="guidTestifyCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
-      <Group guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidTestifyCmdSet" id="SubMenuGroup" priority="0x0000">
+        <Parent guid="guidTestifyCmdSet" id="SubMenu" />
+      </Group>
+      
+         
+      <!--<Group guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
 
       <Group guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" priority="0x0000">
         <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenu" />
-      </Group>
+      </Group>-->
 
 
     </Groups>
@@ -78,14 +83,22 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
-      <Button guid="guidTestifyCmdSet" id="cmdidSolutionTests" priority="0x0100" type="Button">
-        <Parent guid="guidTestifyCmdSet" id="MyMenuGroup" />
+      <Button guid="guidTestifyCmdSet" id="cmdCodeCoverage" priority="0x0100" type="Button">
+        <Parent guid="guidTestifyCmdSet" id="SubMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Solution Tests</ButtonText>
+          <CommandName>cmdCodeCoverage</CommandName>
+          <ButtonText>Code Coverage</ButtonText>
         </Strings>
       </Button>
-
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark0" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpZero" />
+        <Strings>
+          <CommandName>cmdBookmark0</CommandName>
+          <ButtonText>Bookmark 0</ButtonText>
+        </Strings>
+      </Button>
 
       <Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
@@ -94,6 +107,7 @@
           <ButtonText>My Tool Window</ButtonText>
         </Strings>
       </Button>
+      
       <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark1" priority="0x0000" type="Button">
         <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
         <Icon guid="guidIcons" id="bmpOne" />
@@ -232,6 +246,9 @@
 
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="cmdidSolutionTests" value="0x0100" />
+      <IDSymbol name="SubMenuGroup" value="0x1150" />
+      <IDSymbol name="SubMenu" value="0x1100" />
+      <IDSymbol name="cmdCodeCoverage" value="0x0005" />
       <IDSymbol name="cmdidMyTool" value="0x0101" />
       
       

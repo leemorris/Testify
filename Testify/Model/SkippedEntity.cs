@@ -1,5 +1,4 @@
 using System.Xml.Serialization;
-using Leem.Testify.Model;
 
 namespace Leem.Testify.Model
 {
@@ -23,7 +22,10 @@ namespace Leem.Testify.Model
         /// <summary>
         /// If this class has been skipped then this value will allow the data to be serialized
         /// </summary>
-        public bool ShouldSerializeSkippedDueTo() { return skippedDueTo.HasValue; }
+        public bool ShouldSerializeSkippedDueTo()
+        {
+            return skippedDueTo.HasValue;
+        }
 
         /// <summary>
         /// Mark an entity as skipped

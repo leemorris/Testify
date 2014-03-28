@@ -8,11 +8,9 @@ using Leem.Testify.Model;
 using System.Timers;
 using EnvDTE80;
 using EnvDTE;
-
 using OpenCover;
 using log4net;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace Leem.Testify
 {
@@ -33,34 +31,35 @@ namespace Leem.Testify
         private string _nunitPath;
         public event CoverageChangedHandler CoverageChanged;
 
-
-
+        public string ProjectFileName { get; set; }
+        
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
             Log.DebugFormat("Inside 3 argument Constructor");
+
             _queries = TestifyQueries.Instance;
+
             TestifyQueries.SolutionName = solutionName;
 
             _dte = dte;
+
             _solutionName = solutionName;
+
             _solutionDirectory = solutionDirectory;
 
-            Log.DebugFormat("Load file paths for Release Mode");
             _openCoverCommandLine = Path.GetDirectoryName(typeof(UnitTestService).Assembly.Location) + @"\OpenCover\OpenCover.console.exe";
-            Log.DebugFormat("Release Path for OpenCover: {0}", _openCoverCommandLine);
+    
             _nunitPath = Path.GetDirectoryName(typeof(UnitTestService).Assembly.Location) + @"\NUnit.Runners.2.6.2\nunit-console.exe";
-            Log.DebugFormat("Release Path for NUnit: {0}", _nunitPath);
 
+            Log.DebugFormat("Load file paths for Release Mode"); 
+            Log.DebugFormat("Release Path for OpenCover: {0}", _openCoverCommandLine);
+            Log.DebugFormat("Release Path for NUnit: {0}", _nunitPath);
             Log.DebugFormat("Nunit Path: {0}", _nunitPath);
 
             _outputFolder = GetOutputFolder();
 
-
         }
 
-        public string ProjectFileName { get; set; }
-
-       
 
         private string GetTarget()
         {
@@ -85,11 +84,13 @@ namespace Leem.Testify
 
         private async Task RunNunitTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
+
             await RunTests(openCoverCommandLine, arguments, projectInfo, fileNameGuid, testQueueItem);
 
         }
         private async Task RunTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
+
             Log.DebugFormat("Verify project executing on Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             var coverFilename = fileNameGuid.ToString() + "-cover.xml";
@@ -136,7 +137,9 @@ namespace Leem.Testify
                 // Log error.
                 Log.ErrorFormat("Error ocurred while RunTest for Project: {0}: Error:{1}", projectInfo.ProjectAssemblyName, ex.Message);
             }
+
             string fileToRead = GetOutputFolder() + coverFilename;
+
             await ProcessCoverageSessionResults(projectInfo, testQueueItem, resultFilename, fileToRead);
             
         }
@@ -192,7 +195,6 @@ namespace Leem.Testify
 
             if(projectInfo.TestProject != null)
             {
-               // Log.DebugFormat("projectInfo for projectName: {0}, Test Project.Name: {1}, Test Project.UniqueName: {2}", projectInfo.ProjectName, projectInfo.TestProject.Name, projectInfo.TestProject.UniqueName);
                 Log.DebugFormat("Called GetProjectInfo for Project: {0}: .TestProject.AssemblyName:{1}", item.ProjectName, projectInfo.TestProject.AssemblyName);
                 
                 var fileNameGuid = Guid.NewGuid();
@@ -261,19 +263,23 @@ namespace Leem.Testify
         private string GetOutputFolder()
         {
             StringBuilder folderPath = new StringBuilder();
+
             folderPath.Append(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)));
             folderPath.Append("\\Testify\\");
             folderPath.Append(_solutionName);
             folderPath.Append("\\");
+
             return folderPath.ToString();
         }
 
         private CoverageSession GetCoverageSessionFile(string filename)
         {
             Log.DebugFormat("GetCoverageSessionFile for file name: {0}", filename);
+
             var reader = new CoverageFileReader();
 
             CoverageSession codeCoverage = reader.ReadCoverageFile(filename);
+
             return codeCoverage;
         }
 
@@ -281,6 +287,7 @@ namespace Leem.Testify
         {
 
             var queuedTest = _queries.GetIndividualTestQueue(testRunId);
+
              if (queuedTest != null)
              {
                  Log.DebugFormat("Ready to run another test from Individual Test queue");
@@ -293,7 +300,9 @@ namespace Leem.Testify
         }
         public void ProcessProjectTestQueue(int testRunId)
         {
+
             var queuedTest = _queries.GetProjectTestQueue(testRunId);
+
             if (queuedTest != null)
             {
                 Log.DebugFormat("Ready to run another test from Project Test queue");

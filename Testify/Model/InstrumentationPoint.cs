@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
 using System.Xml.Serialization;
 
 namespace Leem.Testify.Model
@@ -16,13 +14,14 @@ namespace Leem.Testify.Model
 
         static InstrumentationPoint()
         {
-            InstrumentPoints = new List<InstrumentationPoint>() {null};
+            InstrumentPoints = new List<InstrumentationPoint>() { null };
         }
 
         /// <summary>
         /// Return the number of visit points
         /// </summary>
-        public static int Count {
+        public static int Count
+        {
             get { return InstrumentPoints.Count; }
         }
 
@@ -32,7 +31,7 @@ namespace Leem.Testify.Model
         /// <param name="spid">the sequence point identifier - NOTE 0 is not used</param>
         public static int GetVisitCount(uint spid)
         {
-            return InstrumentPoints[(int) spid].VisitCount;
+            return InstrumentPoints[(int)spid].VisitCount;
         }
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace Leem.Testify.Model
         {
             if (spid != 0 && spid < InstrumentPoints.Count)
             {
-                var point = InstrumentPoints[(int) spid];
+                var point = InstrumentPoints[(int)spid];
                 point.VisitCount += sum;
                 if (trackedMethodId != 0)
                 {
@@ -53,7 +52,7 @@ namespace Leem.Testify.Model
                     var tracked = point._tracked.Find(x => x.UniqueId == trackedMethodId);
                     if (tracked == null)
                     {
-                        tracked = new TrackedMethodRef() {UniqueId = trackedMethodId, VisitCount = sum};
+                        tracked = new TrackedMethodRef() { UniqueId = trackedMethodId, VisitCount = sum };
                         point._tracked.Add(tracked);
                     }
                     else
@@ -67,8 +66,6 @@ namespace Leem.Testify.Model
         }
 
         private List<TrackedMethodRef> _tracked;
-
-
 
         /// <summary>
         /// Store the number of visits
@@ -105,6 +102,5 @@ namespace Leem.Testify.Model
         /// </summary>
 
         public List<TrackedMethodRef> TrackedMethodRefs { get; set; }
-
     }
 }
