@@ -6,7 +6,7 @@ namespace Leem.Testify.Migrations
     {
         public override void Up()
         {
-            AlterColumn("dbo.UnitTests", "LastSuccessfulRunDatetime", c => c.DateTime());
+            //AlterColumn("dbo.UnitTests", "LastSuccessfulRunDatetime", c => c.DateTime());
         }
 
         public override void Down()

@@ -35,11 +35,11 @@
     with command ids defined by other packages. -->
     <Menus>
 
-      <Menu guid="guidTestifyCmdSet" id="SubMenu" priority="0x0100" type="Menu">
-        <Parent guid="guidTestifyCmdSet" id="MyMenuGroup" />
+      <Menu guid="guidNumberedBookmarksCmdSet" id="SubMenu" priority="0x0100" type="Menu">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" />
         <Strings>
-          <ButtonText>Code Coverage</ButtonText>
-          <CommandName>Code Coverage</CommandName>
+          <ButtonText>Numbered Bookmarks</ButtonText>
+          <CommandName>Numbered Bookmarks</CommandName>
         </Strings>
       </Menu>
 
@@ -55,17 +55,12 @@
       <Group guid="guidTestifyCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
-
-      <!--<Group guid="guidTestifyCmdSet" id="MyMenuGroup" priority="0x0000">
-        <Parent guid="guidTestifyCmdSet" id="MyMenuGroup" />
-      </Group>-->
-      
-      <!--<Group guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidNumberedBookmarksCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
-      </Group>-->
+      </Group>
 
-      <Group guid="guidTestifyCmdSet" id="SubMenuGroup" priority="0x0000">
-        <Parent guid="guidTestifyCmdSet" id="SubMenu" />
+      <Group guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" priority="0x0000">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenu" />
       </Group>
 
 
@@ -83,30 +78,120 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
-      <!--<Button guid="guidTestifyCmdSet" id="cmdidSolutionTests" priority="0x0100" type="Button">
-        <Parent guid="guidTestifyCmdSet" id="SubMenu" />
+      <Button guid="guidTestifyCmdSet" id="cmdidSolutionTests" priority="0x0100" type="Button">
+        <Parent guid="guidTestifyCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Code Coverage Window</ButtonText>
+          <ButtonText>Solution Tests</ButtonText>
         </Strings>
-      </Button>-->
+      </Button>
 
 
-      <!--<Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0100" type="Button">
+      <Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
         <Icon guid="guidImages" id="bmpPic2" />
         <Strings>
           <ButtonText>My Tool Window</ButtonText>
         </Strings>
-      </Button>-->
-      <Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0000" type="Button">
-        <Parent guid="guidTestifyCmdSet" id="SubMenuGroup" />
-        <Icon guid="guidImages" id="bmpPic2" />
+      </Button>
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark1" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpOne" />
         <Strings>
           <CommandName>cmdBookmark1</CommandName>
-          <ButtonText>My Tool Window</ButtonText>
+          <ButtonText>Bookmark 1</ButtonText>
         </Strings>
       </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark2" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpTwo" />
+        <Strings>
+          <CommandName>cmdBookmark2</CommandName>
+          <ButtonText>Bookmark 2</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark3" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpThree" />
+        <Strings>
+          <CommandName>cmdBookmark3</CommandName>
+          <ButtonText>Bookmark 3</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark4" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpFour" />
+        <Strings>
+          <CommandName>cmdBookmark4</CommandName>
+          <ButtonText>Bookmark 4</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark5" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpFive" />
+        <Strings>
+          <CommandName>cmdBookmark5</CommandName>
+          <ButtonText>Bookmark 5</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark6" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpSix" />
+        <Strings>
+          <CommandName>cmdBookmark6</CommandName>
+          <ButtonText>Bookmark 6</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark7" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpSeven" />
+        <Strings>
+          <CommandName>cmdBookmark7</CommandName>
+          <ButtonText>Bookmark 7</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark8" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpEight" />
+        <Strings>
+          <CommandName>cmdBookmark8</CommandName>
+          <ButtonText>Bookmark 8</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark9" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpNine" />
+        <Strings>
+          <CommandName>cmdBookmark9</CommandName>
+          <ButtonText>Bookmark 9</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdBookmark0" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Icon guid="guidIcons" id="bmpZero" />
+        <Strings>
+          <CommandName>cmdBookmark0</CommandName>
+          <ButtonText>Bookmark 0</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidNumberedBookmarksCmdSet" id="cmdClearBookmarks" priority="0x0000" type="Button">
+        <Parent guid="guidNumberedBookmarksCmdSet" id="SubMenuGroup" />
+        <Strings>
+          <CommandName>cmdClearBookmarks</CommandName>
+          <ButtonText>Clear Bookmarks</ButtonText>
+        </Strings>
+      </Button>
+
     </Buttons>
    
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -136,19 +221,22 @@
     <KeyBinding guid="guidNumberedBookmarksCmdSet" id="cmdClearBookmarks" editor="guidVSStd97" key1="VK_BACK" mod1="Control Alt" />
   </KeyBindings>
 
+
+
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidTestifyPkg" value="{a9bce903-55a5-4a94-979c-2d4e5bb7a93e}" />
     
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidTestifyCmdSet" value="{91732380-9d7a-46ea-9128-757bdaee759f}">
+
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="SubMenuGroup" value="0x1150" />
-      <IDSymbol name="SubMenu" value="0x1100" />
       <IDSymbol name="cmdidSolutionTests" value="0x0100" />
       <IDSymbol name="cmdidMyTool" value="0x0101" />
+      
+      
+      
     </GuidSymbol>
-    
     <GuidSymbol name="guidNumberedBookmarksCmdSet" value="{c74fc9bd-32e1-4135-bddd-779021cc3630}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="SubMenuGroup" value="0x1150" />

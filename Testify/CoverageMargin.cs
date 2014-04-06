@@ -100,7 +100,7 @@ namespace Leem.Testify
             {
 
                 allCodeMarks.Add(new CodeMark { LineNumber=line.Value.LineNumber,
-                                                FileName = line.Value.Module,
+                                                FileName = line.Value.Module.Name,
                                                 UnitTests = line.Value.UnitTests.Cast<Poco.UnitTest>().ToList()
                 });
 

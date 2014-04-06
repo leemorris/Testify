@@ -19,17 +19,44 @@ namespace Leem.Testify
     /// </summary>
     public partial class MyControl : UserControl
     {
+        Poco.CodeModule src;
         public MyControl()
         {
             InitializeComponent();
+            this.DataContext = src;
+            LoadTestData();
+  
         }
+        
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(string.Format(System.Globalization.CultureInfo.CurrentUICulture, "We are inside {0}.button1_Click()", this.ToString()),
                             "My Tool Window");
+        }
+        private void LoadTestData()
+        {
+            
+
+            var module = new Poco.CodeModule { Summary = new Poco.Summary
+                                                      { BranchCoverage=99.9M,
+                                                        SequenceCoverage=90.0M,
+                                                        NumBranchPoints=100, 
+                                                        VisitedBranchPoints=99,
+                                                        NumSequencePoints=88,
+                                                        VisitedSequencePoints=77 },
+                                                 Classes = new List<Poco.CodeClass>{new Poco.CodeClass
+                                                        {Name="First Class"}, new Poco.CodeClass
+                                                        {Name="Second Class"}}
+            };
+            CollectionViewSource test;
+            //test.Source=    
+            //SummaryView.ItemsSource = module;
 
         }
+
     }
 }
+
+

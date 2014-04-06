@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Leem.Testify.Poco;
 using System.Data.SqlServerCe;
 using System.Data.Entity.ModelConfiguration.Conventions;
+using System.Data.Entity.ModelConfiguration.Configuration;
 
 namespace Leem.Testify
 {
@@ -29,6 +30,14 @@ namespace Leem.Testify
 
         public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
 
+        public DbSet<Summary> Summary { get; set; }
+
+        public DbSet<CodeModule> CodeModule { get; set; }
+
+        public DbSet<CodeClass> CodeClass { get; set; }
+
+        public DbSet<CodeMethod> CodeMethod { get; set; }
+
         public DbSet<Project> Projects { get; set; }
 
         public DbSet<TestProject> TestProjects { get; set; }
@@ -45,6 +54,18 @@ namespace Leem.Testify
 
             modelBuilder.Entity<TestQueue>()
                 .HasKey(x => x.TestQueueId);
+
+            modelBuilder.Entity<Summary>()
+                .HasKey(x => x.SummaryId);
+
+            modelBuilder.Entity<CodeModule>()
+                .HasKey(x => x.CodeModuleId);
+
+            modelBuilder.Entity<CodeClass>()
+                .HasKey(x => x.CodeClassId);
+
+            modelBuilder.Entity<CodeMethod>()
+                .HasKey(x => x.CodeMethodId); 
 
             modelBuilder.Entity<UnitTest>()
                 .HasKey(x => x.UnitTestId)

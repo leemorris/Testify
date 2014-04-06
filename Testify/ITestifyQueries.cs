@@ -9,40 +9,47 @@ namespace Leem.Testify
 {
     public interface ITestifyQueries
     {
+        void AddToTestQueue(string projectName);
+
+        void AddToTestQueue(TestQueue testQueue);
+
         IEnumerable<Poco.CoveredLinePoco> GetCoveredLines(TestifyContext context, string className);
 
-        ProjectInfo GetProjectInfoFromTestProject(string projectName);
+        QueuedTest GetIndividualTestQueue(int testRunId);
+
+    
 
         ProjectInfo GetProjectInfo(string uniqueName);
 
+        ProjectInfo GetProjectInfoFromTestProject(string projectName);
         System.Linq.IQueryable<Project> GetProjects();
+
+        QueuedTest GetProjectTestQueue(int testRunId);
 
         IList<TestProject> GetTestProjects();
 
+        List<string> GetUnitTestsThatCoverLines(string className, string methodName, int lineNumber);
+
         void MaintainProjects(IList<Project> projects);
+
+        void RemoveFromQueue(QueuedTest testQueueItem);
+
+        Task RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber);
 
         Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, ProjectInfo projectInfo, List<string> individualTest);
         
         void SaveUnitTest(UnitTest test);
 
-        void UpdateTrackedMethods(IList<Poco.TrackedMethod> trackedMethods);
-        
         void SaveUnitTestResults(resultType testOutput);
 
-        List<string> GetUnitTestsThatCoverLines(string className, string methodName, int lineNumber);
-
-        Task RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber);
-
-        void AddToTestQueue(string projectName);
-
-        void AddToTestQueue(TestQueue testQueue);
-
-        QueuedTest GetProjectTestQueue(int testRunId);
-
-        QueuedTest GetIndividualTestQueue(int testRunId);
-
-        void RemoveFromQueue(QueuedTest testQueueItem);
-        
         void SetAllQueuedTestsToNotRunning();
+
+        void UpdateTrackedMethods(IList<Poco.TrackedMethod> trackedMethods);
+
+        CodeModule[] GetModules();
+
+        CodeClass[] GetClasses(CodeModule _module);
+
+        CodeMethod[] GetMethods(CodeClass _class);
     }
 }

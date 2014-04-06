@@ -77,7 +77,7 @@ namespace Leem.Testify
         }
         internal virtual void ClassChanged(object sender, ClassChangedEventArgs e) 
         {
-            if(_coveredLines.Any(x=> e.ChangedClasses.Contains(x.Value.Class)))
+            if(_coveredLines.Any(x=> e.ChangedClasses.Contains(x.Value.Class.Name)))
             {
                 _documentName = GetFileName(textView.TextBuffer);
                 if (_documentName != null)

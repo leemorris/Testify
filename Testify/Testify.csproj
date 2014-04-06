@@ -180,6 +180,14 @@
     <Compile Include="Migrations\201403010146430_Renamed CoveredLine.Designer.cs">
       <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201403292244049_Added_summaries.cs" />
+    <Compile Include="Migrations\201403292244049_Added_summaries.Designer.cs">
+      <DependentUpon>201403292244049_Added_summaries.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.cs" />
+    <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.Designer.cs">
+      <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
     <Compile Include="Model\Class.cs" />
@@ -194,13 +202,14 @@
     <Compile Include="Model\Summary.cs" />
     <Compile Include="Model\TrackedMethod.cs" />
     <Compile Include="Model\TrackedMethodRef.cs" />
-    <Compile Include="MyControl.xaml.cs">
-      <DependentUpon>MyControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MyToolWindow.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="NunitSchema\TestOutput.cs" />
     <Compile Include="opencover.designer.cs" />
+    <Compile Include="Poco\CodeClass.cs" />
+    <Compile Include="Poco\CodeMethod.cs" />
+    <Compile Include="Poco\CodeModule.cs" />
+    <Compile Include="Poco\Summary.cs" />
     <Compile Include="Poco\CoveredLinePoco.cs" />
     <Compile Include="Poco\Project.cs" />
     <Compile Include="Poco\TestProject.cs" />
@@ -216,6 +225,12 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="SummaryView\SummaryViewControl.xaml.cs" />
+    <Compile Include="SummaryView\ViewModel\MethodViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\SummaryViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\ModuleViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\TreeViewItemViewModel.cs" />
     <Compile Include="TestifyContext.cs" />
     <Compile Include="TestifyPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -237,6 +252,12 @@
     <EmbeddedResource Include="Migrations\201403010146430_Renamed CoveredLine.resx">
       <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201403292244049_Added_summaries.resx">
+      <DependentUpon>201403292244049_Added_summaries.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201403301750396_Added_Modules_Classes_Methods.resx">
+      <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -249,6 +270,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <VSCTCompile Include="Copy of Testify.vsct" />
     <Content Include="TestifyCE.sdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -423,9 +445,9 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MyControl.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="SummaryView\SummaryViewControl.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

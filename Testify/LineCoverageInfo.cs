@@ -15,9 +15,12 @@ namespace Leem.Testify
             TrackedMethods = new List<Poco.TrackedMethod>();
         }
 
-        public string Module { get; set; }
-        public string Class { get; set; }
-        public string Method { get; set; }
+        public Poco.CodeModule Module { get; set; }
+        public Poco.CodeClass Class { get; set; }
+        public Poco.CodeMethod Method { get; set; }
+        public string ModuleName { get; set; }
+        public string ClassName { get; set; }
+        public string MethodName { get; set; }
         public int LineNumber { get; set; }
         public bool IsCode { get; set; }
         public bool IsCovered { get; set; }

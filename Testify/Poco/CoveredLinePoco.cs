@@ -18,9 +18,10 @@ namespace Leem.Testify.Poco
             this.UnitTests = new HashSet<UnitTest>();
         }
 
-        public string Module { get; set; }
-        public string Class { get; set; }
-        public string Method { get; set; }
+        public CodeModule Module { get; set; }
+        public CodeClass Class { get; set; }
+        public CodeMethod Method { get; set; }
+
         public int LineNumber { get; set; }
         public bool IsCode { get; set; }
         public bool IsCovered { get; set; }

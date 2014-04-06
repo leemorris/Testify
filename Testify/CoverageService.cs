@@ -109,8 +109,9 @@ namespace Leem.Testify
             return coveredLines;
         }
 
-        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class codeClass, Method method)
+        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class modelClass, Method method)
         {
+
 
             var sequencePoints = method.SequencePoints;
             foreach (var sequencePoint in sequencePoints)
@@ -120,9 +121,9 @@ namespace Leem.Testify
                     IsCode = true,
                     LineNumber = sequencePoint.StartLine,
                     IsCovered = (sequencePoint.VisitCount > 0),
-                    Module = module.FullName,
-                    Class = codeClass.FullName,
-                    Method = method.Name,
+                    ModuleName = module.ModuleName,
+                    ClassName = modelClass.FullName,
+                    MethodName = method.Name,
                     UnitTests = new List<UnitTest>()
                 };
 
@@ -173,17 +174,32 @@ namespace Leem.Testify
 
             if (module != null)
             {
+                var codeModule = new Poco.CodeModule
+                {
+                    Name = module.FullName,
+                    Summary = new Poco.Summary(module.Summary)
+                };
+
                 var classes = module.Classes;
 
                 Log.DebugFormat("First Module Name: {0}", module.ModuleName);
                 Log.DebugFormat("Number of Classes: {0}", classes.Count());
 
-                foreach (var codeClass in classes)
+                foreach (var moduleClass in classes)
                 {
-                    var methods = codeClass.Methods;
+                    var codeClass = new Poco.CodeClass { Name = moduleClass.FullName,
+                                                         Summary = new Poco.Summary(moduleClass.Summary)};
+
+                    var methods = moduleClass.Methods;
 
                     foreach (var method in methods)
                     {
+                        var codeMethod = new Poco.CodeMethod
+                        {
+                            Name = method.Name,
+                            Summary = new Poco.Summary(method.Summary)
+                        };
+
                         var sequencePoints = method.SequencePoints;
                         foreach (var sequencePoint in sequencePoints)
                         {
@@ -198,9 +214,9 @@ namespace Leem.Testify
                                         IsCode = true,
                                         LineNumber = sequencePoint.StartLine,
                                         IsCovered = (sequencePoint.VisitCount > 0),
-                                        Module = module.FullName,
-                                        Class = codeClass.FullName,
-                                        Method = method.Name
+                                        Module = codeModule,
+                                        Class = codeClass,
+                                        Method = codeMethod
                                     };
 
                                     var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));

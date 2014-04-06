@@ -49,18 +49,18 @@ namespace Leem.Testify.Migrations
                 .Index(t => t.CoveredLinePoco_CoveredLineId)
                 .Index(t => t.TrackedMethod_UnitTestId);
 
-            CreateTable(
-                "dbo.CoveredLineUnitTest",
-                c => new
-                    {
-                        CoveredLineId = c.Int(nullable: false),
-                        UnitTestId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId })
-                .ForeignKey("dbo.CoveredLinePoco", t => t.CoveredLineId, cascadeDelete: true)
-                .ForeignKey("dbo.UnitTest", t => t.UnitTestId, cascadeDelete: true)
-                .Index(t => t.CoveredLineId)
-                .Index(t => t.UnitTestId);
+            //CreateTable(
+            //    "dbo.CoveredLineUnitTest",
+            //    c => new
+            //        {
+            //            CoveredLineId = c.Int(nullable: false),
+            //            UnitTestId = c.Int(nullable: false),
+            //        })
+            //    .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId })
+            //    .ForeignKey("dbo.CoveredLinePoco", t => t.CoveredLineId, cascadeDelete: true)
+            //    .ForeignKey("dbo.UnitTest", t => t.UnitTestId, cascadeDelete: true)
+            //    .Index(t => t.CoveredLineId)
+            //    .Index(t => t.UnitTestId);
 
             DropTable("dbo.CoveredLines");
             DropTable("dbo.CoveredLineTrackedMethods");
@@ -69,64 +69,64 @@ namespace Leem.Testify.Migrations
 
         public override void Down()
         {
-            CreateTable(
-                "dbo.CoveredLineUnitTest",
-                c => new
-                    {
-                        CoveredLineId = c.Int(nullable: false),
-                        UnitTestId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId });
+            //CreateTable(
+            //    "dbo.CoveredLineUnitTest",
+            //    c => new
+            //        {
+            //            CoveredLineId = c.Int(nullable: false),
+            //            UnitTestId = c.Int(nullable: false),
+            //        })
+            //    .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId });
 
-            CreateTable(
-                "dbo.CoveredLineTrackedMethods",
-                c => new
-                    {
-                        CoveredLine_CoveredLineId = c.Int(nullable: false),
-                        TrackedMethod_UnitTestId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => new { t.CoveredLine_CoveredLineId, t.TrackedMethod_UnitTestId });
+            //CreateTable(
+            //    "dbo.CoveredLineTrackedMethods",
+            //    c => new
+            //        {
+            //            CoveredLine_CoveredLineId = c.Int(nullable: false),
+            //            TrackedMethod_UnitTestId = c.Int(nullable: false),
+            //        })
+            //    .PrimaryKey(t => new { t.CoveredLine_CoveredLineId, t.TrackedMethod_UnitTestId });
 
-            CreateTable(
-                "dbo.CoveredLines",
-                c => new
-                    {
-                        CoveredLineId = c.Int(nullable: false, identity: true),
-                        Module = c.String(maxLength: 4000),
-                        Class = c.String(maxLength: 4000),
-                        Method = c.String(maxLength: 4000),
-                        LineNumber = c.Int(nullable: false),
-                        IsCode = c.Boolean(nullable: false),
-                        IsCovered = c.Boolean(nullable: false),
-                        IsSuccessful = c.Boolean(nullable: false),
-                        UnitTestId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => t.CoveredLineId);
+            //CreateTable(
+            //    "dbo.CoveredLines",
+            //    c => new
+            //        {
+            //            CoveredLineId = c.Int(nullable: false, identity: true),
+            //            Module = c.String(maxLength: 4000),
+            //            Class = c.String(maxLength: 4000),
+            //            Method = c.String(maxLength: 4000),
+            //            LineNumber = c.Int(nullable: false),
+            //            IsCode = c.Boolean(nullable: false),
+            //            IsCovered = c.Boolean(nullable: false),
+            //            IsSuccessful = c.Boolean(nullable: false),
+            //            UnitTestId = c.Int(nullable: false),
+            //        })
+            //    .PrimaryKey(t => t.CoveredLineId);
 
-            DropIndex("dbo.CoveredLineUnitTest", new[] { "UnitTestId" });
-            DropIndex("dbo.CoveredLineUnitTest", new[] { "CoveredLineId" });
-            DropIndex("dbo.CoveredLinePocoTrackedMethod", new[] { "TrackedMethod_UnitTestId" });
-            DropIndex("dbo.CoveredLinePocoTrackedMethod", new[] { "CoveredLinePoco_CoveredLineId" });
-            DropForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTest");
-            DropForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLinePoco");
-            DropForeignKey("dbo.CoveredLinePocoTrackedMethod", "TrackedMethod_UnitTestId", "dbo.TrackedMethod");
-            DropForeignKey("dbo.CoveredLinePocoTrackedMethod", "CoveredLinePoco_CoveredLineId", "dbo.CoveredLinePoco");
-            DropTable("dbo.CoveredLineUnitTest");
-            DropTable("dbo.CoveredLinePocoTrackedMethod");
-            DropTable("dbo.CoveredLinePoco");
-            CreateIndex("dbo.CoveredLineUnitTest", "UnitTestId");
-            CreateIndex("dbo.CoveredLineUnitTest", "CoveredLineId");
-            CreateIndex("dbo.CoveredLineTrackedMethods", "TrackedMethod_UnitTestId");
-            CreateIndex("dbo.CoveredLineTrackedMethods", "CoveredLine_CoveredLineId");
-            AddForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTests", "UnitTestId", cascadeDelete: true);
-            AddForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLines", "CoveredLineId", cascadeDelete: true);
-            AddForeignKey("dbo.CoveredLineTrackedMethods", "TrackedMethod_UnitTestId", "dbo.TrackedMethods", "UnitTestId", cascadeDelete: true);
-            AddForeignKey("dbo.CoveredLineTrackedMethods", "CoveredLine_CoveredLineId", "dbo.CoveredLines", "CoveredLineId", cascadeDelete: true);
-            RenameTable(name: "dbo.TrackedMethodUnitTest", newName: "TrackedMethodUnitTests");
-            RenameTable(name: "dbo.TrackedMethod", newName: "TrackedMethods");
-            RenameTable(name: "dbo.Project", newName: "Projects");
-            RenameTable(name: "dbo.TestProject", newName: "TestProjects");
-            RenameTable(name: "dbo.UnitTest", newName: "UnitTests");
+           // DropIndex("dbo.CoveredLineUnitTest", new[] { "UnitTestId" });
+            //DropIndex("dbo.CoveredLineUnitTest", new[] { "CoveredLineId" });CoveredLinePoco
+            //DropIndex("dbo.CoveredLinePocoTrackedMethod", new[] { "TrackedMethod_UnitTestId" });
+            //DropIndex("dbo.CoveredLinePocoTrackedMethod", new[] { "CoveredLinePoco_CoveredLineId" });
+            //DropForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTest");
+            //DropForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLinePoco");
+            //DropForeignKey("dbo.CoveredLinePocoTrackedMethod", "TrackedMethod_UnitTestId", "dbo.TrackedMethod");
+            //DropForeignKey("dbo.CoveredLinePocoTrackedMethod", "CoveredLinePoco_CoveredLineId", "dbo.CoveredLinePoco");
+           // DropTable("dbo.CoveredLineUnitTest");
+            //DropTable("dbo.CoveredLinePocoTrackedMethod");
+            //DropTable("dbo.CoveredLinePoco");
+            //CreateIndex("dbo.CoveredLineUnitTest", "UnitTestId");
+            //CreateIndex("dbo.CoveredLineUnitTest", "CoveredLineId");
+            //CreateIndex("dbo.CoveredLineTrackedMethods", "TrackedMethod_UnitTestId");
+            //CreateIndex("dbo.CoveredLineTrackedMethods", "CoveredLine_CoveredLineId");
+            //AddForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTests", "UnitTestId", cascadeDelete: true);
+            //AddForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLines", "CoveredLineId", cascadeDelete: true);
+            //AddForeignKey("dbo.CoveredLineTrackedMethods", "TrackedMethod_UnitTestId", "dbo.TrackedMethods", "UnitTestId", cascadeDelete: true);
+            //AddForeignKey("dbo.CoveredLineTrackedMethods", "CoveredLine_CoveredLineId", "dbo.CoveredLines", "CoveredLineId", cascadeDelete: true);
+            //RenameTable(name: "dbo.TrackedMethodUnitTest", newName: "TrackedMethodUnitTests");
+            //RenameTable(name: "dbo.TrackedMethod", newName: "TrackedMethods");
+            //RenameTable(name: "dbo.Project", newName: "Projects");
+            //RenameTable(name: "dbo.TestProject", newName: "TestProjects");
+            //RenameTable(name: "dbo.UnitTest", newName: "UnitTests");
         }
     }
 }
