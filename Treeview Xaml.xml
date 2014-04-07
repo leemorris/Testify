@@ -26,11 +26,12 @@
   <Setter Property="Template">
     <Setter.Value>
       <ControlTemplate TargetType="TreeViewItem">
-        <Grid IsSharedSizeScope="True">
+        <StackPanel>
+          <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"   MinWidth="19" />
-              <ColumnDefinition SharedSizeGroup="Buttons"/>
-           </Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto" />
               <RowDefinition />
@@ -127,8 +128,8 @@
                             Grid.Column="1"
                             Grid.Row="1" />
           </Grid>
-
-                                <ControlTemplate.Triggers>
+        </StackPanel>
+        <ControlTemplate.Triggers>
           <Trigger Property="TreeViewItem.IsExpanded"
                    Value="False">
             <Setter TargetName="ItemsHost"
@@ -175,15 +176,19 @@
       </TreeView.ItemContainerStyle>
 
       <TreeView.Resources>
-
         <HierarchicalDataTemplate 
             DataType="{x:Type local:ModuleViewModel}" 
             ItemsSource="{Binding Children}"
             >
-                    <DockPanel LastChildFill="False">
-                        <TextBlock DockPanel.Dock="Left" Text="{Binding ModuleName}" />
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                        <ProgressBar 
+            <StackPanel Orientation="Horizontal">
+            <!--<Image Width="16" Height="16" Margin="3,0" Source="Images\Region.png" />-->
+            <DockPanel LastChildFill="False">
+                            <TextBlock DockPanel.Dock="Left" Text="{Binding ModuleName}" />
+
+                                <!--<Image Source="/WpfTutorialSamples;component/Images/group.png" Margin="0,0,5,0" />-->
+                         
+                    <Grid >
+                        <ProgressBar DockPanel.Dock="Right" 
                                     HorizontalAlignment="Right"
 		                            Height="10"
 		                            Margin="10,0,0,0"
@@ -196,7 +201,7 @@
                         <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="30"/>
                     </Grid>
                 </DockPanel>
-            <!--</StackPanel>-->
+            </StackPanel>
        
         </HierarchicalDataTemplate>
 
@@ -204,13 +209,15 @@
           DataType="{x:Type local:ClassViewModel}" 
           ItemsSource="{Binding Children}"
           >
-                    <DockPanel LastChildFill="False">
-
+          <StackPanel Orientation="Horizontal" >
+            <!--<Image Width="16" Height="16" Margin="3,0" Source="Images\State.png" />-->
+                 <DockPanel LastChildFill="False">
                             <TextBlock DockPanel.Dock="Left" Text="{Binding ClassName}" />
+                <!--<StackPanel Orientation="Horizontal">-->
+                    <!--<Image Source="/WpfTutorialSamples;component/Images/group.png" Margin="0,0,5,0" />-->
 
-
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                            <ProgressBar HorizontalAlignment="Right"
+                    <Grid >
+                      <ProgressBar DockPanel.Dock="Right" 
 		                            Height="10"
 		                            Margin="10,0,0,0"
 		                            VerticalAlignment="Center"
@@ -221,18 +228,22 @@
                                     Background="Red"/>
                                 <TextBlock Grid.Column="1" Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
-
+                      
+                    <!--</StackPanel>-->
                 </DockPanel>
-
+            </StackPanel>
         </HierarchicalDataTemplate>
 
         <DataTemplate DataType="{x:Type local:MethodViewModel}">
+          <StackPanel Orientation="Horizontal">
             <DockPanel LastChildFill="False">
+                <!--<Image Width="16" Height="16" Margin="3,0" Source="Images\City.png" />-->
              <TextBlock DockPanel.Dock="Left" Text="{Binding MethodName}" />
+                <!--<StackPanel Orientation="Horizontal">-->
+                    <!--<Image Source="/WpfTutorialSamples;component/Images/group.png" Margin="0,0,5,0" />-->
 
-
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                        <ProgressBar 
+                        <Grid >
+                        <ProgressBar DockPanel.Dock="Right" 
                                     HorizontalAlignment="Right"
 		                            Height="10"
 		                            Margin="10,0,0,0"
@@ -246,12 +257,11 @@
                         <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Grid>
 
- 
+                    <!--</StackPanel>-->
                 </DockPanel>
-
+            </StackPanel>
         </DataTemplate>
-            </TreeView.Resources>
-          
+      </TreeView.Resources>
     </TreeView>
     </DockPanel>
     
