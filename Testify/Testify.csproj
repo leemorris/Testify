@@ -163,6 +163,7 @@
     <Compile Include="CoverageProvider.cs" />
     <Compile Include="CoverageProviderBroker.cs" />
     <Compile Include="CoverageService.cs" />
+    <Compile Include="Data.cs" />
     <Compile Include="ICoverageProviderBroker.cs" />
     <Compile Include="ICoverageService.cs" />
     <Compile Include="ITestifyQueries.cs" />
@@ -202,7 +203,7 @@
     <Compile Include="Model\Summary.cs" />
     <Compile Include="Model\TrackedMethod.cs" />
     <Compile Include="Model\TrackedMethodRef.cs" />
-    <Compile Include="MyToolWindow.cs" />
+    <Compile Include="TestifyCoverageWindow.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="NunitSchema\TestOutput.cs" />
     <Compile Include="opencover.designer.cs" />
@@ -225,12 +226,10 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="SummaryView\Converters.cs" />
     <Compile Include="SummaryView\SummaryViewControl.xaml.cs" />
-    <Compile Include="SummaryView\ViewModel\MethodViewModel.cs" />
-    <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
-    <Compile Include="SummaryView\ViewModel\SummaryViewModel.cs" />
-    <Compile Include="SummaryView\ViewModel\ModuleViewModel.cs" />
-    <Compile Include="SummaryView\ViewModel\TreeViewItemViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\SummaryInfo.cs" />
+    <Compile Include="SummaryView\ViewModel\SummaryViewModel2.cs" />
     <Compile Include="TestifyContext.cs" />
     <Compile Include="TestifyPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -270,7 +269,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="Copy of Testify.vsct" />
     <Content Include="TestifyCE.sdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -382,6 +380,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\SummaryViewModel.datasource" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>

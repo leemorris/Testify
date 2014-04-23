@@ -194,50 +194,56 @@ namespace Leem.Testify
 
                     foreach (var method in methods)
                     {
-                        var codeMethod = new Poco.CodeMethod
+                        if (!method.Name.Contains("__"))
                         {
-                            Name = method.Name,
-                            Summary = new Poco.Summary(method.Summary)
-                        };
-
-                        var sequencePoints = method.SequencePoints;
-                        foreach (var sequencePoint in sequencePoints)
-                        {
-                            if (tests.Any())
+                            var codeMethod = new Poco.CodeMethod
                             {
-                                var coveringTests = new List<Poco.TrackedMethod>();
+                                Name = method.Name,
+                                Summary = new Poco.Summary(method.Summary)
+                            };
 
-                                foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
+                            var sequencePoints = method.SequencePoints;
+                            foreach (var sequencePoint in sequencePoints)
+                            {
+                                if (tests.Any())
                                 {
-                                    var coveredLine = new LineCoverageInfo
+                                    var coveringTests = new List<Poco.TrackedMethod>();
+
+                                    foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                                     {
-                                        IsCode = true,
-                                        LineNumber = sequencePoint.StartLine,
-                                        IsCovered = (sequencePoint.VisitCount > 0),
-                                        Module = codeModule,
-                                        Class = codeClass,
-                                        Method = codeMethod
-                                    };
+                                        var coveredLine = new LineCoverageInfo
+                                        {
+                                            IsCode = true,
+                                            LineNumber = sequencePoint.StartLine,
+                                            IsCovered = (sequencePoint.VisitCount > 0),
+                                            Module = codeModule,
+                                            Class = codeClass,
+                                            Method = codeMethod
+                                        };
 
-                                    var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
+                                        var testsThatCoverLine = tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
 
-                                    foreach (var test in testsThatCoverLine)
-                                    {
-                                        coveredLine.IsCode = true;
+                                        foreach (var test in testsThatCoverLine)
+                                        {
+                                            coveredLine.IsCode = true;
 
-                                        coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
+                                            coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
 
-                                        coveredLine.TrackedMethods.Add( new Poco.TrackedMethod { UniqueId = (int)test.UniqueId, 
-                                                                                        MetadataToken = method.MetadataToken,
-                                                                                        Strategy = test.Strategy, 
-                                                                                        Name = test.Name });
+                                            coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
+                                            {
+                                                UniqueId = (int)test.UniqueId,
+                                                MetadataToken = method.MetadataToken,
+                                                Strategy = test.Strategy,
+                                                Name = test.Name
+                                            });
+                                        }
+
+                                        coveredLines.Add(coveredLine);
                                     }
 
-                                    coveredLines.Add(coveredLine);
                                 }
 
-                            }
-                                
+                            } 
                         }
 
                     }

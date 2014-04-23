@@ -46,7 +46,7 @@ namespace Leem.Testify
         public static string SolutionName
         {
             set
-            {
+          {
                 _solutionName = value;
 
                 var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -55,6 +55,10 @@ namespace Leem.Testify
 
                 // Set connection string
                 _connectionString = string.Format("Data Source={0}", path);
+            }
+            get 
+            {
+                return _solutionName;
             }
         }
 
@@ -567,7 +571,7 @@ namespace Leem.Testify
                         //    context.CoveredLines.Attach(ConstructCoveredLine(newLine));
                         //}
                        
-                        //DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
+                        DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
                         // var isDirty = CheckForChanges(context);
 
 
@@ -987,6 +991,7 @@ namespace Leem.Testify
 
                 UpdateCoveredLines(module.FullName, distinctTrackedMethods, newCoveredLineInfos);
 
+
             }
         }
 
@@ -997,7 +1002,14 @@ namespace Leem.Testify
                 var codeModule = context.CodeModule.FirstOrDefault(x=> x.Name == module.ModuleName);
                 if (codeModule != null)
                 {
-                    codeModule.Summary = new Poco.Summary(module.Summary);
+                    codeModule.Summary.BranchCoverage = module.Summary.BranchCoverage;
+                    codeModule.Summary.MaxCyclomaticComplexity = module.Summary.MaxCyclomaticComplexity;
+                    codeModule.Summary.MinCyclomaticComplexity = module.Summary.MinCyclomaticComplexity;
+                    codeModule.Summary.NumBranchPoints = module.Summary.NumBranchPoints;
+                    codeModule.Summary.NumSequencePoints = module.Summary.NumSequencePoints;
+                    codeModule.Summary.SequenceCoverage = module.Summary.SequenceCoverage;
+                    codeModule.Summary.VisitedBranchPoints = module.Summary.VisitedBranchPoints;
+                    codeModule.Summary.VisitedSequencePoints = module.Summary.VisitedSequencePoints;
                 }
                 else 
                 {
@@ -1008,6 +1020,7 @@ namespace Leem.Testify
                 UpdateCodeClasses(module, codeModule, context);
 
                 context.SaveChanges();
+
             }
         }
 
@@ -1019,7 +1032,15 @@ namespace Leem.Testify
 
                 if (pocoCodeClass != null)
                 {
-                    pocoCodeClass.Summary = new Poco.Summary(moduleClass.Summary);
+                    pocoCodeClass.Summary.BranchCoverage = moduleClass.Summary.BranchCoverage;
+                    pocoCodeClass.Summary.MaxCyclomaticComplexity = moduleClass.Summary.MaxCyclomaticComplexity;
+                    pocoCodeClass.Summary.MinCyclomaticComplexity = moduleClass.Summary.MinCyclomaticComplexity;
+                    pocoCodeClass.Summary.NumBranchPoints = moduleClass.Summary.NumBranchPoints;
+                    pocoCodeClass.Summary.NumSequencePoints = moduleClass.Summary.NumSequencePoints;
+                    pocoCodeClass.Summary.SequenceCoverage = moduleClass.Summary.SequenceCoverage;
+                    pocoCodeClass.Summary.VisitedBranchPoints = moduleClass.Summary.VisitedBranchPoints;
+                    pocoCodeClass.Summary.VisitedSequencePoints = moduleClass.Summary.VisitedSequencePoints;
+
                 }
                 else
                 {
@@ -1040,7 +1061,14 @@ namespace Leem.Testify
 
                 if (codeMethod != null)
                 {
-                    codeMethod.Summary = new Poco.Summary(codeClass.Summary);
+                    codeMethod.Summary.BranchCoverage = moduleMethod.Summary.BranchCoverage;
+                    codeMethod.Summary.MaxCyclomaticComplexity = moduleMethod.Summary.MaxCyclomaticComplexity;
+                    codeMethod.Summary.MinCyclomaticComplexity = moduleMethod.Summary.MinCyclomaticComplexity;
+                    codeMethod.Summary.NumBranchPoints = moduleMethod.Summary.NumBranchPoints;
+                    codeMethod.Summary.NumSequencePoints = moduleMethod.Summary.NumSequencePoints;
+                    codeMethod.Summary.SequenceCoverage = moduleMethod.Summary.SequenceCoverage;
+                    codeMethod.Summary.VisitedBranchPoints = moduleMethod.Summary.VisitedBranchPoints;
+                    codeMethod.Summary.VisitedSequencePoints = moduleMethod.Summary.VisitedSequencePoints;
                 }
                 else
                 {
@@ -1309,6 +1337,21 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
                 return context.CodeMethod.Where(x => x.CodeClassId == _class.CodeClassId).Include(x => x.Summary).ToArray();
+            }
+        }
+
+        public CodeModule[] GetSummaries() 
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var result = context.CodeModule
+                    .Include(x => x.Summary)
+                    .Include(y => y.Classes.Select(c => c.Summary))
+                    .Include(y => y.Classes.Select(m => m.Methods))
+                    .Include(y => y.Classes.Select(mm => mm.Methods.Select(s=>s.Summary)))
+                    
+                    .Include(z => z.Summary).ToArray();
+                return result;
             }
         }
     }

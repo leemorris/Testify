@@ -21,13 +21,13 @@ namespace Leem.Testify
     /// implementation of the IVsUIElementPane interface.
     /// </summary>
     [Guid("36c4a332-1b9b-49ce-9e45-da8bd399092c")]
-    public class MyToolWindow : ToolWindowPane
+    public class TestifyCoverageWindow : ToolWindowPane
     {
-        public string ButtonText { get { return "Yay"; } }
+
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
-        public MyToolWindow() :
+        public TestifyCoverageWindow() :
             base(null)
         {
             // Set the window title reading it from the resources.
@@ -43,7 +43,7 @@ namespace Leem.Testify
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on 
             // the object returned by the Content property.
-            base.Content = new SummaryViewControl();
+            base.Content = new SummaryViewControl(this);
 
         }
     }

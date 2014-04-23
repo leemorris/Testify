@@ -51,5 +51,7 @@ namespace Leem.Testify
         CodeClass[] GetClasses(CodeModule _module);
 
         CodeMethod[] GetMethods(CodeClass _class);
+
+        CodeModule[] GetSummaries();
     }
 }
