@@ -50,7 +50,7 @@
                                     Value="{Binding Summary.SequenceCoverage, Mode=OneWay}"
 		                            Foreground="Green"
                                     Background="Red"/>
-                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="30"/>
+                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
                   
                 </Grid>
                 <!--</StackPanel>-->
