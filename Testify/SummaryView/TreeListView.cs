@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ﻿//using System;
 //using System.Collections.Generic;
 //using System.Linq;
@@ -138,17 +137,3 @@
 //        }
 //    }
 //}
-=======
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Leem.Testify.SummaryView
-{
-    class TreeListView
-    {
-    }
-}
->>>>>>> 12a94d13cfd7e33e9f7ce5bd6c59ec1304cf4f51

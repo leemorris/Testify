@@ -44,7 +44,22 @@ namespace Leem.Testify
 
         public SummaryViewModel2(Poco.CodeModule[] modules)
         {
-            Summary = new SummaryInfo { Name="Look at me" };
+            var numSequencePoints = modules.Sum(x => x.Summary.NumSequencePoints);
+            var numBranchPoints = modules.Sum(x => x.Summary.NumBranchPoints);
+            var visitedSequencePoints  = modules.Sum(x => x.Summary.VisitedSequencePoints);
+            var visitedBranchPoints = modules.Sum(x => x.Summary.VisitedBranchPoints);
+            decimal branchCoverage = numBranchPoints / visitedBranchPoints;
+            decimal sequenceCoverage = numSequencePoints / visitedSequencePoints;
+            Summary = new SummaryInfo { Name="Look at me",
+                                        NumBranchPoints=numBranchPoints,
+                                        NumSequencePoints = numSequencePoints,
+                                        VisitedBranchPoints = visitedBranchPoints,
+                                        VisitedSequencePoints=visitedSequencePoints};
+            if (visitedSequencePoints > 0 && visitedBranchPoints > 0)
+            {
+                Summary.BranchCoverage = branchCoverage;
+                Summary.SequenceCoverage = sequenceCoverage;
+            }
             _items = new ObservableCollection<SummaryViewModel2>(
                 (from module in modules
                  select new SummaryViewModel2(module))

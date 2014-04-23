@@ -35,8 +35,7 @@ namespace Leem.Testify
                 Log.DebugFormat("SequenceCoverage: {0}", summary.Summary.SequenceCoverage);
                 Log.DebugFormat("VisitedBranchPoints: {0}", summary.Summary.VisitedBranchPoints);
                 Log.DebugFormat("VisitedSequencePoints: {0}", summary.Summary.VisitedSequencePoints);
-                Log.DebugFormat("Branch Coverage: {0}", summary.Summary.BranchCoverage);
-                Log.DebugFormat("Branch Coverage: {0}", summary.Summary.BranchCoverage);
+              
             }
             catch (Exception ex)
             {

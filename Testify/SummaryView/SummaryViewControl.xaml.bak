@@ -5,255 +5,108 @@
   xmlns:local="clr-namespace:Leem.Testify"
   xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
   >
-    <DockPanel>
-        <TextBlock DockPanel.Dock="Bottom" TextWrapping="Wrap" FontSize="12">
-      When a top-level item (a Region) is expanded for the first time, its list of States 
-      is dynamically loaded.  When a State is expanded for the first time, its Cities are
-      loaded.  This deferred loading takes place in the ViewModel classes, and the
-      TreeView displays the new objects due to data binding.
-        </TextBlock>
-        <TreeView ItemsSource="{Binding Modules}">
-            <TreeView.ItemContainerStyle>
-                <!-- 
-        This Style binds a TreeViewItem to a TreeViewItemViewModel. 
-        -->
-                <Style TargetType="TreeViewItem"
-       BasedOn="{StaticResource {x:Type TreeViewItem}}">
-                    <Setter Property="HorizontalContentAlignment"
-          Value="Stretch" />
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="FontWeight" Value="Normal" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TreeViewItem">
-                                <Grid IsSharedSizeScope="True">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"   MinWidth="19" />
-                                        <ColumnDefinition SharedSizeGroup="Buttons"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
+  
 
-                                    <!--Note that the following do not work, but I believe the top 2 should?!-->
-                                    <!--<ToggleButton IsChecked="{TemplateBinding IsExpanded}" ClickMode="Press" Name="Expander">-->
-                                    <!--<ToggleButton IsChecked="{TemplateBinding Property=IsExpanded}" ClickMode="Press" Name="Expander">-->
-                                    <!--<ToggleButton IsChecked="{TemplateBinding Path=IsExpanded}" ClickMode="Press" Name="Expander">-->
+        <Grid Grid.IsSharedSizeScope="True"
+          Name="treeGrid"
+              >
 
-                                    <ToggleButton IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                          ClickMode="Press"
-                          Name="Expander">
-                                        <ToggleButton.Style>
-                                            <Style TargetType="ToggleButton">
-                                                <Setter Property="UIElement.Focusable"
-                          Value="false" />
-                                                <Setter Property="FrameworkElement.Width"
-                          Value="16" />
-                                                <Setter Property="FrameworkElement.Height"
-                          Value="16" />
-                                                <Setter Property="Control.Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ToggleButton">
-                                                            <Border Padding="5,5,5,5"
-                                Background="#00FFFFFF"
-                                Width="16"
-                                Height="16">
-                                                                <Path Fill="#00FFFFFF"
-                                Stroke="#FF989898"
-                                Name="ExpandPath">
-                                                                    <Path.Data>
-                                                                        <PathGeometry Figures="M0,0L0,6L6,0z" />
-                                                                    </Path.Data>
-                                                                    <Path.RenderTransform>
-                                                                        <RotateTransform Angle="135"
-                                               CenterX="3"
-                                               CenterY="3" />
-                                                                    </Path.RenderTransform>
-                                                                </Path>
-                                                            </Border>
-                                                            <ControlTemplate.Triggers>
-                                                                <Trigger Property="UIElement.IsMouseOver"
-                                   Value="True">
-                                                                    <Setter TargetName="ExpandPath"
-                                    Property="Shape.Stroke"
-                                    Value="#FF1BBBFA" />
-                                                                    <Setter TargetName="ExpandPath"
-                                    Property="Shape.Fill"
-                                    Value="#00FFFFFF" />
-                                                                </Trigger>
-                                                                <Trigger Property="ToggleButton.IsChecked"
-                                   Value="True">
-                                                                    <Setter TargetName="ExpandPath"
-                                    Property="UIElement.RenderTransform">
-                                                                        <Setter.Value>
-                                                                            <RotateTransform Angle="180"
-                                                 CenterX="3"
-                                                 CenterY="3" />
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                    <Setter TargetName="ExpandPath"
-                                    Property="Shape.Fill"
-                                    Value="#FF595959" />
-                                                                    <Setter TargetName="ExpandPath"
-                                    Property="Shape.Stroke"
-                                    Value="#FF262626" />
-                                                                </Trigger>
-                                                            </ControlTemplate.Triggers>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ToggleButton.Style>
-                                    </ToggleButton>
-                                    <Border x:Name="Bd"
-                    HorizontalAlignment="Stretch"
-                    BorderThickness="{TemplateBinding Border.BorderThickness}"
-                    BorderBrush="{TemplateBinding Border.BorderBrush}"
-                    Padding="{TemplateBinding Control.Padding}"
-                    Background="{TemplateBinding Panel.Background}"
-                    SnapsToDevicePixels="True"
-                    Grid.Column="1">
-                                        <ContentPresenter x:Name="PART_Header"
-                                Content="{TemplateBinding HeaderedContentControl.Header}"
-                                ContentTemplate="{TemplateBinding HeaderedContentControl.HeaderTemplate}"
-                                ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"
-                                ContentTemplateSelector="{TemplateBinding HeaderedItemsControl.HeaderTemplateSelector}"
-                                ContentSource="Header"
-                                HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
-                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
-                                    </Border>
-                                    <ItemsPresenter x:Name="ItemsHost"
-                            Grid.Column="1"
-                            Grid.Row="1" />
-                                </Grid>
+            <Grid.Resources>
+                <local:LevelConverter x:Key="levelConverter" />
+                <HierarchicalDataTemplate ItemsSource="{Binding Items, 
+                          diag:PresentationTraceSources.TraceLevel=High}"
+                                          DataType="{x:Type local:SummaryViewModel2}">
+                    
+                    <Grid ShowGridLines="False">
+                        
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition SharedSizeGroup="column1"/>
+                            <ColumnDefinition SharedSizeGroup="column2"/>
 
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="TreeViewItem.IsExpanded"
-                   Value="False">
-                                        <Setter TargetName="ItemsHost"
-                    Property="UIElement.Visibility"
-                    Value="Collapsed" />
-                                    </Trigger>
-                                    <Trigger Property="ItemsControl.HasItems"
-                   Value="False">
-                                        <Setter TargetName="Expander"
-                    Property="UIElement.Visibility"
-                    Value="Hidden" />
-                                    </Trigger>
-                                    <Trigger Property="TreeViewItem.IsSelected"
-                   Value="True">
-                                        <Setter TargetName="Bd"
-                    Property="Panel.Background"
-                    Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                        <Setter Property="TextElement.Foreground"
-                    Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
-                                    </Trigger>
-                                    <MultiTrigger>
-                                        <MultiTrigger.Conditions>
-                                            <Condition Property="TreeViewItem.IsSelected"
-                         Value="True" />
-                                            <Condition Property="Selector.IsSelectionActive"
-                         Value="False" />
-                                        </MultiTrigger.Conditions>
-                                        <Setter TargetName="Bd"
-                    Property="Panel.Background"
-                    Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
-                                        <Setter Property="TextElement.Foreground"
-                    Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-                                    </MultiTrigger>
-                                    <Trigger Property="UIElement.IsEnabled"
-                   Value="False">
-                                        <Setter Property="TextElement.Foreground"
-                    Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TreeView.ItemContainerStyle>
+                        </Grid.ColumnDefinitions>
 
-            <TreeView.Resources>
 
-                <HierarchicalDataTemplate 
-            DataType="{x:Type local:ModuleViewModel}" 
-            ItemsSource="{Binding Children}"
-            >
-                    <DockPanel LastChildFill="False">
-                        <TextBlock DockPanel.Dock="Left" Text="{Binding ModuleName,diag:PresentationTraceSources.TraceLevel=High}" />
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                            <ProgressBar 
+                        <Rectangle Grid.Column="1">
+                            <Rectangle.Width>
+                                <MultiBinding Converter="{StaticResource levelConverter}">
+                                    <Binding Path="Level"></Binding>
+                                    <Binding ElementName="treeViewItemToMeasure"
+                                         Path="ActualWidth"></Binding>
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+                        <TextBlock Grid.Column="0"
+                               Text="{Binding Summary.Name}"></TextBlock>
+                        <ProgressBar 
+                                    Grid.Column="2"
                                     HorizontalAlignment="Right"
 		                            Height="10"
 		                            Margin="10,0,0,0"
 		                            VerticalAlignment="Center"
 		                            Width="100"
 		                            Name="pbCoverage"
-                                    Value="{Binding SequenceCoverage, Mode=OneTime}"
+                                    Value="{Binding Summary.SequenceCoverage, Mode=OneWay}"
 		                            Foreground="Green"
                                     Background="Red"/>
-                            <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="30"/>
+                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="30"/>
+                  
+                </Grid>
+                <!--</StackPanel>-->
+
+            </HierarchicalDataTemplate>
+
+            <!--<local:LevelConverter x:Key="levelConverter" />-->
+            <local:DebugDummyConverter x:Key="DebugDummyConverter" />
+
+    </Grid.Resources>
+
+            <!-- Tree view with one item for the header row -->
+
+            <TreeView BorderThickness="0"
+       
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <TreeViewItem>
+                    <TreeViewItem.Header>
+                        <Grid ShowGridLines="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                                <ColumnDefinition />
+                                <ColumnDefinition SharedSizeGroup="column1"/>
+                                <ColumnDefinition SharedSizeGroup="column2"/>
+                                <ColumnDefinition SharedSizeGroup="column3"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                   Text="Name"></TextBlock>
+                            <TreeViewItem Grid.Column="1">
+                                <TreeViewItem.Header>
+                                    <TreeViewItem Name="treeViewItemToMeasure"
+                                              Padding="0"></TreeViewItem>
+                                </TreeViewItem.Header>
+
+                                <!-- Set the width of Column 1 to the same width as the top level 
+                                 in the data -->
+                                <TreeViewItem.Width>
+                                    <MultiBinding Converter="{StaticResource levelConverter}">
+                                        <Binding Path="Level"></Binding>
+                                        <Binding ElementName="treeViewItemToMeasure"
+                                             Path="ActualWidth"></Binding>
+                                    </MultiBinding>
+                                </TreeViewItem.Width>
+                            </TreeViewItem>
+                            <TextBlock Grid.Column="2"
+                                   Text="Coverage"></TextBlock>
+
                         </Grid>
-                    </DockPanel>
-                    <!--</StackPanel>-->
+                    </TreeViewItem.Header>
+                </TreeViewItem>
+            </TreeView>
+            <!-- Tree view that will display hierarchical data rows -->
 
-                </HierarchicalDataTemplate>
-
-                <HierarchicalDataTemplate 
-          DataType="{x:Type local:ClassViewModel}" 
-          ItemsSource="{Binding Children}"
-          >
-                    <DockPanel LastChildFill="False">
-
-                        <TextBlock DockPanel.Dock="Left" Text="{Binding ClassName,diag:PresentationTraceSources.TraceLevel=High}" />
-
-
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                            <ProgressBar HorizontalAlignment="Right"
-		                            Height="10"
-		                            Margin="10,0,0,0"
-		                            VerticalAlignment="Center"
-		                            Width="100"
-		                            Name="pbCoverage"
-                                    Value="{Binding SequenceCoverage, Mode=OneTime}"
-		                            Foreground="Green"
-                                    Background="Red"/>
-                            <TextBlock Grid.Column="1" Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
-
-                    </DockPanel>
-
-                </HierarchicalDataTemplate>
-
-                <DataTemplate DataType="{x:Type local:MethodViewModel}">
-                    <DockPanel LastChildFill="False">
-                        <TextBlock DockPanel.Dock="Left" Text="{Binding MethodName,diag:PresentationTraceSources.TraceLevel=High}" />
-
-
-                        <Grid DockPanel.Dock="Right" IsSharedSizeScope="True">
-                            <ProgressBar 
-                                    HorizontalAlignment="Right"
-		                            Height="10"
-		                            Margin="10,0,0,0"
-                                        Padding="2,2,2,2"
-		                            VerticalAlignment="Center"
-		                            Width="100"
-		                            Name="pbCoverage"
-                                    Value="{Binding SequenceCoverage, Mode=OneTime}"
-		                            Foreground="Green"
-                                    Background="Red"/>
-                            <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
-
-
-                    </DockPanel>
-
-                </DataTemplate>
-            </TreeView.Resources>
-
-        </TreeView>
-    </DockPanel>
-
+            <TreeView Grid.Row="1"
+                  BorderThickness="0"
+                  ItemsSource="{Binding Items , 
+                          diag:PresentationTraceSources.TraceLevel=High}"></TreeView>
+        </Grid>
 </UserControl>

@@ -466,7 +466,7 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+           // window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
