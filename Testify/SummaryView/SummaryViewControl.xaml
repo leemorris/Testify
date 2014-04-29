@@ -5,41 +5,51 @@
   xmlns:local="clr-namespace:Leem.Testify"
   xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
   >
-  
-
-        <Grid Grid.IsSharedSizeScope="True"
-          Name="treeGrid"
-              >
+       <Grid Grid.IsSharedSizeScope="True"
+          Name="treeGrid">
 
             <Grid.Resources>
                 <local:LevelConverter x:Key="levelConverter" />
-                <HierarchicalDataTemplate ItemsSource="{Binding Items, 
-                          diag:PresentationTraceSources.TraceLevel=High}"
-                                          DataType="{x:Type local:SummaryViewModel2}">
-                    
-                    <Grid ShowGridLines="False">
-                        
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition SharedSizeGroup="column1"/>
-                            <ColumnDefinition SharedSizeGroup="column2"/>
+            <local:ObjectToTypeConverter x:Key="typeConverter" />
+            <!-- 
+            This Style binds a TreeViewItem to a TreeViewItemViewModel. 
+            -->
+            <Style TargetType="{x:Type TreeViewItem}">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="FontWeight" Value="Bold" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
 
-                        </Grid.ColumnDefinitions>
+            <HierarchicalDataTemplate DataType="{x:Type local:ModuleViewModel}" 
+                                      ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}" >
 
+                <Grid ShowGridLines="False">
 
-                        <Rectangle Grid.Column="1">
-                            <Rectangle.Width>
-                                <MultiBinding Converter="{StaticResource levelConverter}">
-                                    <Binding Path="Level"></Binding>
-                                    <Binding ElementName="treeViewItemToMeasure"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition SharedSizeGroup="column1"/>
+                        <ColumnDefinition SharedSizeGroup="column2"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Name}"></TextBlock>
+   
+                    <Rectangle Grid.Column="1">
+                        <Rectangle.Width>
+                            <MultiBinding Converter="{StaticResource levelConverter}">
+                                <Binding Path="Level"></Binding>
+                                <Binding ElementName="treeViewItemToMeasure"
                                          Path="ActualWidth"></Binding>
-                                </MultiBinding>
-                            </Rectangle.Width>
-                        </Rectangle>
-                        <TextBlock Grid.Column="0"
-                               Text="{Binding Summary.Name}"></TextBlock>
-                        <ProgressBar 
+                            </MultiBinding>
+                        </Rectangle.Width>
+                    </Rectangle>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding ModuleName}"></TextBlock>
+                    <ProgressBar 
                                     Grid.Column="2"
                                     HorizontalAlignment="Right"
 		                            Height="10"
@@ -47,20 +57,102 @@
 		                            VerticalAlignment="Center"
 		                            Width="100"
 		                            Name="pbCoverage"
-                                    Value="{Binding Summary.SequenceCoverage, Mode=OneWay}"
+                                    Value="{Binding SequenceCoverage, Mode=OneWay}"
 		                            Foreground="Green"
                                     Background="Red"/>
-                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
-                  
+                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
+
                 </Grid>
-                <!--</StackPanel>-->
+               
+
+            </HierarchicalDataTemplate>
+            <HierarchicalDataTemplate ItemsSource="{Binding Children, 
+                          diag:PresentationTraceSources.TraceLevel=High}"
+                                          DataType="{x:Type local:ClassViewModel}">
+
+                <Grid ShowGridLines="False">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition SharedSizeGroup="column1"/>
+                        <ColumnDefinition SharedSizeGroup="column2"/>
+                    </Grid.ColumnDefinitions>
+                                    
+                    <Rectangle Grid.Column="1">
+                        <Rectangle.Width>
+                            <MultiBinding Converter="{StaticResource levelConverter}">
+                                <Binding Path="Level"></Binding>
+                                <Binding ElementName="treeViewItemToMeasure"
+                                         Path="ActualWidth"></Binding>
+                            </MultiBinding>
+                        </Rectangle.Width>
+                    </Rectangle>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Name}"></TextBlock>
+                    <ProgressBar 
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+		                            Height="10"
+		                            Margin="10,0,0,0"
+		                            VerticalAlignment="Center"
+		                            Width="100"
+		                            Name="pbCoverage"
+                                    Value="{Binding SequenceCoverage, Mode=OneWay}"
+		                            Foreground="Green"
+                                    Background="Red"/>
+                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
+
+                </Grid>
+
 
             </HierarchicalDataTemplate>
 
-            <!--<local:LevelConverter x:Key="levelConverter" />-->
-            <local:DebugDummyConverter x:Key="DebugDummyConverter" />
+            <HierarchicalDataTemplate ItemsSource="{Binding Children, 
+                          diag:PresentationTraceSources.TraceLevel=High}"
+                                          DataType="{x:Type local:MethodViewModel}">
 
-    </Grid.Resources>
+                <Grid ShowGridLines="False">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition SharedSizeGroup="column1"/>
+                        <ColumnDefinition SharedSizeGroup="column2"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Rectangle Grid.Column="1">
+                        <Rectangle.Width>
+                            <MultiBinding Converter="{StaticResource levelConverter}">
+                                <Binding Path="Level"></Binding>
+                                <Binding ElementName="treeViewItemToMeasure"
+                                         Path="ActualWidth"></Binding>
+                            </MultiBinding>
+                        </Rectangle.Width>
+                    </Rectangle>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Name}"></TextBlock>
+                    <ProgressBar 
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+		                            Height="10"
+		                            Margin="10,0,0,0"
+		                            VerticalAlignment="Center"
+		                            Width="100"
+		                            Name="pbCoverage"
+                                    Value="{Binding SequenceCoverage, Mode=OneWay}"
+		                            Foreground="Green"
+                                    Background="Red"/>
+                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
+
+                </Grid>
+
+
+            </HierarchicalDataTemplate>
+
+
+
+        </Grid.Resources>
 
             <!-- Tree view with one item for the header row -->
 
@@ -102,12 +194,12 @@
                     </TreeViewItem.Header>
                 </TreeViewItem>
             </TreeView>
+           
             <!-- Tree view that will display hierarchical data rows -->
-
             <TreeView Grid.Row="1"
                   BorderThickness="0"
-                  ItemsSource="{Binding Items , 
-                          diag:PresentationTraceSources.TraceLevel=High}"></TreeView>
+                  ItemsSource="{Binding Modules}">
+
+        </TreeView>
         </Grid>
-    
 </UserControl>

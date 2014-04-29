@@ -20,38 +20,21 @@ namespace Leem.Testify
             if (TestifyQueries.SolutionName != null)
             {
                 Poco.CodeModule[] modules = queries.GetSummaries();
-                SummaryViewModel2 viewModel = new SummaryViewModel2(modules);
-                base.DataContext = viewModel;
-                treeGrid.DataContext = viewModel;
+                SummaryViewModel viewModel = new SummaryViewModel(modules);
+                CoverageViewModel coverageViewModel = new CoverageViewModel(modules);
+               // var model = new SummaryViewModel[] { viewModel };
+                base.DataContext = coverageViewModel;
+
+                treeGrid.DataContext = coverageViewModel;
 
             }
             else
             {
-                base.DataContext = new SummaryViewModel2();
+                base.DataContext = new SummaryViewModel();
             }
         }
 
-        //public SummaryViewControl()
-        //{
-        //    queries = TestifyQueries.Instance;
-           
-        //    InitializeComponent();
 
-        //    if (TestifyQueries.SolutionName != null)
-        //    {
-        //        Poco.CodeModule[] modules = queries.GetSummaries();
-        //        SummaryViewModel2 viewModel = new SummaryViewModel2(modules);
-        //        base.DataContext = viewModel;
-        //        treeGrid.DataContext = viewModel;
-
-        //    }
-        //    else
-        //    {
-        //        base.DataContext = new SummaryViewModel2();
-        //    }
-
-
-        //}
 
     }
 }

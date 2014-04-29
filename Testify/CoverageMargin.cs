@@ -250,7 +250,7 @@ namespace Leem.Testify
 
                     if (g.Extent.IsEmpty == false && isCovered)
                     {
-                        Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
+                        //Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
 
                         double yPos = GetYCoordinateForBookmark(coveredLine);
 

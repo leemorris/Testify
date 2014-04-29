@@ -28,7 +28,7 @@ namespace Leem.Testify
         private const double c_IndentSize = 19.0;
     }
 
-    public class LevelConverter : DependencyObject, IMultiValueConverter
+    public class LevelConverter :  IMultiValueConverter
     {
         public object Convert(
             object[] values, Type targetType,
@@ -67,4 +67,18 @@ namespace Leem.Testify
             return value;
         }
     }
+    [ValueConversion(typeof(object), typeof(string))]
+    public class ObjectToTypeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        return value == null ? null : value.GetType().Name; // or FullName, or whatever
+    }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+
 }

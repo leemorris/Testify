@@ -5,7 +5,7 @@ using System.Windows;
 
 namespace Leem.Testify
 {
-    public class ModuleViewModel //: TreeViewItemViewModel
+    public class ModuleViewModel : TreeViewItemViewModel
     {
         readonly Poco.CodeModule _module;
         private ITestifyQueries queries;
@@ -14,14 +14,14 @@ namespace Leem.Testify
             _module = new Poco.CodeModule();
             _module.Summary = new Poco.Summary();
         }
-        //public ModuleViewModel(Poco.CodeModule module) 
-        //    : base(null, true)
-        //{
-        //    _module = module;
-        //    queries = TestifyQueries.Instance;
-        //}
+        public ModuleViewModel(Poco.CodeModule module)
+            : base(null, true)
+        {
+            _module = module;
+            queries = TestifyQueries.Instance;
+        }
 
-        public string ModuleName
+        public string Name
         {
             get { return _module.Name; }
            set { _module.Name = value; }
@@ -68,37 +68,8 @@ namespace Leem.Testify
             foreach ( var codeClass in codeClasses )
                 base.Children.Add(new ClassViewModel(codeClass, this));
         }
-        //#region Level
 
-        //// Returns the number of nodes in the longest path to a leaf
-
-        //public int Depth
-        //{
-        //    get
-        //    {
-        //        int max;
-        //        if (Items.Count == 0)
-        //            max = 0;
-        //        else
-        //            max = (int)Items.Max(r => r.Depth);
-        //        return max + 1;
-        //    }
-        //}
-
-        //private DirectoryRecord parent;
-
-        //// Returns the maximum depth of all siblings
-
-        //public int Level
-        //{
-        //    get
-        //    {
-        //        if (parent == null)
-        //            return Depth;
-        //        return parent.Level - 1;
-        //    }
-        //}
-
-        //#endregion
+        public int Level { get { return 3; } }
+        
     }
 }

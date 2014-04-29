@@ -203,6 +203,13 @@
     <Compile Include="Model\Summary.cs" />
     <Compile Include="Model\TrackedMethod.cs" />
     <Compile Include="Model\TrackedMethodRef.cs" />
+    <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\CoverageViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\MethodViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\ModuleViewModel.cs" />
+    <Compile Include="SummaryView\ViewModel\TreeViewItemViewModel.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestifyCoverageWindow.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="NunitSchema\TestOutput.cs" />
@@ -229,7 +236,7 @@
     <Compile Include="SummaryView\Converters.cs" />
     <Compile Include="SummaryView\SummaryViewControl.xaml.cs" />
     <Compile Include="SummaryView\ViewModel\SummaryInfo.cs" />
-    <Compile Include="SummaryView\ViewModel\SummaryViewModel2.cs" />
+    <Compile Include="SummaryView\ViewModel\SummaryViewModel.cs" />
     <Compile Include="TestifyContext.cs" />
     <Compile Include="TestifyPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

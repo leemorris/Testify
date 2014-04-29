@@ -46,5 +46,6 @@ namespace Leem.Testify
             base.Content = new SummaryViewControl(this);
 
         }
+
     }
 }

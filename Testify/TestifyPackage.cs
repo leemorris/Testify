@@ -29,7 +29,7 @@ namespace Leem.Testify
     [ProvideMenuResource("Menus.ctmenu", 1)]
     // This attribute registers a tool window exposed by this package.
     [ProvideToolWindow(typeof(TestifyCoverageWindow))]
-        //[ProvideToolWindowVisibility(typeof(MyToolWindow), /*UICONTEXT_SolutionExists*/"f1536ef8-92ec-443c-9ed7-fdadf150da82")]
+    [ProvideToolWindowVisibility(typeof(TestifyCoverageWindow), /*UICONTEXT_SolutionExists*/"f1536ef8-92ec-443c-9ed7-fdadf150da82")]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
     [Guid(GuidList.guidTestifyPkgString)]
     public sealed class TestifyPackage : Package, IVsSolutionEvents3
