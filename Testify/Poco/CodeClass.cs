@@ -21,10 +21,12 @@ namespace Leem.Testify.Poco
             Name = codeClass.FullName;
             Summary = new Summary(codeClass.Summary);
         }
+
         public virtual CodeModule CodeModule { get; set; }
         public virtual ICollection<CodeMethod> Methods { get; set; }
 
         public string Name { get; set; }
         public virtual Summary Summary { get; set; }
+        public string FileName { get; set; }
     }
 }

@@ -1354,6 +1354,37 @@ namespace Leem.Testify
                 return result;
             }
         }
+
+
+        public string GetProjectFilePathFromClass(string name)
+        {
+
+            using (var context = new TestifyContext(_solutionName))
+            {
+  
+                var result = from clas in context.CodeClass
+                                join project in context.Projects on clas.CodeModule.Name equals project.AssemblyName
+                                select project.UniqueName;
+
+
+                return result.FirstOrDefault();
+            }
+
+        }
+
+        public string GetProjectFilePathFromMethod(string name)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+
+                var result = from method in context.CodeMethod
+                             join project in context.Projects on method.CodeClass.CodeModule.Name equals project.AssemblyName
+                             select project.UniqueName;
+
+
+                return result.FirstOrDefault();
+            }
+        }
     }
 
 }

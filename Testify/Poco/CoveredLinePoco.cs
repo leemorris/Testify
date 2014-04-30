@@ -28,6 +28,7 @@ namespace Leem.Testify.Poco
         public int CoveredLineId { get; set; }
         public bool IsSuccessful { get; set; }
         public int UnitTestId { get; set; }
+        public string FileName { get; set; }
 
         public virtual ICollection<TrackedMethod> TrackedMethods { get; set; }
         public virtual ICollection<UnitTest> UnitTests { get; set; }

@@ -18,6 +18,7 @@
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                 <Setter Property="FontWeight" Value="Normal" />
+                <EventSetter Event="MouseDoubleClick"  Handler="itemDoubleClicked"/>
                 <Style.Triggers>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="FontWeight" Value="Bold" />
@@ -25,7 +26,9 @@
                 </Style.Triggers>
             </Style>
 
-            <HierarchicalDataTemplate DataType="{x:Type local:ModuleViewModel}" 
+            
+                
+                <HierarchicalDataTemplate DataType="{x:Type local:TreeViewItemViewModel}" 
                                       ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}" >
 
                 <Grid ShowGridLines="False">
@@ -36,7 +39,7 @@
                         <ColumnDefinition SharedSizeGroup="column1"/>
                         <ColumnDefinition SharedSizeGroup="column2"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Name}"></TextBlock>
+                    <TextBlock Text="{Binding Name}" ></TextBlock>
    
                     <Rectangle Grid.Column="1">
                         <Rectangle.Width>
@@ -48,14 +51,14 @@
                         </Rectangle.Width>
                     </Rectangle>
                     <TextBlock Grid.Column="0"
-                               Text="{Binding ModuleName}"></TextBlock>
+                               Text="{Binding Name}"></TextBlock>
                     <ProgressBar 
                                     Grid.Column="2"
                                     HorizontalAlignment="Right"
 		                            Height="10"
 		                            Margin="10,0,0,0"
 		                            VerticalAlignment="Center"
-		                            Width="100"
+		                            Width="150"
 		                            Name="pbCoverage"
                                     Value="{Binding SequenceCoverage, Mode=OneWay}"
 		                            Foreground="Green"
@@ -66,91 +69,6 @@
                
 
             </HierarchicalDataTemplate>
-            <HierarchicalDataTemplate ItemsSource="{Binding Children, 
-                          diag:PresentationTraceSources.TraceLevel=High}"
-                                          DataType="{x:Type local:ClassViewModel}">
-
-                <Grid ShowGridLines="False">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition SharedSizeGroup="column1"/>
-                        <ColumnDefinition SharedSizeGroup="column2"/>
-                    </Grid.ColumnDefinitions>
-                                    
-                    <Rectangle Grid.Column="1">
-                        <Rectangle.Width>
-                            <MultiBinding Converter="{StaticResource levelConverter}">
-                                <Binding Path="Level"></Binding>
-                                <Binding ElementName="treeViewItemToMeasure"
-                                         Path="ActualWidth"></Binding>
-                            </MultiBinding>
-                        </Rectangle.Width>
-                    </Rectangle>
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding Name}"></TextBlock>
-                    <ProgressBar 
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Right"
-		                            Height="10"
-		                            Margin="10,0,0,0"
-		                            VerticalAlignment="Center"
-		                            Width="100"
-		                            Name="pbCoverage"
-                                    Value="{Binding SequenceCoverage, Mode=OneWay}"
-		                            Foreground="Green"
-                                    Background="Red"/>
-                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
-
-                </Grid>
-
-
-            </HierarchicalDataTemplate>
-
-            <HierarchicalDataTemplate ItemsSource="{Binding Children, 
-                          diag:PresentationTraceSources.TraceLevel=High}"
-                                          DataType="{x:Type local:MethodViewModel}">
-
-                <Grid ShowGridLines="False">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition SharedSizeGroup="column1"/>
-                        <ColumnDefinition SharedSizeGroup="column2"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Rectangle Grid.Column="1">
-                        <Rectangle.Width>
-                            <MultiBinding Converter="{StaticResource levelConverter}">
-                                <Binding Path="Level"></Binding>
-                                <Binding ElementName="treeViewItemToMeasure"
-                                         Path="ActualWidth"></Binding>
-                            </MultiBinding>
-                        </Rectangle.Width>
-                    </Rectangle>
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding Name}"></TextBlock>
-                    <ProgressBar 
-                                    Grid.Column="2"
-                                    HorizontalAlignment="Right"
-		                            Height="10"
-		                            Margin="10,0,0,0"
-		                            VerticalAlignment="Center"
-		                            Width="100"
-		                            Name="pbCoverage"
-                                    Value="{Binding SequenceCoverage, Mode=OneWay}"
-		                            Foreground="Green"
-                                    Background="Red"/>
-                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45"/>
-
-                </Grid>
-
-
-            </HierarchicalDataTemplate>
-
-
 
         </Grid.Resources>
 
