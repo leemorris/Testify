@@ -42,33 +42,66 @@ namespace Leem.Testify
         void itemDoubleClicked(object sender, RoutedEventArgs e)
         {
             queries = TestifyQueries.Instance;
-            string fileName= string.Empty;
+            string filePath = string.Empty;
+            int line = 0;
+            int column = 0;
             string type = ((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header.ToString();
-            string name;
+            string name = string.Empty;
+            EnvDTE.Window openDocumentWindow = null;
 
             if (type == "Leem.Testify.ClassViewModel")
             {
-                name = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(sender)).Header)).Name;
-                fileName = queries.GetProjectFilePathFromClass(name);
+                filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
             }
             else if (type == "Leem.Testify.MethodViewModel")
             {
-                name = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(sender)).Header)).Name;
-                fileName = queries.GetProjectFilePathFromMethod(name);
+                filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
             }
-           // Log.DebugFormat("Type: {0}, Value: {1}", ((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header, ((Leem.Testify.ModuleViewModel)(((System.Windows.Controls.HeaderedItemsControl)(sender)).Header)).Name);
 
-            
-            
-            //DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
-            //var projectPath = System.IO.Path.GetDirectoryName(dte.Solution.FullName) + "\\" + fileName;
-            //EnvDTE.Window openDocumentWindow = dte.ItemOperations.OpenFile(projectPath);
-            //if (openDocumentWindow != null)
-            //{
-            //    openDocumentWindow.Activate();
-            //}
+            DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
+
+            if (filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
+            {
+                openDocumentWindow = dte.ItemOperations.OpenFile(filePath);
+                if (openDocumentWindow != null)
+                {
+                    openDocumentWindow.Activate();
+                }
+                else
+                {
+                    for (var i = 1; i == dte.Documents.Count; i++)
+                    {
+                        if (dte.Documents.Item(i).Name == name)
+                        {
+                            openDocumentWindow = dte.Documents.Item(i).ProjectItem.Document.ActiveWindow;
+                        }
+                    }
+                }
+            }
+
+            else
+            {// do something }
+                for (var i = 1; i <= dte.Windows.Count; i++)
+                {
+                    var window = dte.Windows.Item(i);
+                    if (window.Document != null && window.Document.FullName == filePath)
+                    {
+                        openDocumentWindow = window;
+                        openDocumentWindow.Activate();
+                        var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
+                        selection.MoveToLineAndOffset(line, column);
+      
+  
+                        continue;
+                    }
+                }
+            }
+
         }
-
 
     }
 }

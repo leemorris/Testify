@@ -13,6 +13,12 @@ using System.IO;
 using Leem.Testify.Model;
 using Leem.Testify.Poco;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.OLE.Interop;
+
 
 namespace Leem.Testify
 {
@@ -398,7 +404,7 @@ namespace Leem.Testify
             }
         }
 
-        public async Task RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber)
+        public async System.Threading.Tasks.Task RunTestsThatCoverLine(string projectName, string className, string methodName, int lineNumber)
         {
             try
             {
@@ -1336,7 +1342,10 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-                return context.CodeMethod.Where(x => x.CodeClassId == _class.CodeClassId).Include(x => x.Summary).ToArray();
+                var methods = context.CodeMethod.Where(x => x.CodeClassId == _class.CodeClassId).Include(x => x.Summary).ToArray();
+                // Remove methods without filenames because they are implied constructors that are not actually coded.
+                var filteredMethods = methods.Where(x=>x.FileName != null);
+                return filteredMethods.ToArray();
             }
         }
 
@@ -1384,6 +1393,80 @@ namespace Leem.Testify
 
                 return result.FirstOrDefault();
             }
+        }
+
+        public void UpdateCodeClassPath(string className, string path, int line, int column)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var matchingClass = context.CodeClass.Where(x => x.Name == className ).FirstOrDefault();
+                if (matchingClass != null)
+                {
+                    matchingClass.FileName = path;
+                    matchingClass.Line = line;
+                    matchingClass.Column = column;
+
+                }
+                context.SaveChanges();
+            }
+        }
+
+        public void UpdateCodeMethodPath(string methodName, string path, int line, int column)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var modifiedMethodName = methodName.ReplaceAt(methodName.LastIndexOf("."), "::");
+
+                var matchingMethod = context.CodeMethod.Where(x => x.Name.Contains(modifiedMethodName)).FirstOrDefault();
+                if (matchingMethod != null)
+                {
+                    matchingMethod.FileName = path;
+                    matchingMethod.Line = line;
+                    matchingMethod.Column = column;
+                }
+                context.SaveChanges();
+            }
+        }
+       
+
+
+
+        public IVsTextView GetIVsTextView(string filePath)
+        {
+            var dte2 = (EnvDTE80.DTE2)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE));
+            Microsoft.VisualStudio.OLE.Interop.IServiceProvider sp = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)dte2;
+            ServiceProvider serviceProvider = new Microsoft.VisualStudio.Shell.ServiceProvider(sp);
+
+            IVsUIHierarchy uiHierarchy;
+            uint itemID;
+            IVsWindowFrame windowFrame;
+            IWpfTextView wpfTextView = null;
+            if (VsShellUtilities.IsDocumentOpen(serviceProvider, filePath, Guid.Empty,
+                                            out uiHierarchy, out itemID, out windowFrame))
+            {
+                // Get the IVsTextView from the windowFrame.
+                return VsShellUtilities.GetTextView(windowFrame);
+            }
+
+            return null;
+        }
+
+        public IWpfTextView GetWpfTextView(IVsTextView vTextView)
+        {
+            IWpfTextView view = null;
+            IVsUserData userData = vTextView as IVsUserData;
+
+            if (null != userData)
+            {
+                IWpfTextViewHost viewHost;
+                object holder;
+                Guid guidViewHost = Microsoft.VisualStudio.Editor.DefGuidList.guidIWpfTextViewHost;
+                userData.GetData(ref guidViewHost, out holder);
+                viewHost = (IWpfTextViewHost)holder;
+                view = viewHost.TextView;
+            }
+
+            return view;
         }
     }
 

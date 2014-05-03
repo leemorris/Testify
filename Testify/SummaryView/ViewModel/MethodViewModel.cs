@@ -26,6 +26,20 @@ namespace Leem.Testify
             }
         }
 
+        public string FileName
+        {
+            get { return _method.FileName; }
+        }
+        
+        public int Line
+        {
+            get { return _method.Line; }
+        }
+
+        public int Column
+        {
+            get { return _method.Column; }
+        }
         public int Level { get { return 1; } }
  
     }

@@ -49,6 +49,21 @@ namespace Leem.Testify
             get { return _class.Summary.BranchCoverage; }
         }
 
+        public string FileName
+        {
+            get { return _class.FileName; }
+        }
+
+        public int Line
+        {
+            get { return _class.Line; }
+        }
+
+        public int Column
+        {
+            get { return _class.Column; }
+        }
+
         protected override void LoadChildren()
         {
             foreach (Poco.CodeMethod method in queries.GetMethods(_class))

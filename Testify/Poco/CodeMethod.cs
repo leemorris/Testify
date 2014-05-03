@@ -25,6 +25,9 @@ namespace Leem.Testify.Poco
 
         public int? CodeClassId { get; set; } 
         public string Name { get; set; }
+        public string FileName { get; set; }
         public virtual Summary Summary { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
     }
 }

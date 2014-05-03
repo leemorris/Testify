@@ -22,9 +22,8 @@ namespace Leem.Testify.Poco
             Summary = new Summary(module.Summary);
         }
         public virtual ICollection<CodeClass> Classes { get; set; }
-        //public CodeClass CodeClass { get; set; }
-        //public int CodeClassId { get; set; }
         public string Name { get; set; }
+        public string FileName { get; set; }
         public virtual Summary Summary { get; set; }
     }
 }

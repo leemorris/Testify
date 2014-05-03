@@ -62,6 +62,11 @@ namespace Leem.Testify
             set { _module.Summary.BranchCoverage = value; }
         }
 
+        public string FileName
+        {
+            get { return _module.FileName; }
+        }
+
         protected override void LoadChildren()
         {
             var codeClasses = queries.GetClasses(_module);

@@ -27,6 +27,9 @@ namespace Leem.Testify.Poco
 
         public string Name { get; set; }
         public virtual Summary Summary { get; set; }
+
         public string FileName { get; set; }
+        public int Line { get; set; }
+        public int Column { get; set; }
     }
 }

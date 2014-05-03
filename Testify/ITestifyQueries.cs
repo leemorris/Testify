@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Leem.Testify.Model;
 using System.Threading.Tasks;
 using Leem.Testify.Poco;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Leem.Testify
 {
@@ -57,5 +59,12 @@ namespace Leem.Testify
         string GetProjectFilePathFromMethod(string name);
 
         string GetProjectFilePathFromClass(string name);
+
+        IVsTextView GetIVsTextView(string filePath);
+        IWpfTextView GetWpfTextView(IVsTextView vTextView);
+
+        void UpdateCodeClassPath(string className, string path, int line, int column);
+
+        void UpdateCodeMethodPath(string methodName, string path, int line, int column);
     }
 }

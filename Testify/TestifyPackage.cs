@@ -115,7 +115,7 @@ namespace Leem.Testify
                 Log.DebugFormat("Database was found");
             }
         }
-
+        // Is this being used??
         // finds the instance of IWpfTextViewHost associated with this margin
         public IWpfTextViewHost GetIWpfTextViewHost()
         {
@@ -228,7 +228,7 @@ namespace Leem.Testify
             {
                 _service.ProcessIndividualTestQueue(++_testRunId);
             }
-            
+
         }
 
         public void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
@@ -249,6 +249,29 @@ namespace Leem.Testify
                 _solutionName = solutionName.ToString();
                 _queries = TestifyQueries.Instance;
                 TestifyQueries.SolutionName = _solutionName;
+            }
+
+            for (var i = 1; i <= _dte.Documents.Count; i++)
+            {
+                var doc = _dte.Documents.Item(i);
+                // Save the file path to each class for use navigating from tool window
+                FileCodeModel fileCodeModel = doc.ProjectItem.FileCodeModel;
+                if (fileCodeModel != null)
+                {
+                    IList<CodeElement> classes;
+                    IList<CodeElement> methods;
+                    CodeModelService.GetCodeBlocks(fileCodeModel, out classes, out methods);
+
+                    foreach (var clas in classes)
+                    {
+                        _queries.UpdateCodeClassPath(clas.FullName, doc.FullName, clas.StartPoint.Line,clas.StartPoint.LineCharOffset);
+                    }
+
+                    foreach (var method in methods)
+                    {
+                        _queries.UpdateCodeMethodPath(method.FullName, doc.FullName, method.StartPoint.Line,method.StartPoint.LineCharOffset);
+                    }
+                }
             }
 
             var projects = new List<Poco.Project>();
@@ -449,6 +472,7 @@ namespace Leem.Testify
         {
             var project = document.ProjectItem;
             _queries.AddToTestQueue(project.ContainingProject.UniqueName);
+
         }
 
         /// <summary>
@@ -466,7 +490,7 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-           // window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+            // window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -725,17 +749,22 @@ namespace Leem.Testify
             var sw = new Stopwatch();
             sw.Restart();
             Log.DebugFormat("Project Build occurred project name: {0}", project);
+
             if (success)
             {
-                if (isFirstBuild)
-                {
-                    IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-                    VerifyProjects(pSolution);
-                }
+                //if (isFirstBuild)
+                //{
+                IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+                VerifyProjects(pSolution);
+
+                //}
                 isFirstBuild = false;
                 Log.DebugFormat("Project Build Successful for project name: {0}", project);
 
                 _queries.AddToTestQueue(project);
+
+
+
             }
             sw.Stop();
             Log.DebugFormat("ProjectBuildEventHandler Elapsed Time {0} milliseconds", sw.ElapsedMilliseconds);
