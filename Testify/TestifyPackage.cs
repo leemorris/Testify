@@ -239,9 +239,9 @@ namespace Leem.Testify
             }
         }
 
-        public async void VerifyProjects(IVsSolution solution)
+        public async void VerifyProjects(IVsSolution solution, string projectName)
         {
-            List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
+            //List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
             if (_queries == null)
             {
                 object solutionName;
@@ -251,28 +251,12 @@ namespace Leem.Testify
                 TestifyQueries.SolutionName = _solutionName;
             }
 
-            for (var i = 1; i <= _dte.Documents.Count; i++)
-            {
-                var doc = _dte.Documents.Item(i);
-                // Save the file path to each class for use navigating from tool window
-                FileCodeModel fileCodeModel = doc.ProjectItem.FileCodeModel;
-                if (fileCodeModel != null)
-                {
-                    IList<CodeElement> classes;
-                    IList<CodeElement> methods;
-                    CodeModelService.GetCodeBlocks(fileCodeModel, out classes, out methods);
-
-                    foreach (var clas in classes)
-                    {
-                        _queries.UpdateCodeClassPath(clas.FullName, doc.FullName, clas.StartPoint.Line,clas.StartPoint.LineCharOffset);
-                    }
-
-                    foreach (var method in methods)
-                    {
-                        _queries.UpdateCodeMethodPath(method.FullName, doc.FullName, method.StartPoint.Line,method.StartPoint.LineCharOffset);
-                    }
-                }
-            }
+            //// Fire and Forget
+            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //{
+            //    UpdateCodeElementFilePathsForAllDocuments();
+            //});
+            
 
             var projects = new List<Poco.Project>();
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
@@ -282,6 +266,15 @@ namespace Leem.Testify
                 var outputPath = GetProjectOutputBuildFolder(project);
                 var assemblyName = GetAssemblyName(project);
 
+                if (project.UniqueName == projectName || string.IsNullOrEmpty(projectName))
+                {
+                    Log.DebugFormat("Launching UpdateCodeElementFilePathsForProject from Thread #{0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+                    // Fire and Forget
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        UpdateCodeElementFilePathsForProject(project);
+                    });
+                }
                 Log.DebugFormat("Verify project name: {0}", project.Name);
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
@@ -296,6 +289,93 @@ namespace Leem.Testify
             }
 
             _queries.MaintainProjects(projects);
+        }
+
+        private void UpdateCodeElementFilePathsForAllDocuments()
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            Log.DebugFormat("starting UpdateCodeElementFilePaths");
+            for (var i = 1; i <= _dte.Documents.Count; i++)
+            {
+                var doc = _dte.Documents.Item(i);
+                // Save the file path to each class for use navigating from tool window
+                FileCodeModel fileCodeModel = doc.ProjectItem.FileCodeModel;
+                UpdateCodeElementsForSingleDocument(fileCodeModel, doc.Name);
+            }
+            Log.DebugFormat("leaving UpdateCodeElementFilePaths Elapsed Time = {0}", sw.ElapsedMilliseconds);
+        }
+
+        private void UpdateCodeElementFilePathsForProject(EnvDTE.Project project)
+        {
+            Log.DebugFormat("UpdateCodeElementFilePathsForProject is running for Project {0}, on Thread #{1}", project.Name, System.Threading.Thread.CurrentThread.ManagedThreadId);
+            if (project.Name.EndsWith(".Test") == false && project.ProjectItems != null)
+            {
+                var sw = new Stopwatch();
+                sw.Start();
+
+                Log.DebugFormat("starting UpdateCodeElementFilePathsForProject for Project: {0}", project.Name);
+                for (var i = 1; i <= project.ProjectItems.Count; i++)
+                {
+                    var item = project.ProjectItems.Item(i);
+
+                    // ProjectItems can be nested, so lets drill in
+                    for (var j = 1; j <= item.ProjectItems.Count; j++)
+                    {
+                        var subItem = item.ProjectItems.Item(j);
+                        OpenWindowToGetFileCodeModel(subItem);
+                    }
+                    OpenWindowToGetFileCodeModel(item);
+
+
+
+                }
+
+                Log.DebugFormat("Leaving UpdateCodeElementFilePathsForProject is running for Project {0}, on Thread #{1}, Elapsed Time = {2}", project.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
+
+            }
+        }
+
+        private void OpenWindowToGetFileCodeModel(ProjectItem item)
+        {
+            // The FileCodeModel object is null unless a Window is open, 
+            // so we need to open a window, use the FileCodeModel and close it
+            bool hasOpenWindow;
+            hasOpenWindow = item.IsOpen;
+            if (!hasOpenWindow && item.Name.EndsWith(".cs"))
+            {
+                Log.DebugFormat("Opening window for ProjectItem: {0}, ProjectItem.Kind: {1}", item.Name, item.Kind);
+                item.Open(EnvDTE.Constants.vsViewKindCode);
+            }
+
+            UpdateCodeElementsForSingleDocument(item.FileCodeModel, item.Name);
+
+            if (!hasOpenWindow && item.Name.EndsWith(".cs"))
+            {
+                Log.DebugFormat("closing window for ProjectItem: {0}, ProjectItem.Kind: {1}", item.Name, item.Kind);
+                item.Document.Close(vsSaveChanges.vsSaveChangesNo);
+            }
+        }
+        private void UpdateCodeElementsForSingleDocument(FileCodeModel fileCodeModel, string filePath)
+        {
+      
+            if (fileCodeModel != null)
+            {
+                Log.DebugFormat("updating for {0}", filePath);
+                IList<CodeElement> classes;
+                IList<CodeElement> methods;
+                CodeModelService.GetCodeBlocks(fileCodeModel, out classes, out methods);
+
+                foreach (var clas in classes)
+                {
+                    _queries.UpdateCodeClassPath(clas.FullName, filePath, clas.StartPoint.Line, clas.StartPoint.LineCharOffset);
+                }
+
+                foreach (var method in methods)
+                {
+                    _queries.UpdateCodeMethodPath(method.FullName, filePath, method.StartPoint.Line, method.StartPoint.LineCharOffset);
+                }
+            }
         }
 
         public void VerifyProjects(EnvDTE.Project project)
@@ -313,6 +393,16 @@ namespace Leem.Testify
             });
             _queries = TestifyQueries.Instance;
             TestifyQueries.SolutionName = _dte.Solution.FullName;
+
+            // Fire and Forget
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                UpdateCodeElementFilePathsForProject(project);
+            });
+            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //{
+            //    UpdateCodeElementFilePathsForProject(project);
+            //});
 
             _queries.MaintainProjects(projects);
         }
@@ -694,7 +784,7 @@ namespace Leem.Testify
             var projectEvents = ((Events2)_dte.Events).BuildEvents;
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
 
-            VerifyProjects(solution);
+            VerifyProjects(solution,string.Empty);
             _queries.SetAllQueuedTestsToNotRunning();
             return VSConstants.S_OK;
         }
@@ -749,15 +839,16 @@ namespace Leem.Testify
             var sw = new Stopwatch();
             sw.Restart();
             Log.DebugFormat("Project Build occurred project name: {0}", project);
-
+            IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
             if (success)
             {
                 //if (isFirstBuild)
                 //{
-                IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-                VerifyProjects(pSolution);
+                pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+                VerifyProjects(pSolution, project);
 
                 //}
+      
                 isFirstBuild = false;
                 Log.DebugFormat("Project Build Successful for project name: {0}", project);
 

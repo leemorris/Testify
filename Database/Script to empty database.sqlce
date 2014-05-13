@@ -1,0 +1,28 @@
+DELETE FROM [UnitTestTrackedMethod]
+GO
+DELETE FROM [UnitTest]
+GO
+DELETE FROM [TrackedMethodCoveredLinePoco]
+GO
+DELETE FROM [TrackedMethod]
+GO
+DELETE FROM [TestQueue]
+GO
+DELETE FROM [TestProject]
+GO
+
+DELETE FROM [Project]
+GO
+DELETE FROM [CoveredLineUnitTest]
+GO
+DELETE FROM [CoveredLinePoco]
+GO
+
+DELETE FROM [CodeMethod]
+GO
+DELETE FROM [CodeClass]
+GO
+DELETE FROM [CodeModule]
+GO
+DELETE FROM [Summary]
+GO

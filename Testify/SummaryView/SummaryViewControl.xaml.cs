@@ -5,6 +5,11 @@ using System;
 using log4net;
 using EnvDTE;
 using EnvDTE80;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using Clide;
+using Clide.Solution;
 
 namespace Leem.Testify
 {
@@ -24,13 +29,14 @@ namespace Leem.Testify
 
             if (TestifyQueries.SolutionName != null)
             {
-                Poco.CodeModule[] modules = queries.GetSummaries();
-                SummaryViewModel viewModel = new SummaryViewModel(modules);
-                CoverageViewModel coverageViewModel = new CoverageViewModel(modules);
-               // var model = new SummaryViewModel[] { viewModel };
-                base.DataContext = coverageViewModel;
+                ///Todo make this async
+                Task<CoverageViewModel> coverageViewModel = GetSummariesAsync();
+                //CoverageViewModel coverageViewModel = GetSummariesAsync();
+                //coverageViewModel.Start();
+                coverageViewModel.Wait();
+                base.DataContext =  coverageViewModel.Result;
 
-                treeGrid.DataContext = coverageViewModel;
+                treeGrid.DataContext = coverageViewModel.Result;
 
             }
             else
@@ -38,6 +44,16 @@ namespace Leem.Testify
                 base.DataContext = new SummaryViewModel();
             }
            
+        }
+
+        private  async Task<CoverageViewModel> GetSummariesAsync()
+        {
+
+            Poco.CodeModule[] modules =  queries.GetModules();
+            //SummaryViewModel viewModel = new SummaryViewModel(modules);
+            CoverageViewModel coverageViewModel = new CoverageViewModel(modules);
+            // var model = new SummaryViewModel[] { viewModel };
+            return coverageViewModel;
         }
         void itemDoubleClicked(object sender, RoutedEventArgs e)
         {
@@ -48,23 +64,54 @@ namespace Leem.Testify
             string type = ((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header.ToString();
             string name = string.Empty;
             EnvDTE.Window openDocumentWindow = null;
+            string clickedMethodName = string.Empty;
+
+            DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
+            //var x = dte.ActiveDocument.ProjectItem.FileCodeModel;
+            IList<CodeElement> classes;
+            IList<CodeElement> methods;
+
+            CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
+            //var d = dte.Solution.Projects.Find(((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name).
 
             if (type == "Leem.Testify.ClassViewModel")
             {
                 filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
                 line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
                 column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                //filePath = dte.ActiveDocument.FullName;
+                //line = classes[0].StartPoint.Line;
+                //column = classes[0].StartPoint.LineCharOffset;
             }
             else if (type == "Leem.Testify.MethodViewModel")
             {
+                clickedMethodName =((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name;
+                var method = methods.FirstOrDefault(x => x.Name == clickedMethodName);
                 filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
                 line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
                 column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
             }
 
-            DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
+//var projects = DevEnv.Get(new Guid("a9bce903-55a5-4a94-979c-2d4e5bb7a93e"))
+//    .SolutionExplorer()
+//    .Solution
+//    .Traverse()
+//    .OfType<IProjectNode>()
+//    .Select (project => new{project.DisplayName,project.PhysicalPath})
+//    .ToList();
 
-            if (filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
+    //        var projects2 = DevEnv.Get(new Guid("a9bce903-55a5-4a94-979c-2d4e5bb7a93e"))
+    //            .SolutionExplorer().Solution.Traverse()
+
+    //.Traverse()
+    //.OfType<IItemNode>()
+    //.Traverse()
+    //.Select(item=> new{item})
+
+    //.ToList();
+
+           // var xx = ((Clide.Solution.ItemNode)((new System.Collections.Generic.Mscorlib_CollectionDebugView<Clide.ITreeNode>(projects2)).Items[0])).Item;
+            if (!string.IsNullOrEmpty(filePath)  && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
                 openDocumentWindow = dte.ItemOperations.OpenFile(filePath);
                 if (openDocumentWindow != null)

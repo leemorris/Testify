@@ -101,7 +101,15 @@ namespace Leem.Testify
 
                     foreach (var method in methods)
                     {
-                        ProcessSequencePoints(coveredLines, module, tests, codeClass, method);
+                        if (!method.Name.Contains("__"))
+                        {
+                            ProcessSequencePoints(coveredLines, module, tests, codeClass, method);
+                        }
+                        //else
+                        //{
+                        //    Log.DebugFormat("Skipping  Class: {0}   Method {1}: ",codeClass.FullName, method.Name);
+                        //}
+                        
                     }
                 }
             }

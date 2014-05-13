@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Clide.Resolver</name>
+    </assembly>
+    <members>
+        <member name="T:Clide.LocalResolver">
+            <summary>
+            Resolves assemblies that are referenced from the calling assembly by 
+            looking them up in a specified local directory. This enables side-by-side 
+            versioning of locally deployed signed assemblies such as Clide itself.
+            </summary>
+            <remarks>
+            This is required in order to optimize the assembly loading behavior 
+            for scenarios where multiple plugins or extensions may deploy 
+            different versions of the same utility assembly. 
+            <para>
+            This resolver ensures that assemblies that are resolved in the 
+            <see cref="T:System.AppDomain"/> for versions that match the ones deployed 
+            in the specified local directory, are loaded from it. 
+            </para>
+            <para>
+            This means that if an older assembly is already loaded in the 
+            <see cref="T:System.AppDomain"/>, instead of failing at runtime because 
+            of the vesion mismatch (default CLR behavior), the new version 
+            deployed in the local directory will be loaded instead, allowing 
+            both extensions to coexist even if they use different versions 
+            of the same assembly.
+            </para>
+            <para>
+            The combined behavior of the CLR and this local resolver guarantees 
+            that each extension will get at least the same version that it 
+            was compiled and deployed with, and at most the latest version 
+            deployed by any extension. As long as the library is backwards 
+            compatible, all extensions will happily coexist.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Clide.LocalResolver.Initialize(System.String)">
+            <summary>
+            Initializes the resolver to lookup assemblies from the 
+            specified local directory.
+            </summary>
+            <param name="localDirectory">The local directory to add to the 
+            assembly resolve probing.</param>
+        </member>
+    </members>
+</doc>

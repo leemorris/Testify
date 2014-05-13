@@ -54,7 +54,7 @@ namespace Leem.Testify
 
         CodeMethod[] GetMethods(CodeClass _class);
 
-        CodeModule[] GetSummaries();
+        Task<CodeModule[]> GetSummaries();
 
         string GetProjectFilePathFromMethod(string name);
 

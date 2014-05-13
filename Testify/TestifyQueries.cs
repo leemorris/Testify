@@ -32,7 +32,7 @@ namespace Leem.Testify
         private static string _connectionString;
         private static string _solutionName;
         private static Stopwatch _sw;
-        private ILog Log = LogManager.GetLogger(typeof(TestifyQueries));
+        private static ILog Log = LogManager.GetLogger(typeof(TestifyQueries));
         // private to prevent direct instantiation.
         private TestifyQueries()
         {
@@ -500,9 +500,12 @@ namespace Leem.Testify
                                 line.Module = context.CodeModule.FirstOrDefault(x => x.Name == line.ModuleName);
                                 line.Class = context.CodeClass.FirstOrDefault(x => x.Name == line.ClassName);
                                 line.Method = context.CodeMethod.FirstOrDefault(x => x.Name == line.MethodName);
-
-                                var existingLine = GetCoveredLinesByClassAndLine(existingCoveredLines, line);
-
+                                Poco.CoveredLinePoco existingLine = null;
+                                if (line.Method == null)
+                                {
+                                    Log.DebugFormat("Method is null for Class: {0}, Method: {1}",line.ClassName,line.MethodName);
+                                }
+                                existingLine = GetCoveredLinesByClassAndLine(existingCoveredLines, line);
                                 foreach (var trackedMethod in line.TrackedMethods)
                                 {
 
@@ -839,8 +842,22 @@ namespace Leem.Testify
 
         private static Poco.CoveredLinePoco GetCoveredLinesByClassAndLine(ILookup<int, Poco.CoveredLinePoco> existingCoveredLines, LineCoverageInfo line)
         {
-            var existingLine = existingCoveredLines[line.LineNumber].FirstOrDefault(x => x.Method.Equals(line.Method)
+            Poco.CoveredLinePoco existingLine = null;
+            try
+            {
+                if (line.Method != null)
+                {
+// Null reference exception, line.lineNumber, line.Method and line.Class all have value,
+                    //maybe line.linenumber doesn't exist
+                    existingLine = existingCoveredLines[line.LineNumber].FirstOrDefault(x => x.Method != null && x.Method.Equals(line.Method)
                                                 && x.Class.Equals(line.Class));
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Log.DebugFormat("Error in GetCoveredLinesByClassAndLine, Method is null for Class: {0}, Method: {1}, Error: {2}", line.ClassName, line.MethodName, ex);
+            }
 
             return existingLine;
         }
@@ -1018,6 +1035,7 @@ namespace Leem.Testify
                     context.CodeModule.Add(codeModule);
                 }
 
+
                 UpdateCodeClasses(module, codeModule, context);
 
                 context.SaveChanges();
@@ -1051,6 +1069,7 @@ namespace Leem.Testify
                     }
 
                     UpdateCodeMethods(moduleClass, pocoCodeClass, context);
+                    context.SaveChanges();
                 }
             }
         }
@@ -1077,17 +1096,18 @@ namespace Leem.Testify
                     }
                     else
                     {
-
-                        var pocoCodeMethod = new Poco.CodeMethod(moduleMethod);
-                        pocoCodeClass.Methods.Add(pocoCodeMethod);
+                        codeMethod = new Poco.CodeMethod(moduleMethod);
+                        pocoCodeClass.Methods.Add(codeMethod);
                     }
+                    
                 }
             }
         }
 
         private void UpdateCoveredLines(string moduleName, List<Poco.TrackedMethod> trackedMethods, IList<LineCoverageInfo> newCoveredLineInfos)
         {
-            var newCoveredMethodIds = newCoveredLineInfos.GroupBy(g => g.Method)
+            var newCoveredMethodIds = newCoveredLineInfos.Where(x=>x.Method != null)
+                                                        .GroupBy(g => g.Method)
                                                         .Select(m => m.First().Method.CodeMethodId)
                                                         .ToList();
 
@@ -1098,8 +1118,17 @@ namespace Leem.Testify
 
                 foreach (var coveredLine in coveredLines)
                 {
-                    var line = newCoveredLineInfos.FirstOrDefault(x => x.Method.CodeMethodId == coveredLine.Method.CodeMethodId && x.LineNumber == coveredLine.LineNumber);
-                    //var existingLine = from aline in context.CoveredLines
+                    var line = new LineCoverageInfo();
+                    try
+                    {
+                         line = newCoveredLineInfos.FirstOrDefault(x => x.Method != null && x.Method.CodeMethodId == coveredLine.Method.CodeMethodId && x.LineNumber == coveredLine.LineNumber);
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        Log.DebugFormat("Error Getting Line: Method.Name: ", coveredLine.Method.Name);
+                    }                    //var existingLine = from aline in context.CoveredLines
                     //                   where aline.LineNumber == coveredLine.LineNumber
                     //           &&  aline.Method.CodeMethodId == coveredLine.Method.CodeMethodId
                     //           select aline;
@@ -1343,13 +1372,13 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
                 var methods = context.CodeMethod.Where(x => x.CodeClassId == _class.CodeClassId).Include(x => x.Summary).ToArray();
-                // Remove methods without filenames because they are implied constructors that are not actually coded.
-                var filteredMethods = methods.Where(x=>x.FileName != null);
+
+                var filteredMethods = methods.Where(x => x.Name.Contains("get_") == false && x.Name.Contains("set_") == false);
                 return filteredMethods.ToArray();
             }
         }
 
-        public CodeModule[] GetSummaries() 
+        public async Task<CodeModule[]> GetSummaries() 
         {
             using (var context = new TestifyContext(_solutionName))
             {

@@ -123,7 +123,7 @@ namespace Leem.Testify
             try
             {
                 _documentName = documentName;
-                Log.DebugFormat("Rebuilding Covered Lines - inside RebuildCoverageAsync Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+                //Log.DebugFormat("Rebuilding Covered Lines - inside RebuildCoverageAsync Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
                 ITextSnapshot snapshot = (ITextSnapshot)snapshotObject;
 
                 if (_dte != null && _dte.ActiveDocument != null && !_dte.ActiveDocument.Path.Contains(".test"))
@@ -143,7 +143,7 @@ namespace Leem.Testify
                 }
 
  
-                Log.DebugFormat("Rebuilding Covered Lines - Complete Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+               // Log.DebugFormat("Rebuilding Covered Lines - Complete Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
                 
             }
             catch (Exception ex)
@@ -167,7 +167,7 @@ namespace Leem.Testify
             return fcm;
         }
 
-        private void GetCoveredLinesFromCodeModel( FileCodeModel fcm)
+        public void GetCoveredLinesFromCodeModel( FileCodeModel fcm)
         {
             IList<CodeElement> classes;
             IList<CodeElement> methods;
@@ -431,7 +431,7 @@ namespace Leem.Testify
 
         internal void RecreateCoverage(IWpfTextView textView)
         {
-            Log.DebugFormat("Launching RebuildCoverage");
+            //Log.DebugFormat("Launching RebuildCoverage");
 
             var documentName = GetFileName(textView.TextBuffer);
 

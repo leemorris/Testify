@@ -13,6 +13,9 @@ namespace Leem.Testify.Migrations
 
         protected override void Seed(Leem.Testify.TestifyContext context)
         {
+
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeModuleId ON CodeMethod.CodeClassId");
+
             //  This method will be called after migrating to the latest version.
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method

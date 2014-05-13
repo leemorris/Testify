@@ -142,7 +142,7 @@ namespace Leem.Testify
 
             if (e.Changes.IncludesLineChanges)
             {
-                // Fired and Forget
+                // Fire and Forget
                 System.Threading.Tasks.Task.Factory.StartNew(() =>
                 {
                     RunTestsThatCoverCursor();
