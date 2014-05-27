@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
+using ICSharpCode.NRefactory.TypeSystem;
 
 
 namespace Leem.Testify
@@ -718,7 +719,7 @@ namespace Leem.Testify
 
                             context.UnitTests.Add(test);
 
-                            Log.DebugFormat("Added UnitTest to Context: Name: {0}, IsSucessful : {1}", test.TestMethodName, test.IsSuccessful);
+                           // Log.DebugFormat("Added UnitTest to Context: Name: {0}, IsSucessful : {1}", test.TestMethodName, test.IsSuccessful);
 
                         }
                         else
@@ -1006,9 +1007,11 @@ namespace Leem.Testify
                 UpdateUnitTests(module, testModule);
 
                 UpdateTrackedMethods(distinctTrackedMethods);
-
-                UpdateCoveredLines(module.FullName, distinctTrackedMethods, newCoveredLineInfos);
-
+                var sw = new Stopwatch();
+                sw.Start();
+                UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
+                Log.DebugFormat("UpdateCoveredLines took {0}", sw.ElapsedMilliseconds);
+                sw.Stop();
 
             }
         }
@@ -1104,8 +1107,10 @@ namespace Leem.Testify
             }
         }
 
-        private void UpdateCoveredLines(string moduleName, List<Poco.TrackedMethod> trackedMethods, IList<LineCoverageInfo> newCoveredLineInfos)
+        private void UpdateCoveredLines(Module module, List<Poco.TrackedMethod> trackedMethods, IList<LineCoverageInfo> newCoveredLineInfos)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var newCoveredMethodIds = newCoveredLineInfos.Where(x=>x.Method != null)
                                                         .GroupBy(g => g.Method)
                                                         .Select(m => m.First().Method.CodeMethodId)
@@ -1114,8 +1119,10 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
 
-                var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method);//.Where(x => newCoveredMethods.Contains(x.Method.Name));
-
+                var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method).Where(w =>w.Module.AssemblyName != module.ModuleName);
+                
+                var number = coveredLines.Count();
+  
                 foreach (var coveredLine in coveredLines)
                 {
                     var line = new LineCoverageInfo();
@@ -1128,11 +1135,8 @@ namespace Leem.Testify
                     {
 
                         Log.DebugFormat("Error Getting Line: Method.Name: ", coveredLine.Method.Name);
-                    }                    //var existingLine = from aline in context.CoveredLines
-                    //                   where aline.LineNumber == coveredLine.LineNumber
-                    //           &&  aline.Method.CodeMethodId == coveredLine.Method.CodeMethodId
-                    //           select aline;
-                    // line = existingLine;
+                    }                    
+
                     string testMethodName = string.Empty;
 
                     if (line != null && line.TrackedMethods.Any())
@@ -1162,9 +1166,11 @@ namespace Leem.Testify
                 }
 
                 context.SaveChanges();
+                Log.DebugFormat("UpdateCoveredLines for Module.Name: {0}  Elapsed Time = {1}", module.ModuleName, sw.ElapsedMilliseconds);
             }
         }
 
+        
         private void UpdateProjects(IList<Project> projects, TestifyContext context)
         {
             _sw.Restart();
@@ -1496,6 +1502,60 @@ namespace Leem.Testify
             }
 
             return view;
+        }
+
+
+        public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
+        {
+            List<string> methodsToDelete = new List<string>();
+           
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var codeClasses = from clas in context.CodeClass
+                                  join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                  where clas.Name.Equals(fileClass.ReflectionName)
+                                select clas;
+                foreach (var codeClass in codeClasses)
+                {
+                    if (codeClass.FileName != fileName
+                        || codeClass.Line != fileClass.BodyRegion.BeginLine
+                        || codeClass.Column != fileClass.BodyRegion.BeginColumn)
+                    {
+                        codeClass.FileName = fileName;
+                        codeClass.Line = fileClass.BodyRegion.BeginLine;
+                        codeClass.Column = fileClass.BodyRegion.BeginColumn;
+                    }
+                    
+                }
+                
+                string modifiedMethodName = string.Empty;
+                foreach (var fileMethod in methods)
+                {
+                    modifiedMethodName = ConvertUnitTestFormatToFormatTrackedMethod(fileMethod.ReflectionName);
+                    // remove closing paren
+                    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+
+                    var codeMethods = from clas in codeClasses
+                                     join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                     where method.Name.Contains(modifiedMethodName)
+                                     select method;
+                    foreach (var method in codeMethods)
+                    {
+                        if(method.FileName != fileName
+                           || method.Line != fileMethod.BodyRegion.BeginLine
+                           || method.Column != fileMethod.BodyRegion.BeginColumn)
+                        {
+                            method.FileName = fileName;
+                            method.Line = fileMethod.BodyRegion.BeginLine;
+                            method.Column = fileMethod.BodyRegion.BeginColumn;
+                        }
+                        
+                    }
+                 
+                    
+                }
+                context.SaveChanges();
+            }
         }
     }
 

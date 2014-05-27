@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Leem.Testify.Poco;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Leem.Testify
 {
@@ -66,5 +67,7 @@ namespace Leem.Testify
         void UpdateCodeClassPath(string className, string path, int line, int column);
 
         void UpdateCodeMethodPath(string methodName, string path, int line, int column);
+
+        void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName);
     }
 }

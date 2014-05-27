@@ -24,6 +24,7 @@ namespace Leem.Testify.Poco
         public virtual ICollection<CodeClass> Classes { get; set; }
         public string Name { get; set; }
         public string FileName { get; set; }
+        public string AssemblyName { get; set; }
         public virtual Summary Summary { get; set; }
     }
 }

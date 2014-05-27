@@ -44,6 +44,11 @@ namespace Leem.Testify.Model
         public string ModuleName { get; set; }
 
         /// <summary>
+        /// The name of the module
+        /// </summary>
+        public string AssemblyName { get; set; }
+
+        /// <summary>
         /// The files that make up the module
         /// </summary>
         public List<File> Files { get; set; }
