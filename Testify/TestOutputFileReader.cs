@@ -15,18 +15,18 @@ namespace Leem.Testify
     [Serializable]
     public class TestOutputFileReader
     {
-        //private ILog Log = LogManager.GetLogger(typeof(TestOutputFileReader));
+        private ILog Log = LogManager.GetLogger(typeof(TestOutputFileReader));
 
         public resultType ReadTestResultFile(string path)
         {
-
+            Log.DebugFormat("ReadCoverageFile for file name: {0}", path);
             StreamReader file;
             resultType testOutput = new resultType();
             //testOutput = TestOutput.LoadFromFile(path);
             
             try
             {
-               // Log.DebugFormat("ReadCoverageFile for file name: {0}", path);
+
                 file = new StreamReader(path);
                 //Log.DebugFormat("Created StreamReader:");
 
@@ -43,6 +43,7 @@ namespace Leem.Testify
             
             file.Close();
             System.IO.File.Delete(path);
+            Log.DebugFormat("ReadCoverageFile for file name: {0} is Complete", path);
             return testOutput;
 
         } 

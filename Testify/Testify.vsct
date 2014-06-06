@@ -104,7 +104,7 @@
         <Icon guid="guidImages" id="bmpPic2" />
         <Strings>
           <CommandName>cmdBookmark1</CommandName>
-          <ButtonText>My Tool Window</ButtonText>
+          <ButtonText>Testify</ButtonText>
         </Strings>
       </Button>
     </Buttons>

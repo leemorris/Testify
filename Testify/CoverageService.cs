@@ -207,7 +207,9 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
-                            if (!method.Name.Contains("_"))
+                            if (!method.Name.Contains("_")
+                                && !method.Name.StartsWith("get_")
+                                && !method.Name.StartsWith("set_"))
                             {
                                 var codeMethod = new Poco.CodeMethod
                                 {

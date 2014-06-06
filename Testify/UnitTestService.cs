@@ -179,7 +179,7 @@ namespace Leem.Testify
         public async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
         {
 
-            Log.DebugFormat("Test Started on Project {0}", item.ProjectName);
+            Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.ProjectName, item.TestRunId);
 
             var projectInfo = new ProjectInfo();
 
@@ -298,6 +298,7 @@ namespace Leem.Testify
 
              }
         }
+
         public void ProcessProjectTestQueue(int testRunId)
         {
 

@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.Shell;
 using System.Diagnostics;
 using System;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.Text;
 
 namespace Leem.Testify
 {
@@ -30,7 +32,7 @@ namespace Leem.Testify
             CodeMarkManager codeMarkManager = textViewHost.TextView.Properties.GetOrCreateSingletonProperty<CodeMarkManager>
                 (delegate { return new CodeMarkManager(); });
 
-            return new CoverageMargin(textViewHost, serviceProvider, coverageProviderBroker);
+            return new CoverageMargin(textViewHost, serviceProvider, coverageProviderBroker);//, outliningManagerService, spans);
         }
 
 

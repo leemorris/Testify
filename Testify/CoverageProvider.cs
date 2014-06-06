@@ -57,7 +57,7 @@ namespace Leem.Testify
 
             this.textView = textView;
             _coverageService = CoverageService.Instance;
-            textView.TextBuffer.Changed += TextView_Changed;
+            //textView.TextBuffer.Changed += TextView_Changed;
             _dte = dte;
             _coveredLines = new ConcurrentDictionary<int, Poco.CoveredLinePoco>();
             _coverageService.DTE = _dte;
@@ -103,19 +103,20 @@ namespace Leem.Testify
             else return null;
             return null;
         }
-        private void TextView_Changed(object sender, TextContentChangedEventArgs e)
-        {
-            List<int> linesEdited;
+        //private void TextView_Changed(object sender, TextContentChangedEventArgs e)
+        //{
+        //    List<int> linesEdited;
 
-            if ( e.Changes.IncludesLineChanges)
-            {
-                Debug.WriteLine("Line Changed");
+        //    if ( e.Changes.IncludesLineChanges)
+        //    {
+        //        Debug.WriteLine("Line Changed");
 
-                var modifiedMethod = GetModifiedMethod();
+        //        var modifiedMethod = GetModifiedMethod();
 
-                Queries.GetUnitTestsCoveringMethod(modifiedMethod);
-            }
-        }
+        //        Queries.GetUnitTestsCoveringMethod(modifiedMethod);
+
+        //    }
+        //}
 
 
         private void RebuildCoverage( ITextSnapshot snapshotObject, string documentName)

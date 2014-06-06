@@ -1,0 +1,10 @@
+CREATE INDEX [IX_CodeMethod_Name] ON [CodeMethod] ([Name] ASC);
+GO
+CREATE INDEX [IX_CodeClass_Name] ON [CodeClass] ([Name] ASC);
+GO
+CREATE INDEX [IX_CodeModule_Name] ON [CodeModule] ([Name] ASC);
+GO
+CREATE INDEX [IX_TestMethodName] ON [UnitTest] ([TestMethodName] ASC);
+GO
+
+
