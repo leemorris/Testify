@@ -272,10 +272,10 @@ namespace Leem.Testify
                 {
                     Log.DebugFormat("Launching UpdateClassesAndMethods from Thread #{0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
                     // Fire and Forget
-                    //System.Threading.Tasks.Task.Factory.StartNew(() =>
-                    //{
-                    UpdateClassesAndMethods(project);
-                    //});
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        UpdateClassesAndMethods(project);
+                    });
                 }
                 Log.DebugFormat("Verify project name: {0}", project.Name);
                 Log.DebugFormat("  outputPath: {0}", outputPath);
@@ -632,7 +632,7 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            // window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+             window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -894,11 +894,11 @@ namespace Leem.Testify
             IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
             if (success)
             {
-                if (isFirstBuild)
-                {
+                //if (isFirstBuild)
+                //{
                     pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
                     VerifyProjects(pSolution, project);
-                }
+                //}
 
       
                 isFirstBuild = false;
