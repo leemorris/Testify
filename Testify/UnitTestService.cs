@@ -129,7 +129,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                    Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                    //Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                 }
             }
             catch(Exception ex)
@@ -137,7 +137,7 @@ namespace Leem.Testify
                 // Log error.
                 Log.ErrorFormat("Error ocurred while RunTest for Project: {0}: Error:{1}", projectInfo.ProjectAssemblyName, ex.Message);
             }
-            
+
             string fileToRead = GetOutputFolder() + coverFilename;
 
             await ProcessCoverageSessionResults(projectInfo, testQueueItem, resultFilename, fileToRead);
@@ -148,23 +148,16 @@ namespace Leem.Testify
         {
             CoverageSession coverageSession = new CoverageSession();
             resultType testOutput= new resultType();
-            try
+
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                await System.Threading.Tasks.Task.Run(() =>
-                {
-                    coverageSession = GetCoverageSessionFile(fileToRead);
+                coverageSession = GetCoverageSessionFile(fileToRead);
 
-                    TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
+                TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
 
-                    testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
+                 testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
-                });
-            }
-            catch 
-            {
-                _queries.RemoveFromQueue(testQueueItem);
-            }
-
+            });
 
             _queries.SaveUnitTestResults(testOutput);
             

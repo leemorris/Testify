@@ -23,7 +23,7 @@ namespace Leem.Testify
             StreamReader file;
             resultType testOutput = new resultType();
             //testOutput = TestOutput.LoadFromFile(path);
-            System.Threading.Thread.Sleep(1000);
+            
             try
             {
 
@@ -37,13 +37,12 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                Log.DebugFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
-                
+                //Log.DebugFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
                 throw;
             }
             
             file.Close();
-            //System.IO.File.Delete(path);
+            System.IO.File.Delete(path);
             Log.DebugFormat("ReadCoverageFile for file name: {0} is Complete", path);
             return testOutput;
 

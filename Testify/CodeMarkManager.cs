@@ -48,5 +48,23 @@ namespace Leem.Testify
         }
 
 
+
+        public void GotoUnitTest(int position)
+        {
+
+            CodeMark codeMark = CodeMarks[position];
+
+            // get the project item object by using the file name and dte
+            EnvDTE.ProjectItem document = dte2.Solution.FindProjectItem(codeMark.FileName);
+
+            // create a selection object
+            EnvDTE.TextSelection selection = dte2.ActiveDocument.Selection as EnvDTE.TextSelection;
+
+            // move to the start of the document
+            selection.StartOfDocument();
+
+            // move to the location specified by the line number and column number stored in bookmark
+            selection.MoveToLineAndOffset(codeMark.LineNumber, 0);
+        }
     }
 }

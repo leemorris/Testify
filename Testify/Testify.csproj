@@ -295,6 +295,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
     <Compile Include="TestifyQueries.cs" />
+    <Compile Include="TestifyType.cs" />
     <Compile Include="TestOutputFileReader.cs" />
     <Compile Include="UnitTestService.cs">
       <SubType>Code</SubType>

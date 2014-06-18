@@ -103,7 +103,20 @@ namespace Leem.Testify
             else return null;
             return null;
         }
+        //private void TextView_Changed(object sender, TextContentChangedEventArgs e)
+        //{
+        //    List<int> linesEdited;
 
+        //    if ( e.Changes.IncludesLineChanges)
+        //    {
+        //        Debug.WriteLine("Line Changed");
+
+        //        var modifiedMethod = GetModifiedMethod();
+
+        //        Queries.GetUnitTestsCoveringMethod(modifiedMethod);
+
+        //    }
+        //}
 
 
         private void RebuildCoverage( ITextSnapshot snapshotObject, string documentName)
@@ -248,6 +261,136 @@ namespace Leem.Testify
 	            }
 
              return projectItem;
+        }
+        public void VerifyProjects()
+        {
+
+            List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
+
+            var projects = new List<Poco.Project>();
+
+            foreach (EnvDTE.Project project in _dte.Solution.Projects)
+            {
+                var outputPath = GetProjectOutputBuildFolder(project);
+
+                var assemblyName = GetAssemblyName(project);
+
+                Log.DebugFormat("Verify project name: {0}", project.Name);
+                Log.DebugFormat("  outputPath: {0}", outputPath);
+                Log.DebugFormat("  Assembly name: {0}", assemblyName);
+
+                projects.Add(new Poco.Project
+                {
+                    Name = project.Name,
+                    AssemblyName = assemblyName,
+                    UniqueName = project.UniqueName,
+                    Path = outputPath
+                });
+            }
+
+            Queries.MaintainProjects(projects);
+
+        }
+
+        public string GetProjectOutputBuildFolder(EnvDTE.Project proj)
+        {
+            EnvDTE.Configuration activeConfiguration = default(EnvDTE.Configuration);
+
+            EnvDTE.ConfigurationManager configManager = default(EnvDTE.ConfigurationManager);
+
+            string outputPath = null;
+
+            string absoluteOutputPath = null;
+
+            string projectFolder = null;
+
+            try
+            {
+                // Get the configuration manager of the project
+                configManager = proj.ConfigurationManager;
+                string assemblyName = string.Empty;
+
+                if (configManager == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    // Get the active project configuration
+                    activeConfiguration = configManager.ActiveConfiguration;
+                    assemblyName = proj.Properties.Item("AssemblyName").Value.ToString();
+                    // Get the output folder
+                    outputPath = activeConfiguration.Properties.Item("OutputPath").Value.ToString();
+
+                    // The output folder can have these patterns:
+                    // 1) "\\server\folder"
+                    // 2) "drive:\folder"
+                    // 3) "..\..\folder"
+                    // 4) "folder"
+
+                    if (outputPath.StartsWith((System.IO.Path.DirectorySeparatorChar + System.IO.Path.DirectorySeparatorChar).ToString()))
+                    {
+                        // This is the case 1: "\\server\folder"
+                        absoluteOutputPath = outputPath;
+                    }
+                    else if (outputPath.Length >= 2 && outputPath[1] == System.IO.Path.VolumeSeparatorChar)
+                    {
+                        // This is the case 2: "drive:\folder"
+                        absoluteOutputPath = outputPath;
+                    }
+                    else if (outputPath.IndexOf("..\\") != -1)
+                    {
+                        // This is the case 3: "..\..\folder"
+                        projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+
+                        while (outputPath.StartsWith("..\\"))
+                        {
+                            outputPath = outputPath.Substring(3);
+                            projectFolder = System.IO.Path.GetDirectoryName(projectFolder);
+                        }
+                        absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                    }
+                    else
+                    {
+                        // This is the case 4: "folder"
+                        projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+                        absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                    }
+
+                    //MessageBox.Show("Output folder of " + proj.Name + ": " + absoluteOutputPath);
+                    return System.IO.Path.Combine(absoluteOutputPath, assemblyName);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return string.Empty;
+            }
+
+        }
+
+
+        private string GetModifiedMethod()
+        {
+            var newName = string.Empty;
+
+            Document activeDoc = _dte.ActiveDocument;
+
+            TextSelection textSelection = activeDoc.Selection as TextSelection;
+
+            CodeElement2 codeElement = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementFunction) as CodeElement2;
+
+            if (codeElement != null)
+            {
+                var methodName = codeElement.FullName;
+
+                var positionOfLastPeriod = methodName.LastIndexOf('.');
+
+                newName = methodName.ReplaceAt(positionOfLastPeriod, "::");
+            }
+
+            
+            return newName;
         }
 
 
