@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-
+using System.Text;
 namespace Leem.Testify
 {
     public class MethodViewModel : TreeViewItemViewModel
@@ -20,9 +20,41 @@ namespace Leem.Testify
         {
             get {
                 string name = _method.Name.Substring(_method.Name.LastIndexOf("::") + 2); 
-                name = name.Replace(".ctor",parent.Name);
-                name = name.Replace("System.Int32", "int");
-                return name;
+                name = name.Replace(".ctor",parent.Name)
+                           .Replace(".cctor", parent.Name);
+
+                int startOfParameters = name.IndexOf("(");
+                var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
+                var originalArgumentArray = arguments.Split(',');
+                var outputArgumentArray = new string[originalArgumentArray.Length];
+                string modifiedArgument = string.Empty;
+                for(int i = 0; i < originalArgumentArray.Length; i++)
+                {
+                    var arg = originalArgumentArray[i];
+                    int positionOfLastPeriod = arg.LastIndexOf(".");
+                    if (positionOfLastPeriod > 0)
+                    {
+                        modifiedArgument = arg.Substring(positionOfLastPeriod + 1, arg.Length - positionOfLastPeriod - 1);
+                    }
+                    else 
+                    {
+                        modifiedArgument = arg;
+                    }
+
+                    outputArgumentArray[i] = modifiedArgument.Replace(">", string.Empty)
+                                                             .Replace("`1<", " ")
+                                                             .Replace("Int32", "int");
+                }
+
+                var result = new StringBuilder();
+                result.Append(name.Substring(0, startOfParameters));
+                result.Append("(");
+                result.Append(String.Join(", ",outputArgumentArray));
+                result.Append(")");
+
+               
+
+                return result.ToString();
             }
         }
 

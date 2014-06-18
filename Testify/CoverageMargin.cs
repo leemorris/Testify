@@ -47,10 +47,6 @@ namespace Leem.Testify
         {
             _textViewHost = textViewHost;
 
-            //_outliningManagerService = outliningManagerService;
-
-           // _spans = spans;
-
             _dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
@@ -152,7 +148,7 @@ namespace Leem.Testify
             if (e.Changes.IncludesLineChanges)
             {
                 // Fire and Forget
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                System.Threading.Tasks.Task.Run(() =>
                 {
                     RunTestsThatCoverCursor();
                 });
@@ -162,6 +158,7 @@ namespace Leem.Testify
 
         private void RunTestsThatCoverCursor()
         {
+            //Log
             vsCMElement kind = vsCMElement.vsCMElementFunction;
             var textPoint = GetCursorTextPoint();
 
@@ -282,17 +279,7 @@ namespace Leem.Testify
 
         }
 
-        public void GetTextBufferFromOutliningManager()
-        {
-            //var outliningManager = OutliningManagerService.GetOutliningManager(wpfTextViewHost.TextView.TextViewModel);
-            //IComponentModel componentModel = (IComponentModel)Microsoft.VisualStudio.TextManager.Interop..GetServiceProvider().GetService(typeof(SComponentModel));
-            //if (componentModel != null)
-            //{
-            //    IOutliningManagerService outliningManagerService = componentModel.GetService<IOutliningManagerService>();
-            //    if (outliningManagerService != null)
-            //        _outliningManager = outliningManagerService.GetOutliningManager(_wpfView);
-            //}
-        }
+
 
         #region IWpfTextViewMargin Members
 
@@ -356,7 +343,7 @@ namespace Leem.Testify
         }
         #endregion
 
-        // create a bookmark glyph for numbered bookmarks
+      
         private CodeMarkGlyph CreateCodeMarkGlyph(Poco.CoveredLinePoco line, double yPos)
         {
             // create a glyph
@@ -392,40 +379,6 @@ namespace Leem.Testify
             return glyph; // so we have the glyph now
         }
 
-
-        // adjust y position for boundaries
-        private double AdjustYCoordinateForBoundaries(double position)
-        {
-            double currentPosition = position; // current position
-
-            if (currentPosition < CodeMarkManager.CodeMarkGlyphSize)
-            {
-                // set it to the top
-                currentPosition -= CodeMarkManager.CodeMarkGlyphSize;
-            }
-
-            return currentPosition; // return the position
-        }
-
-        // get y position for this bookmark
-        private double GetYCoordinateForBookmark(Poco.CoveredLinePoco line)
-        {
-            // calculate y position from line number with this bookmark
-            return GetYCoordinateFromLineNumber(line.LineNumber);
-        }
-            
-
-        // calculate y position from the line number
-        private double GetYCoordinateFromLineNumber(int lineNumber)
-        {
-            var firstLineNumber = GetFirstVisibleLineNumber(_textViewHost.TextView);
-
-            var lineHeight = _textViewHost.TextView.LineHeight;
-
-            var yPosition = (lineNumber - firstLineNumber ) * lineHeight;
-
-            return Math.Max(yPosition,0); // final position and return it
-        }
 
         private int GetFirstVisibleLineNumber(IWpfTextView wpfTextView)
         {
@@ -491,86 +444,6 @@ namespace Leem.Testify
             }
 
             return textPoint;
-        }
-
-        private CodeElement GetCodeElementAtTextPoint(vsCMElement codeElementKind, CodeElements codeElements, TextPoint textPoint)
-        {
-
-            EnvDTE.CodeElement resultCodeElement = default(EnvDTE.CodeElement);
-            EnvDTE.CodeElements colCodeElementMembers = default(EnvDTE.CodeElements);
-            EnvDTE.CodeElement memberCodeElement = default(EnvDTE.CodeElement);
-
-
-            if (codeElements != null)
-            {
-
-                foreach (EnvDTE.CodeElement element in codeElements)
-                {
-
-                    if (element.StartPoint.GreaterThan(textPoint))
-                    {
-                        // The code element starts beyond the point
-                    }
-                    else if (element.EndPoint.LessThan(textPoint))
-                    {
-                        // The code element ends before the point
-                    }
-                    else
-                    {
-                        // The code element contains the point
-                        if (element.Kind == codeElementKind)
-                        {
-                            // Found
-                            resultCodeElement = element;
-                        }
-
-                        // We enter in recursion, just in case there is an inner code element that also 
-                        // satisfies the conditions, for example, if we are searching a namespace or a class
-                        colCodeElementMembers = GetCodeElementMembers(element);
-
-                        memberCodeElement = GetCodeElementAtTextPoint(codeElementKind, colCodeElementMembers, textPoint);
-
-                        if ((memberCodeElement != null))
-                        {
-                            // A nested code element also satisfies the conditions
-                            resultCodeElement = memberCodeElement;
-                        }
-
-                        break; // TODO: might not be correct. Was : Exit For
-
-                    }
-
-                }
-
-            }
-
-            return resultCodeElement;
-
-        }
-
-        private EnvDTE.CodeElements GetCodeElementMembers(CodeElement objCodeElement)
-        {
-
-            EnvDTE.CodeElements colCodeElements = default(EnvDTE.CodeElements);
-
-
-            if (objCodeElement is EnvDTE.CodeNamespace)
-            {
-                colCodeElements = ((EnvDTE.CodeNamespace)objCodeElement).Members;
-
-
-            }
-            else if (objCodeElement is EnvDTE.CodeType)
-            {
-                colCodeElements = ((EnvDTE.CodeType)objCodeElement).Members;
-            }
-            else if (objCodeElement is EnvDTE.CodeFunction)
-            {
-                colCodeElements = ((EnvDTE.CodeFunction)objCodeElement).Parameters;
-            }
-
-            return colCodeElements;
-
         }
 
     }

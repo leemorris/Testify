@@ -302,6 +302,8 @@ namespace Leem.Testify
             var sw = new Stopwatch();
             sw.Start();
 
+            //Dictionary<IUnresolvedMethod, string> currentMethods = new Dictionary<IUnresolvedMethod, string>();
+            List<IUnresolvedMethod> currentMethods = new List<IUnresolvedMethod>();
             IProjectContent project = new CSharpProjectContent();
 
            // project = project.AddAssemblyReferences(builtInLibs.Value);
@@ -336,12 +338,21 @@ namespace Leem.Testify
                     if(typeDef.Kind == TypeKind.Class )
                     {
                         var methods = typeDef.Methods;
+                        currentMethods.AddRange(methods);
                         //_queries.UpdateMethods(typeDef.ReflectionName, methods, file.FileName);
                         _queries.UpdateMethods(typeDef, methods, file.FileName);
                     }
 
+
+                }
+                if (fileName.EndsWith(".Test") == false)
+                {
+                    _queries.DeleteMethodsNotInFiles(file.FileName, currentMethods);
                 }
             }
+
+
+            
             Log.DebugFormat("Leaving UpdateClassesAndMethods  for Project {0}, on Thread #{1}, Elapsed Time = {2}",
                 vsProject.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
             return project.CreateCompilation();
@@ -433,31 +444,31 @@ namespace Leem.Testify
 
 
 
-        public void VerifyProjects(EnvDTE.Project project)
-        {
-            var projects = new List<Poco.Project>();
-            var outputPath = GetProjectOutputBuildFolder(project);
-            var assemblyName = GetAssemblyName(project);
+        //public void VerifyProjects(EnvDTE.Project project)
+        //{
+        //    var projects = new List<Poco.Project>();
+        //    var outputPath = GetProjectOutputBuildFolder(project);
+        //    var assemblyName = GetAssemblyName(project);
 
-            projects.Add(new Poco.Project
-            {
-                Name = project.Name,
-                AssemblyName = assemblyName,
-                UniqueName = project.UniqueName,
-                Path = outputPath
-            });
-            _queries = TestifyQueries.Instance;
-            TestifyQueries.SolutionName = _dte.Solution.FullName;
+        //    projects.Add(new Poco.Project
+        //    {
+        //        Name = project.Name,
+        //        AssemblyName = assemblyName,
+        //        UniqueName = project.UniqueName,
+        //        Path = outputPath
+        //    });
+        //    _queries = TestifyQueries.Instance;
+        //    TestifyQueries.SolutionName = _dte.Solution.FullName;
 
-            // Fire and Forget
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                UpdateClassesAndMethods(project);
-            });
+        //    // Fire and Forget
+        //    System.Threading.Tasks.Task.Run(() =>
+        //    {
+        //        //UpdateClassesAndMethods(project);
+        //    });
 
 
-            _queries.MaintainProjects(projects);
-        }
+        //    _queries.MaintainProjects(projects);
+        //}
 
         private void ConfigureLogging(FileInfo file)
         {
@@ -519,37 +530,37 @@ namespace Leem.Testify
             return string.Empty;
         }
 
-        private int GetColumnNumber()
-        {
-            // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+        //private int GetColumnNumber()
+        //{
+        //    // get the DTE2 object
+        //    DTE2 dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return 0;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return 0;
+        //    }
 
-            // get currently active cursor position
-            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+        //    // get currently active cursor position
+        //    var selection = (TextSelection)dte2.ActiveDocument.Selection;
 
-            VirtualPoint point = selection.ActivePoint;
+        //    VirtualPoint point = selection.ActivePoint;
 
-            return point.DisplayColumn; // get the column number from the location
-        }
+        //    return point.DisplayColumn; // get the column number from the location
+        //}
 
-        private string GetDocumentName()
-        {
-            // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+        //private string GetDocumentName()
+        //{
+        //    // get the DTE2 object
+        //    DTE2 dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return string.Empty;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return string.Empty;
+        //    }
 
-            // get the ActiveDocument name from DTE2 object
-            return dte2.ActiveDocument.Name;
-        }
+        //    // get the ActiveDocument name from DTE2 object
+        //    return dte2.ActiveDocument.Name;
+        //}
 
         private DTE2 GetDTE2()
         {
@@ -567,23 +578,23 @@ namespace Leem.Testify
             return dte2;
         }
 
-        private int GetLineNumber()
-        {
-            // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+        //private int GetLineNumber()
+        //{
+        //    // get the DTE2 object
+        //    DTE2 dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return 0;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return 0;
+        //    }
 
-            // get currently active cursor location
-            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+        //    // get currently active cursor location
+        //    var selection = (TextSelection)dte2.ActiveDocument.Selection;
 
-            VirtualPoint point = selection.ActivePoint;
+        //    VirtualPoint point = selection.ActivePoint;
 
-            return point.Line; // get the line number from the location
-        }
+        //    return point.Line; // get the line number from the location
+        //}
 
         /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.

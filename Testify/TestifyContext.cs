@@ -83,7 +83,8 @@ namespace Leem.Testify
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
 
-            modelBuilder.Entity<Poco.CoveredLinePoco>().HasKey(y => y.CoveredLineId)
+            modelBuilder.Entity<Poco.CoveredLinePoco>()
+                .HasKey(y => y.CoveredLineId)
                 .HasMany(c => c.UnitTests)
                 .WithMany(u => u.CoveredLines)
                 .Map(mc =>

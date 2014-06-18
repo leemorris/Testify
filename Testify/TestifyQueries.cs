@@ -647,7 +647,7 @@ namespace Leem.Testify
                 return changedClasses;
 
             }
-
+            
             catch (Exception ex)
             {
 
@@ -1170,7 +1170,7 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
 
-                var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method).Where(w =>w.Module.AssemblyName == module.ModuleName);
+                var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method).Where(w =>w.Module.Name == module.ModuleName);
                 
                 var number = coveredLines.Count();
   
@@ -1558,7 +1558,7 @@ namespace Leem.Testify
 
         public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
         {
-            List<string> methodsToDelete = new List<string>();
+            //List<IUnresolvedMethod> currentMethods = new List<IUnresolvedMethod>();
            
             using (var context = new TestifyContext(_solutionName))
             {
@@ -1566,18 +1566,19 @@ namespace Leem.Testify
                                   join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                   where clas.Name.Equals(fileClass.ReflectionName)
                                 select clas;
-                foreach (var codeClass in codeClasses)
-                {
-                    if (codeClass.FileName != fileName
+                //foreach (var codeClass in codeClasses)
+                //{
+                var codeClass = codeClasses.FirstOrDefault();
+                if (codeClass != null && (codeClass.FileName != fileName
                         || codeClass.Line != fileClass.BodyRegion.BeginLine
-                        || codeClass.Column != fileClass.BodyRegion.BeginColumn)
+                        || codeClass.Column != fileClass.BodyRegion.BeginColumn))
                     {
                         codeClass.FileName = fileName;
                         codeClass.Line = fileClass.BodyRegion.BeginLine;
                         codeClass.Column = fileClass.BodyRegion.BeginColumn;
                     }
                     
-                }
+                //}
                 
                 string modifiedMethodName = string.Empty;
                 foreach (var fileMethod in methods)
@@ -1604,6 +1605,40 @@ namespace Leem.Testify
                     }
                  
                     
+                }
+                if(codeClass != null)
+                {
+                    var query = from meth in context.CodeMethod
+                                join line in context.CoveredLines
+                                on meth.CodeMethodId equals line.Method.CodeMethodId
+                                where meth.CodeClassId == codeClass.CodeClassId
+                                select line;
+                    query.ToList().ForEach(x => x.FileName = fileName);
+
+                }
+
+                context.SaveChanges();
+            }
+        }
+
+
+        public void DeleteMethodsNotInFiles(string filename, List<IUnresolvedMethod> currentMethods)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+
+                foreach (var method in context.CodeMethod)
+                {
+                    int positionOfFirstSpace = method.Name.IndexOf(" ") + 1;
+                    int positionOfOpenParen = method.Name.IndexOf("(");
+                    var name = method.Name.Substring(positionOfFirstSpace, positionOfOpenParen - positionOfFirstSpace).Replace("::",".");
+                    if (method.FileName != null 
+                        && method.FileName == filename 
+                        && currentMethods.Any(x => x.ReflectionName == name) == false)
+                    {
+                        Log.DebugFormat("DeleteMethodsNotInFiles - Found method that is no longer present - deleting :{0}", method.Name);
+                        context.CodeMethod.Remove(method);
+                    }
                 }
                 context.SaveChanges();
             }
