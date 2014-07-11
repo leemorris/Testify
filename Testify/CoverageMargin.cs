@@ -143,7 +143,7 @@ namespace Leem.Testify
             if (e.Changes.IncludesLineChanges)
             {
                 // Fire and Forget
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                System.Threading.Tasks.Task.Run(() =>
                 {
                     RunTestsThatCoverCursor();
                 });
@@ -229,14 +229,19 @@ namespace Leem.Testify
 
         private void UpdateCodeMarks(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines)
         {
+
             var fcm = _coverageProvider.GetFileCodeModel(_documentName);
+            int apparentLineNumber = 0;
 
             foreach (var textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
 ///Todo calculate offset to account for lines above that are enclosed in a Region and not visible, 
 ////currently the Glyphs are offset down the screen by collapsed regions above
+
+
                 if (textViewLine.VisibilityState == Microsoft.VisualStudio.Text.Formatting.VisibilityState.FullyVisible && coveredLines.Count > 0)
                 {
+                    apparentLineNumber++;
                     var hj = textViewLine.Start.GetContainingLine().LineNumber;
 
                     // calculate y postion for this particular bookmark
@@ -245,16 +250,16 @@ namespace Leem.Testify
                     var g = _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(x => x.LineNumber.Equals(hj));
 
                     var lineNumber = g.End.GetContainingLine().LineNumber;
-
+                    var text = g.Extent.GetText();
                     var isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
 
-                    if (g.Extent.IsEmpty == false && isCovered)
+                    if (g.Extent.IsEmpty == false && isCovered && g.Extent.GetText() != "\t\t#endregion")
                     {
-                        //Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
+                        Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
 
-                        double yPos = GetYCoordinateForBookmark(coveredLine);
+                        double yPos = (apparentLineNumber - 1) * 16;// GetYCoordinateForBookmark(coveredLine);
 
-                        yPos = AdjustYCoordinateForBoundaries(yPos);
+                       // yPos = AdjustYCoordinateForBoundaries(yPos);
 
                         CodeMarkGlyph glyph;
 
@@ -263,6 +268,7 @@ namespace Leem.Testify
                         marginCanvas.Children.Add(glyph);
                     }
                 }
+
             }
 
         }

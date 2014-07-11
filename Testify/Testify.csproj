@@ -192,6 +192,7 @@
     <Compile Include="CoverageProvider.cs" />
     <Compile Include="CoverageProviderBroker.cs" />
     <Compile Include="CoverageService.cs" />
+    <Compile Include="CoveredLinePocoDto.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="ICoverageProviderBroker.cs" />
     <Compile Include="ICoverageService.cs" />

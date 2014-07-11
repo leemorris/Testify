@@ -70,45 +70,32 @@ namespace Leem.Testify
             //var x = dte.ActiveDocument.ProjectItem.FileCodeModel;
             IList<CodeElement> classes;
             IList<CodeElement> methods;
-
-            CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
-            //var d = dte.Solution.Projects.Find(((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name).
-
-            if (type == "Leem.Testify.ClassViewModel")
+            if (dte.ActiveDocument != null)
             {
-                filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-                line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-                column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
-                //filePath = dte.ActiveDocument.FullName;
-                //line = classes[0].StartPoint.Line;
-                //column = classes[0].StartPoint.LineCharOffset;
+
+                CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
+                //var d = dte.Solution.Projects.Find(((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name).
+
+                if (type == "Leem.Testify.ClassViewModel")
+                {
+                    filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                    column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                    //filePath = dte.ActiveDocument.FullName;
+                    //line = classes[0].StartPoint.Line;
+                    //column = classes[0].StartPoint.LineCharOffset;
+                }
+                else if (type == "Leem.Testify.MethodViewModel")
+                {
+                    clickedMethodName =((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
+
+                    var method = queries.GetMethod(clickedMethodName);
+                    filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                    column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                }
             }
-            else if (type == "Leem.Testify.MethodViewModel")
-            {
-                clickedMethodName =((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name;
-                var method = methods.FirstOrDefault(x => x.Name == clickedMethodName);
-                filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-                line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-                column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
-            }
 
-//var projects = DevEnv.Get(new Guid("a9bce903-55a5-4a94-979c-2d4e5bb7a93e"))
-//    .SolutionExplorer()
-//    .Solution
-//    .Traverse()
-//    .OfType<IProjectNode>()
-//    .Select (project => new{project.DisplayName,project.PhysicalPath})
-//    .ToList();
-
-    //        var projects2 = DevEnv.Get(new Guid("a9bce903-55a5-4a94-979c-2d4e5bb7a93e"))
-    //            .SolutionExplorer().Solution.Traverse()
-
-    //.Traverse()
-    //.OfType<IItemNode>()
-    //.Traverse()
-    //.Select(item=> new{item})
-
-    //.ToList();
 
            // var xx = ((Clide.Solution.ItemNode)((new System.Collections.Generic.Mscorlib_CollectionDebugView<Clide.ITreeNode>(projects2)).Items[0])).Item;
             if (!string.IsNullOrEmpty(filePath)  && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
@@ -135,7 +122,7 @@ namespace Leem.Testify
                 for (var i = 1; i <= dte.Windows.Count; i++)
                 {
                     var window = dte.Windows.Item(i);
-                    if (window.Document != null && window.Document.FullName == filePath)
+                    if (window.Document != null && window.Document.FullName.Equals(filePath,StringComparison.OrdinalIgnoreCase))
                     {
                         openDocumentWindow = window;
                         openDocumentWindow.Activate();

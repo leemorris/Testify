@@ -3,10 +3,12 @@
   <Metadata>
     <Identity Id="a9bce903-55a5-4a94-979c-2d4e5bb7a93e" Version="1.0" Language="en-US" Publisher="Leem" />
     <DisplayName>Testify</DisplayName>
-    <Description>Information about my package</Description>
+    <Description xml:space="preserve">Code Coverage integrated in Visual Studio. Runs unit tests as code is modified to give up to date results.</Description>
   </Metadata>
   <Installation InstalledByMsi="false">
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Ultimate" />
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Premium" />
+    <InstallationTarget Version="[11.0,12.0]" Id="Microsoft.VisualStudio.Pro" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />

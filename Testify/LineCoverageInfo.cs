@@ -27,5 +27,7 @@ namespace Leem.Testify
         public string MetadataToken { get; set; }
         public List<Poco.TrackedMethod> TrackedMethods { get; set; }
         public List<Poco.UnitTest> UnitTests { get; set; }
+
+        public string FileName { get; set; }
     }
 }

@@ -20,6 +20,8 @@ namespace Leem.Testify.Poco
             this.Classes = new HashSet<CodeClass>();
             Name = module.ModuleName;
             Summary = new Summary(module.Summary);
+            AssemblyName = module.AssemblyName;
+            
         }
         public virtual ICollection<CodeClass> Classes { get; set; }
         public string Name { get; set; }

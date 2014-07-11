@@ -14,8 +14,11 @@ namespace Leem.Testify.Migrations
         protected override void Seed(Leem.Testify.TestifyContext context)
         {
 
-            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeModuleId ON CodeMethod.CodeClassId");
-
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeModuleId ON CodeMethod(CodeClassId)");
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeModuleName ON CodeModule(Name)");
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeClassName ON CodeClass(Name)");
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_CodeMethodName ON CodeMethod(Name)");
+            context.Database.ExecuteSqlCommand("CREATE INDEX IX_TestMethodName ON UnitTest(TestMethodName)");
             //  This method will be called after migrating to the latest version.
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method

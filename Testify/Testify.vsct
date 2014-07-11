@@ -38,8 +38,8 @@
       <Menu guid="guidTestifyCmdSet" id="SubMenu" priority="0x0100" type="Menu">
         <Parent guid="guidTestifyCmdSet" id="MyMenuGroup" />
         <Strings>
-          <ButtonText>Code Coverage</ButtonText>
-          <CommandName>Code Coverage</CommandName>
+          <ButtonText>Testify</ButtonText>
+          <CommandName>Testify</CommandName>
         </Strings>
       </Menu>
 
@@ -104,7 +104,7 @@
         <Icon guid="guidImages" id="bmpPic2" />
         <Strings>
           <CommandName>cmdBookmark1</CommandName>
-          <ButtonText>My Tool Window</ButtonText>
+          <ButtonText>Coverage</ButtonText>
         </Strings>
       </Button>
     </Buttons>

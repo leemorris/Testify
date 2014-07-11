@@ -1,0 +1,113 @@
+﻿<UserControl 
+  x:Class="Leem.Testify.SummaryViewControl"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="clr-namespace:Leem.Testify"
+  xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+  >
+  
+
+        <Grid Grid.IsSharedSizeScope="True"
+          Name="treeGrid"
+              >
+
+            <Grid.Resources>
+                <local:LevelConverter x:Key="levelConverter" />
+                <HierarchicalDataTemplate ItemsSource="{Binding Items, 
+                          diag:PresentationTraceSources.TraceLevel=High}"
+                                          DataType="{x:Type local:SummaryViewModel2}">
+                    
+                    <Grid ShowGridLines="False">
+                        
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition SharedSizeGroup="column1"/>
+                            <ColumnDefinition SharedSizeGroup="column2"/>
+
+                        </Grid.ColumnDefinitions>
+
+
+                        <Rectangle Grid.Column="1">
+                            <Rectangle.Width>
+                                <MultiBinding Converter="{StaticResource levelConverter}">
+                                    <Binding Path="Level"></Binding>
+                                    <Binding ElementName="treeViewItemToMeasure"
+                                         Path="ActualWidth"></Binding>
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+                        <TextBlock Grid.Column="0"
+                               Text="{Binding Summary.Name}"></TextBlock>
+                        <ProgressBar 
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+		                            Height="10"
+		                            Margin="10,0,0,0"
+		                            VerticalAlignment="Center"
+		                            Width="100"
+		                            Name="pbCoverage"
+                                    Value="{Binding Summary.SequenceCoverage, Mode=OneWay}"
+		                            Foreground="Green"
+                                    Background="Red"/>
+                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"  Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="30"/>
+                  
+                </Grid>
+                <!--</StackPanel>-->
+
+            </HierarchicalDataTemplate>
+
+            <!--<local:LevelConverter x:Key="levelConverter" />-->
+            <local:DebugDummyConverter x:Key="DebugDummyConverter" />
+
+    </Grid.Resources>
+
+            <!-- Tree view with one item for the header row -->
+
+            <TreeView BorderThickness="0"
+       
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <TreeViewItem>
+                    <TreeViewItem.Header>
+                        <Grid ShowGridLines="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition SharedSizeGroup="rowHeaderColumn"/>
+                                <ColumnDefinition />
+                                <ColumnDefinition SharedSizeGroup="column1"/>
+                                <ColumnDefinition SharedSizeGroup="column2"/>
+                                <ColumnDefinition SharedSizeGroup="column3"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                   Text="Name"></TextBlock>
+                            <TreeViewItem Grid.Column="1">
+                                <TreeViewItem.Header>
+                                    <TreeViewItem Name="treeViewItemToMeasure"
+                                              Padding="0"></TreeViewItem>
+                                </TreeViewItem.Header>
+
+                                <!-- Set the width of Column 1 to the same width as the top level 
+                                 in the data -->
+                                <TreeViewItem.Width>
+                                    <MultiBinding Converter="{StaticResource levelConverter}">
+                                        <Binding Path="Level"></Binding>
+                                        <Binding ElementName="treeViewItemToMeasure"
+                                             Path="ActualWidth"></Binding>
+                                    </MultiBinding>
+                                </TreeViewItem.Width>
+                            </TreeViewItem>
+                            <TextBlock Grid.Column="2"
+                                   Text="Coverage"></TextBlock>
+
+                        </Grid>
+                    </TreeViewItem.Header>
+                </TreeViewItem>
+            </TreeView>
+            <!-- Tree view that will display hierarchical data rows -->
+
+            <TreeView Grid.Row="1"
+                  BorderThickness="0"
+                  ItemsSource="{Binding Items , 
+                          diag:PresentationTraceSources.TraceLevel=High}"></TreeView>
+        </Grid>
+    
+</UserControl>

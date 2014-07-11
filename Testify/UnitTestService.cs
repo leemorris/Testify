@@ -129,7 +129,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                    //Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                 }
             }
             catch(Exception ex)
@@ -147,20 +147,27 @@ namespace Leem.Testify
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
             CoverageSession coverageSession = new CoverageSession();
-            resultType testOutput= new resultType();
-
-            await System.Threading.Tasks.Task.Run(() =>
+            resultType testOutput = new resultType();
+            try
             {
-                coverageSession = GetCoverageSessionFile(fileToRead);
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    coverageSession = GetCoverageSessionFile(fileToRead);
 
-                TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
+                    TestOutputFileReader testOutputFileReader = new TestOutputFileReader();
 
-                 testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
+                    testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
-            });
+                });
+            }
+            catch
+            {
+                _queries.RemoveFromQueue(testQueueItem);
+            }
+
 
             _queries.SaveUnitTestResults(testOutput);
-            
+
             await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, testQueueItem.IndividualTests);
 
             _queries.RemoveFromQueue(testQueueItem);
@@ -179,7 +186,7 @@ namespace Leem.Testify
         public async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
         {
 
-            Log.DebugFormat("Test Started on Project {0}", item.ProjectName);
+            Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.ProjectName, item.TestRunId);
 
             var projectInfo = new ProjectInfo();
 
@@ -227,6 +234,7 @@ namespace Leem.Testify
                 testParameters.Append(GetCommaSeparatedListOfTests(individualTests));
                 testParameters.Append(" ");
             }
+            var timeout = 3000;
             testParameters.Append(projectInfo.TestProject.Path);
             testParameters.Append(".dll");
             testParameters.Append(" /result:");
@@ -234,6 +242,7 @@ namespace Leem.Testify
             testParameters.Append(fileNameGuid);
             testParameters.Append("-result.xml");
             testParameters.Append(" /noshadow");
+            testParameters.Append(" /timeout=" + timeout);
             testParameters.Append("\"");
             testParameters.Append(" -coverbytest:*.Test.dll -hideskipped: ");
             testParameters.Append(Path.GetFileNameWithoutExtension(projectName));
@@ -298,6 +307,7 @@ namespace Leem.Testify
 
              }
         }
+
         public void ProcessProjectTestQueue(int testRunId)
         {
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VisualState xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ShowCheckBoxes="false">
+  <TopNode>[0-1010]C:\WIP\Testify\Testify\TestifyTest\bin\Debug\TestifyTest.dll</TopNode>
+  <SelectedNode>[0-1010]C:\WIP\Testify\Testify\TestifyTest\bin\Debug\TestifyTest.dll</SelectedNode>
+  <ExcludeCategories>false</ExcludeCategories>
+  <Nodes>
+    <Node UniqueName="[0-1010]C:\WIP\Testify\Testify\TestifyTest\bin\Debug\TestifyTest.dll" Expanded="true" />
+    <Node UniqueName="[0-1011]Leem" Expanded="true" />
+    <Node UniqueName="[0-1012]Leem.Testify" Expanded="true" />
+    <Node UniqueName="[0-1000]Leem.Testify.CoverageServiceTest" Expanded="true" />
+    <Node UniqueName="[0-1001]Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString" Expanded="true" />
+  </Nodes>
+</VisualState>

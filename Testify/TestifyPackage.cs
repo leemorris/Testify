@@ -96,15 +96,6 @@ namespace Leem.Testify
             if (!System.IO.File.Exists(databasePath))
             {
                 Log.ErrorFormat("Database was not found");
-                // Todo, Determine where the app will actually be executing from and where the initial database file will be.
-                //string initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\Testify\TestifyCE.sdf");
-                //#if (DEBUG == true)
-                //initialDatabasePath = System.IO.Path.GetFullPath(@"..\..\..\Testify\TestifyCE.sdf");
-                //#endif
-
-                //#if (DEBUG == false)
-                //initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
-                //#endif
 
                 // Get copy of blank database from the VSIX folder
                 string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
@@ -125,40 +116,42 @@ namespace Leem.Testify
         }
         // Is this being used??
         // finds the instance of IWpfTextViewHost associated with this margin
-        public IWpfTextViewHost GetIWpfTextViewHost()
-        {
-            // get an instance of IVsTextManager
-            IVsTextManager txtMgr = (IVsTextManager)GetService(typeof(SVsTextManager));
+        //public IWpfTextViewHost GetIWpfTextViewHost()
+        //{
+        //    // get an instance of IVsTextManager
+        //    IVsTextManager txtMgr = (IVsTextManager)GetService(typeof(SVsTextManager));
 
-            IVsTextView vTextView = null;
+        //    IVsTextView vTextView = null;
 
-            int mustHaveFocus = 1;
+        //    int mustHaveFocus = 1;
 
-            // get the active view from the TextManager
-            txtMgr.GetActiveView(mustHaveFocus, null, out vTextView);
+        //    // get the active view from the TextManager
+        //    txtMgr.GetActiveView(mustHaveFocus, null, out vTextView);
 
-            // cast as IVsUSerData
-            IVsUserData userData = vTextView as IVsUserData;
+        //    // cast as IVsUSerData
+        //    IVsUserData userData = vTextView as IVsUserData;
 
-            if (userData == null)
-            {
-                Trace.WriteLine("No text view is currently open");
-                return null;
-            }
+        //    if (userData == null)
+        //    {
+        //        Trace.WriteLine("No text view is currently open");
+        //        return null;
+        //    }
 
-            IWpfTextViewHost viewHost;
-            object holder;
+        //    IWpfTextViewHost viewHost;
+        //    object holder;
 
-            // get the IWpfTextviewHost using the predefined guid for it
-            Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
+        //    // get the IWpfTextviewHost using the predefined guid for it
+        //    Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
 
-            userData.GetData(ref guidViewHost, out holder);
+        //    userData.GetData(ref guidViewHost, out holder);
 
-            // convert to IWpfTextviewHost
-            viewHost = (IWpfTextViewHost)holder;
+        //    // convert to IWpfTextviewHost
+        //    viewHost = (IWpfTextViewHost)holder;
 
-            return viewHost;
-        }
+        //    return viewHost;
+        //}
+
+
 
         public string GetProjectOutputBuildFolder(EnvDTE.Project proj)
         {
@@ -182,7 +175,7 @@ namespace Leem.Testify
                 {
                     // Get the active project configuration
                     activeConfiguration = configManager.ActiveConfiguration;
-                    assemblyName = GetAssemblyName(proj);
+                    assemblyName = GetProjectPropertyByName(proj.Properties, "AssemblyName");
                     // Get the output folder
                     outputPath = activeConfiguration.Properties.Item("OutputPath").Value.ToString();
 
@@ -267,22 +260,23 @@ namespace Leem.Testify
             
 
             var projects = new List<Poco.Project>();
+
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
                 this._documentEvents = _dte.Events.DocumentEvents;
                 this._documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
                 var outputPath = GetProjectOutputBuildFolder(project);
-                var assemblyName = GetAssemblyName(project);
+                var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
 
-                if (project.UniqueName == projectName || string.IsNullOrEmpty(projectName))
-                {
-                    Log.DebugFormat("Launching UpdateClassesAndMethods from Thread #{0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
-                    // Fire and Forget
-                    //System.Threading.Tasks.Task.Factory.StartNew(() =>
-                    //{
-                        UpdateClassesAndMethods(project);
-                    //});
-                }
+                //if (project.UniqueName == projectName || string.IsNullOrEmpty(projectName))
+                //{
+                //    Log.DebugFormat("Launching UpdateClassesAndMethods from Thread #{0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+                //    // Fire and Forget
+                //    System.Threading.Tasks.Task.Run(() =>
+                //    {
+                //        UpdateClassesAndMethods(project);
+                //    });
+                //}
                 Log.DebugFormat("Verify project name: {0}", project.Name);
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
@@ -295,142 +289,145 @@ namespace Leem.Testify
                     Path = outputPath
                 });
             }
+   
+
 
             _queries.MaintainProjects(projects);
         }
 
-        //private void UpdateCodeElementFilePathsForAllDocuments()
+
+
+        //private ICompilation BuildCompilation(EnvDTE.Project vsProject)
         //{
         //    var sw = new Stopwatch();
         //    sw.Start();
-        //    Log.DebugFormat("starting UpdateCodeElementFilePaths");
-        //    for (var i = 1; i <= _dte.Documents.Count; i++)
-        //    {
-        //        var doc = _dte.Documents.Item(i);
-        //        // Save the file path to each class for use navigating from tool window
-        //        FileCodeModel fileCodeModel = doc.ProjectItem.FileCodeModel;
-        //        UpdateCodeElementsForSingleDocument(fileCodeModel, doc.Name);
-        //    }
-        //    Log.DebugFormat("leaving UpdateCodeElementFilePaths Elapsed Time = {0}", sw.ElapsedMilliseconds);
-        //}
 
-        //private void UpdateCodeElementFilePathsForProject(EnvDTE.Project project)
-        //{
-        //    Log.DebugFormat("UpdateCodeElementFilePathsForProject is running for Project {0}, on Thread #{1}", project.Name, System.Threading.Thread.CurrentThread.ManagedThreadId);
-        //    if (project.Name.EndsWith(".Test") == false && project.ProjectItems != null)
-        //    {
-        //        var sw = new Stopwatch();
-        //        sw.Start();
+        //    IProjectContent project = new CSharpProjectContent();
 
-        //        Log.DebugFormat("starting UpdateCodeElementFilePathsForProject for Project: {0}", project.Name);
-        //        for (var i = 1; i <= project.ProjectItems.Count; i++)
+        //   // project = project.AddAssemblyReferences(builtInLibs.Value);
+        //    project.SetAssemblyName(vsProject.Name);
+        //    //project.SetProjectFileName(vsProject.FullName);
+        //    var fileName = vsProject.Name;
+
+            
+        //    if (fileName.EndsWith(".Test") == false && vsProject.ProjectItems != null)
+        //    {
+        //        Log.DebugFormat("UpdateClassesAndMethods ProjectName = {0}, Thread = {1}", vsProject.FullName, System.Threading.Thread.CurrentThread.ManagedThreadId);
+
+        //        for (var i = 1; i <= vsProject.ProjectItems.Count; i++)
         //        {
-        //            var item = project.ProjectItems.Item(i);
+        //            var item = vsProject.ProjectItems.Item(i);
 
-        //            if (item.ProjectItems.Count > 0)
-        //            {
-        //                // ProjectItems can be nested, so lets drill in
-        //                for (var j = 1; j <= item.ProjectItems.Count; j++)
-        //                {
-        //                    var subItem = item.ProjectItems.Item(j);
-        //                    // OpenWindowToGetFileCodeModel(subItem);
-        //                    GetClassesAndMethods(subItem);
-
-        //                }
-        //            }
-        //            else
-        //            {
-        //                GetClassesAndMethods(item);
-        //            }
-                 
-                   
-
+        //            project = DrillIntoProjectItems(project, item);
 
         //        }
 
-        //        Log.DebugFormat("Leaving UpdateCodeElementFilePathsForProject is running for Project {0}, on Thread #{1}, Elapsed Time = {2}", project.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
-
         //    }
+
+        //    var classes = new List<string>();
+
+        //    foreach(var file in project.Files)
+        //    {
+        //        var typeDefinitions = file.TopLevelTypeDefinitions;
+                
+        //        foreach (var typeDef in typeDefinitions)
+        //        {
+        //            classes.Add( typeDef.ReflectionName);
+        //            if(typeDef.Kind == TypeKind.Class )
+        //            {
+        //                var methods = typeDef.Methods;
+        //                //_queries.UpdateMethods(typeDef.ReflectionName, methods, file.FileName);
+        //                _queries.UpdateMethods(typeDef, methods, file.FileName);
+        //            }
+
+        //        }
+        //    }
+        //    Log.DebugFormat("Leaving UpdateClassesAndMethods  for Project {0}, on Thread #{1}, Elapsed Time = {2}",
+        //        vsProject.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
+        //    return project.CreateCompilation();
         //}
 
+        //private IProjectContent DrillIntoProjectItems(IProjectContent project, ProjectItem item)
+        //{
+        //    ICSharpCode.NRefactory.CSharp.TypeSystem.CSharpUnresolvedFile unresolvedFile = null;
+        //    if (item.ProjectItems != null)
+        //    {
+        //        if (item.ProjectItems.Count > 0)
+        //        {
+        //            // ProjectItems can be nested, so lets drill in
+        //            for (var j = 1; j <= item.ProjectItems.Count; j++)
+        //            {
+        //                var subItem = item.ProjectItems.Item(j);
+        //                project = DrillIntoProjectItems(project, subItem);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            var isGeneratedByTool = false;
+        //            var isCode = false;
+        //            var isCompiled = false;
+        //            if (item.Properties != null)
+        //            {
+        //                var itemEnumerator = item.Properties.GetEnumerator();
+        //                while (itemEnumerator.MoveNext())
+        //                {
+        //                    var property = itemEnumerator.Current as EnvDTE.Property;
+        //                    //if (property.Name == "AssemblyName")
+        //                    if (property.Name == "IsCustomToolOutput" && property.Value.ToString() == true.ToString())
+        //                    {
+        //                        isGeneratedByTool = true;
+        //                    }
+        //                    if (property.Name == "BuildAction" && property.Value.ToString() =="Compile")
+        //                    {
+        //                        isCompiled = true;
+        //                    }
+        //                    if (property.Name == "SubType" && property.Value.ToString() == "Code")
+        //                    {
+        //                        isCode = true;
+        //                    }
+                           
+        //                }
+        //            }
+        //            //var isGeneratedByTool = GetProjectPropertyByName(item.Properties, "IsCustomToolOutput");
+        //            if (item.ProjectItems.Count == 0 
+        //                && item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFile 
+        //                && !isGeneratedByTool
+        //                && isCode
+        //                && isCompiled)
+        //            {
+        //                var fileName = item.FileNames[1];
+        //                project = AddFileToProject(project, fileName);
+        //            }
+        //        }
+        //    }
+        //    return project;
+        //}
 
-        private ICompilation BuildCompilation(EnvDTE.Project vsProject)
+        public void UpdateMethodsAndClassesFromCodeFile(string filename)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             IProjectContent project = new CSharpProjectContent();
 
-           // project = project.AddAssemblyReferences(builtInLibs.Value);
-            project.SetAssemblyName(vsProject.Name);
-            //project.SetProjectFileName(vsProject.FullName);
-            var fileName = vsProject.Name;
 
-            
-            if (fileName.EndsWith(".Test") == false && vsProject.ProjectItems != null)
-            {
-                Log.DebugFormat("UpdateClassesAndMethods ProjectName = {0}, Thread = {1}", vsProject.FullName, System.Threading.Thread.CurrentThread.ManagedThreadId);
-
-                for (var i = 1; i <= vsProject.ProjectItems.Count; i++)
-                {
-                    var item = vsProject.ProjectItems.Item(i);
-
-                    project = DrillIntoProjectItems(project, item);
-
-                    
-                }
-
-            }
+            project.SetAssemblyName(filename);
+            project = AddFileToProject(project, filename);
 
             var classes = new List<string>();
 
-            foreach(var file in project.Files)
-            {
-                var typeDefinitions = file.TopLevelTypeDefinitions;
-                
-                foreach (var typeDef in typeDefinitions)
-                {
-                    classes.Add( typeDef.ReflectionName);
-                    if(typeDef.Kind == TypeKind.Class )
-                    {
-                        var methods = typeDef.Methods;
-                        //_queries.UpdateMethods(typeDef.ReflectionName, methods, file.FileName);
-                        _queries.UpdateMethods(typeDef, methods, file.FileName);
-                    }
 
+            var typeDefinitions = project.TopLevelTypeDefinitions;
+
+            foreach (var typeDef in typeDefinitions)
+            {
+                classes.Add(typeDef.ReflectionName);
+                if (typeDef.Kind == TypeKind.Class)
+                {
+                    var methods = typeDef.Methods;
+                    _queries.UpdateMethods(typeDef, methods, filename);
                 }
+
             }
-            Log.DebugFormat("Leaving UpdateClassesAndMethods  for Project {0}, on Thread #{1}, Elapsed Time = {2}",
-                vsProject.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
-            return project.CreateCompilation();
+
         }
-
-        private IProjectContent DrillIntoProjectItems(IProjectContent project, ProjectItem item)
-        {
-            ICSharpCode.NRefactory.CSharp.TypeSystem.CSharpUnresolvedFile unresolvedFile = null;
-
-            if (item.ProjectItems.Count > 0)
-            {
-                // ProjectItems can be nested, so lets drill in
-                for (var j = 1; j <= item.ProjectItems.Count; j++)
-                {
-                    var subItem = item.ProjectItems.Item(j);
-                    project = DrillIntoProjectItems(project, subItem);
-                }
-            }
-            else
-            {
-
-                if (item.ProjectItems.Count == 0 && item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFile)
-                {
-                    var fileName = item.FileNames[1];
-                    project = AddFileToProject(project, fileName);
-                }
-            }
-            return project;
-        }
-
-
 
 
 
@@ -455,10 +452,11 @@ namespace Leem.Testify
             }
             return project;
         }
-        public void UpdateClassesAndMethods(EnvDTE.Project vsProject)
-        {
-            var content = BuildCompilation(vsProject);
-        }
+
+        //public void UpdateClassesAndMethods(EnvDTE.Project vsProject)
+        //{
+        //    var content = BuildCompilation(vsProject);
+        //}
   
 
         Lazy<IList<IUnresolvedAssembly>> builtInLibs = new Lazy<IList<IUnresolvedAssembly>>(
@@ -488,55 +486,13 @@ namespace Leem.Testify
                 return projectContents;
             });
 
-        //[Obsolete]
-        //private void OpenWindowToGetFileCodeModel(ProjectItem item)
-        //{
-        //    // The FileCodeModel object is null unless a Window is open, 
-        //    // so we need to open a window, use the FileCodeModel and close it
-        //    bool hasOpenWindow;
-        //    hasOpenWindow = item.IsOpen;
-        //    if (!hasOpenWindow && item.Name.EndsWith(".cs"))
-        //    {
-        //        Log.DebugFormat("Opening window for ProjectItem: {0}, ProjectItem.Kind: {1}", item.Name, item.Kind);
-        //        item.Open(EnvDTE.Constants.vsViewKindCode);
-        //    }
 
-        //    UpdateCodeElementsForSingleDocument(item.FileCodeModel, item.Name);
-
-        //    if (!hasOpenWindow && item.Name.EndsWith(".cs"))
-        //    {
-        //        Log.DebugFormat("closing window for ProjectItem: {0}, ProjectItem.Kind: {1}", item.Name, item.Kind);
-        //        item.Document.Close(vsSaveChanges.vsSaveChangesNo);
-        //    }
-        //}
-        //[Obsolete]
-        //private void UpdateCodeElementsForSingleDocument(FileCodeModel fileCodeModel, string filePath)
-        //{
-      
-        //    if (fileCodeModel != null)
-        //    {
-        //        Log.DebugFormat("updating for {0}", filePath);
-        //        IList<CodeElement> classes;
-        //        IList<CodeElement> methods;
-        //        CodeModelService.GetCodeBlocks(fileCodeModel, out classes, out methods);
-
-        //        foreach (var clas in classes)
-        //        {
-        //            _queries.UpdateCodeClassPath(clas.FullName, filePath, clas.StartPoint.Line, clas.StartPoint.LineCharOffset);
-        //        }
-
-        //        foreach (var method in methods)
-        //        {
-        //            _queries.UpdateCodeMethodPath(method.FullName, filePath, method.StartPoint.Line, method.StartPoint.LineCharOffset);
-        //        }
-        //    }
-        //}
 
         public void VerifyProjects(EnvDTE.Project project)
         {
             var projects = new List<Poco.Project>();
             var outputPath = GetProjectOutputBuildFolder(project);
-            var assemblyName = GetAssemblyName(project);
+            var assemblyName = GetProjectPropertyByName(project.Properties, "AssemblyName");
 
             projects.Add(new Poco.Project
             {
@@ -549,14 +505,11 @@ namespace Leem.Testify
             TestifyQueries.SolutionName = _dte.Solution.FullName;
 
             // Fire and Forget
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                UpdateClassesAndMethods(project);
-            });
-            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //System.Threading.Tasks.Task.Run(() =>
             //{
-            //    UpdateCodeElementFilePathsForProject(project);
+            //    UpdateClassesAndMethods(project);
             //});
+
 
             _queries.MaintainProjects(projects);
         }
@@ -596,17 +549,18 @@ namespace Leem.Testify
             menuCommand.Enabled = isActive == 1 ? true : false;
         }
 
-        private string GetAssemblyName(EnvDTE.Project proj)
+        private string GetProjectPropertyByName(EnvDTE.Properties properties, string name)
         {
             try
             {
-                if (proj.Properties != null)
+                if (properties != null)
                 {
-                    var item = proj.Properties.GetEnumerator();
+                    var item = properties.GetEnumerator();
                     while (item.MoveNext())
                     {
                         var property = item.Current as EnvDTE.Property;
-                        if (property.Name == "AssemblyName")
+                        //if (property.Name == "AssemblyName")
+                        if (property.Name == name)
                         {
                             return property.Value.ToString();
                         }
@@ -734,7 +688,7 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            // window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+             window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -998,21 +952,19 @@ namespace Leem.Testify
             {
                 //if (isFirstBuild)
                 //{
-                pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-                VerifyProjects(pSolution, project);
-
+                    pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+                    VerifyProjects(pSolution, project);
                 //}
+
       
                 isFirstBuild = false;
                 Log.DebugFormat("Project Build Successful for project name: {0}", project);
 
                 _queries.AddToTestQueue(project);
 
-
-
             }
             sw.Stop();
-            Log.DebugFormat("ProjectBuildEventHandler Elapsed Time {0} milliseconds", sw.ElapsedMilliseconds);
+            //Log.DebugFormat("ProjectBuildEventHandler Elapsed Time {0} milliseconds", sw.ElapsedMilliseconds);
         }
 
         private IVsSolution SetSolutionValues()

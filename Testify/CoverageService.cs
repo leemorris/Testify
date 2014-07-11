@@ -12,6 +12,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using log4net;
 using Leem.Testify.Poco;
+using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.CSharp.Resolver;
+using ICSharpCode.NRefactory.Semantics;
+using ICSharpCode.NRefactory.TypeSystem;
+using ICSharpCode.NRefactory.TypeSystem.Implementation;
 
 namespace Leem.Testify
 {
@@ -101,23 +106,74 @@ namespace Leem.Testify
 
                     foreach (var method in methods)
                     {
-                        if (!method.Name.Contains("__"))
+                        if (!method.Name.Contains("__") && !method.IsGetter && !method.IsSetter)
                         {
-                            ProcessSequencePoints(coveredLines, module, tests, codeClass, method);
+                            
+                            var fileNames = new List<Leem.Testify.Model.File>();
+                            if (method.FileRef != null)
+                            {
+                                fileNames = module.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
+                            }
+                            
+                            var fileName = string.Empty;
+                            if (fileNames.Any())
+                            { 
+                                fileName = fileNames.FirstOrDefault().FullPath;
+
+
+                                // remove closing paren
+                               // modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+                                // Raw: System.Void Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions::.ctor()
+                                // modified:        Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
+                                //Needed:           Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
+
+
+
+                                UpdateMethodLocation(method, fileName);
+                                ProcessSequencePoints(coveredLines, module, tests, codeClass, method, fileName);
+                            }
+                           
+                            
                         }
+
                         //else
                         //{
                         //    Log.DebugFormat("Skipping  Class: {0}   Method {1}: ",codeClass.FullName, method.Name);
                         //}
                         
                     }
+                    
                 }
             }
 
             return coveredLines;
         }
 
-        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class modelClass, Method method)
+        public static string ConvertTrackedMethodFormatToUnitTestFormat(string trackedMethodName)
+        {
+            // Convert This:
+            // System.Void UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest::TestIt()
+            // Into This:
+            // UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest.TestIt
+            if (string.IsNullOrEmpty(trackedMethodName))
+            {
+                return string.Empty;
+            }
+            else
+            {
+                int locationOfSpace = trackedMethodName.IndexOf(' ') + 1;
+
+                int locationOfParen = trackedMethodName.IndexOf('(');
+
+                var testMethodName = trackedMethodName.Substring(locationOfSpace);
+
+                testMethodName = testMethodName.Replace("::", ".");
+
+                return testMethodName;
+            }
+
+        }
+        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class modelClass, Method method,string fileName)
         {
 
 
@@ -132,6 +188,7 @@ namespace Leem.Testify
                     ModuleName = module.ModuleName,
                     ClassName = modelClass.FullName,
                     MethodName = method.Name,
+                    FileName = fileName,
                     UnitTests = new List<UnitTest>()
                 };
 
@@ -146,7 +203,7 @@ namespace Leem.Testify
                         coveredLine.IsCode = true;
 
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
-
+                        coveredLine.FileName = fileName;
                         coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
                             UniqueId = (int)trackedMethod.UniqueId,
@@ -154,6 +211,7 @@ namespace Leem.Testify
                             Strategy = trackedMethod.Strategy,
                             Name = trackedMethod.Name,
                             MetadataToken = trackedMethod.MetadataToken
+                           
                         });
 
                     }
@@ -164,7 +222,230 @@ namespace Leem.Testify
             }
         }
 
+        public void UpdateMethodLocation(Method codeMethod, string fileName)
+        {
+            var modifiedMethodName = string.Empty;
+            var rawMethodName = codeMethod.Name;
 
+            modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(rawMethodName);
+
+            if (codeMethod.IsConstructor)
+            {
+                modifiedMethodName = modifiedMethodName.Replace(".cctor", ".ctor");
+            }
+            var parameters = new List<string>();
+            if (!modifiedMethodName.EndsWith("()"))
+            {
+                parameters = ParseArguments(modifiedMethodName);
+
+            }
+
+            modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.LastIndexOf('('));
+            IProjectContent project = new CSharpProjectContent();
+
+            project.SetAssemblyName(fileName);
+            project = AddFileToProject(project, fileName);
+
+            var classes = new List<string>();
+
+            var typeDefinitions = project.TopLevelTypeDefinitions;
+
+            foreach (var typeDef in typeDefinitions)
+            {
+                classes.Add(typeDef.ReflectionName);
+                if (typeDef.Kind == TypeKind.Class)
+                {
+
+                    var methods = typeDef.Methods.Where(x => x.ReflectionName == modifiedMethodName);
+                    if(methods.ToList().Count > 1)
+                    {
+                        foreach(var method in methods)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Method : " + method.Name );
+                            if (method.Parameters.Count == parameters.Count)
+                            {
+                                bool parametersMatch = true;
+                                for (int i = 0; i < method.Parameters.Count; i++ )
+                                {
+                                    var methodParameterType = method.Parameters[i].Type;
+                                    string typeName = methodParameterType.ToString();
+                                    typeName = typeName.Replace("bool", "Boolean")
+                                                       .Replace("System.Nullable[[Boolean]]", "System.Nullable[[bool]]")
+                                                       .Replace("System.Guid","Guid");
+                                    if (typeName.Equals(parameters[i],StringComparison.OrdinalIgnoreCase) && parametersMatch)
+                                    {
+                                        parametersMatch = true;
+                                    }
+                                    else 
+                                    {
+                                        parametersMatch = false;
+                                        break;
+                                    }
+                                   Log.DebugFormat("Method Parameter Type: " + typeName + " should equal " + parameters[i]);
+
+                                }
+                                if (parametersMatch)
+                                {
+                                    Queries.UpdateCodeMethodPath(rawMethodName, fileName, method.BodyRegion.BeginLine, method.BodyRegion.BeginColumn);
+                                    break;
+                                }
+
+                            }
+
+                      
+                        }
+                    }
+                    else if(methods.Count() == 1)
+                    {
+                        Queries.UpdateCodeMethodPath(rawMethodName, fileName, methods.First().BodyRegion.BeginLine, methods.First().BodyRegion.BeginColumn);
+                    }
+              
+                }
+
+            }
+
+        }
+
+        internal List<string> ParseArguments(string modifiedMethodName)
+        {
+            var result = new List<string>();
+            try
+            {
+                Log.DebugFormat("Method = {0}", modifiedMethodName);
+                int locationOfParen = modifiedMethodName.IndexOf('(') + 1;
+                string argumentString;
+                if (locationOfParen > -1)
+                {
+                    argumentString = modifiedMethodName.Substring(locationOfParen, modifiedMethodName.Length - locationOfParen - 1);
+                }
+                else 
+                {
+                    argumentString = modifiedMethodName;
+                }
+                int locationOfOpenAngleBracket = modifiedMethodName.IndexOf('<') + 1;
+
+                var arguments = argumentString.Split(',');
+                foreach(var argument in arguments)
+                {
+                    string name = RemoveNamespaces(argument);
+
+                    name =  name.Replace("XmlNode", "System.Xml.XmlNode")
+                                .Replace("Int32", "int")
+                                .Replace("DataSet", "System.Data.DataSet")
+                                .Replace("Exception", "System.Exception")
+                                .Replace("System.Collections.Generic.List`1", "List")
+                                .Replace("System.Collections.Generic.IList`1", "IList")
+                                .Replace("System.Collections.Generic.IEnumerable`1", "IEnumerable")
+                                .Replace("System.Func`1", "Func")
+                                .Replace("System.Func", "Func")
+                                .Replace("System.Nullable`1", "Nullable")
+                                .Replace("System.String", "String")
+                                .Replace("System.Guid", "Guid")
+                                .Replace("System.Object", "Object")
+                                .Replace("Nullable<Boolean>", "System.Nullable[[bool]]")
+                                .Replace("Nullable<int>", "System.Nullable[[int]]")
+                                .Replace("Nullable<Double>", "System.Nullable[[Double]]")
+                                
+
+                                ;
+                    
+                    result.Add(name);
+                }
+
+                var parsedMethodName = modifiedMethodName.Substring(0, locationOfParen ) + string.Join(",", result) + ")";
+
+            }
+            catch(Exception ex)
+            {
+                Log.DebugFormat("Error Parsing Arguments:{0}", ex);
+            }
+
+            return result;
+        }
+
+
+        private string RemoveNamespaces(string argument)
+        {
+            int positionOfFirstOpeningAngle = argument.IndexOf("<");
+            int positionOfLastOpeningAngle = argument.LastIndexOf("<");
+
+            int positionOfFirstClosingAngle = argument.LastIndexOf(">");
+            int positionOfLastClosingAngle = argument.LastIndexOf(">");
+
+            int positionOfFirstOpeningParen = argument.IndexOf("(");
+
+            if (positionOfFirstOpeningAngle == -1)
+            {
+                argument = RemoveNamespaceFromMethod(argument);
+            }
+            else if (positionOfFirstOpeningAngle == positionOfLastOpeningAngle)
+            {
+                // Single
+
+                // object
+
+
+                var classPlusNamespace = argument.Substring(positionOfFirstOpeningAngle + 1, positionOfFirstClosingAngle - positionOfFirstOpeningAngle);
+                var classOnly = RemoveNamespaceFromMethod(classPlusNamespace);
+                argument = argument.Replace(classPlusNamespace, classOnly);
+
+                // method
+                if(positionOfFirstOpeningParen > -1)
+                {
+                    var methodName = argument.Substring(0, positionOfFirstOpeningParen);
+                    var methodMinusNamespace = RemoveNamespaceFromMethod(methodName);
+                    argument = argument.Replace(methodName, methodMinusNamespace);
+                }
+
+                
+               
+            }
+            else if (positionOfFirstOpeningAngle > positionOfLastOpeningAngle && positionOfLastOpeningAngle > positionOfFirstClosingAngle)
+            {
+                // Nested
+            }
+            else
+            {
+                // Multiple
+            }
+            return argument;
+
+        }
+
+        private string RemoveNamespaceFromMethod(string argumentPart)
+        {
+
+            int locationOfPeriod = argumentPart.LastIndexOf('.');
+
+            var name = argumentPart.Substring(locationOfPeriod + 1);
+            if (name.Substring(name.Length - 1) == ")")
+            {
+                name = name.ReplaceAt(name.Length - 1, string.Empty);
+            }
+            return name;
+        }
+
+        private IProjectContent AddFileToProject(IProjectContent project, string fileName)
+        {
+            var code = string.Empty;
+            try
+            {
+                code = System.IO.File.ReadAllText(fileName);
+            }
+            catch (Exception)
+            {
+                Log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
+            }
+
+            var syntaxTree = new CSharpParser().Parse(code, fileName);
+            var unresolvedFile = syntaxTree.ToTypeSystem();
+
+            if (syntaxTree.Errors.Count == 0)
+            {
+                project = project.AddOrUpdateFiles(unresolvedFile);
+            }
+            return project;
+        }
 
         public List<LineCoverageInfo> GetRetestedLinesFromCoverageSession(CoverageSession coverageSession, string projectAssemblyName, List<int> uniqueIds)
         {
@@ -207,7 +488,9 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
-                            if (!method.Name.Contains("_"))
+                            if (!method.Name.Contains("_")
+                                && !method.Name.StartsWith("get_")
+                                && !method.Name.StartsWith("set_"))
                             {
                                 var codeMethod = new Poco.CodeMethod
                                 {

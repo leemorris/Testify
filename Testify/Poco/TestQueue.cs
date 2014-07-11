@@ -12,5 +12,6 @@ namespace Leem.Testify
         public string IndividualTest { get; set; }
         public int TestRunId { get; set; }
         public DateTime QueuedDateTime { get; set; }
+        public DateTime? TestStartedDateTime { get; set; }
     }
 }

@@ -38,8 +38,12 @@ namespace Leem.Testify.Model
         /// </summary>
         public string FullName { get; set; }
 
-        [XmlIgnore]
-        internal List<File> Files { get; set; }
+        /// <summary>
+        /// A reference to a file in the file collection (used to help visualisation)
+        /// </summary>
+        public FileRef FileRef { get; set; }
+ 
+        public List<File> Files { get; set; }
 
         /// <summary>
         /// A list of methods that make up the class
