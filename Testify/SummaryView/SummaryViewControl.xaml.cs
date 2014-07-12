@@ -76,16 +76,17 @@ namespace Leem.Testify
                 CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
                 //var d = dte.Solution.Projects.Find(((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name).
 
-                if (type == "Leem.Testify.ClassViewModel")
-                {
-                    filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-                    line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-                    column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
-                    //filePath = dte.ActiveDocument.FullName;
-                    //line = classes[0].StartPoint.Line;
-                    //column = classes[0].StartPoint.LineCharOffset;
-                }
-                else if (type == "Leem.Testify.MethodViewModel")
+                //if (type == "Leem.Testify.ClassViewModel" )
+                //{
+                //    filePath = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                //    line = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                //    column = ((Leem.Testify.ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                //    //filePath = dte.ActiveDocument.FullName;
+                //    //line = classes[0].StartPoint.Line;
+                //    //column = classes[0].StartPoint.LineCharOffset;
+                //}
+                //else
+                if (type == "Leem.Testify.MethodViewModel")
                 {
                     clickedMethodName =((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
@@ -127,7 +128,11 @@ namespace Leem.Testify
                         openDocumentWindow = window;
                         openDocumentWindow.Activate();
                         var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
-                        selection.MoveToLineAndOffset(line, column);
+                        selection.StartOfDocument();
+                        selection.MoveToLineAndOffset(line, column,true);
+                       
+                        selection.SelectLine();
+                        //selection.OutlineSection();
       
   
                         continue;
