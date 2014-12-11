@@ -1,0 +1,6 @@
+﻿cd C:\WIP\UnitTestExperiment\packages\OpenCover.4.5.1403
+
+OpenCover.Console.exe -register:user -target:"C:\WIP\UnitTestExperiment\packages\NUnit.Runners.2.6.2\tools\nunit-console.exe" -targetargs:"C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.Test.dll /noshadow" -coverbytest -filter:"+[*]* -[*.Test*]*" -output:..\..\opencover.xml 
+OpenCover.Console.exe -register:user -target:"C:\WIP\UnitTestExperiment\packages\NUnit.Runners.2.6.2\tools\nunit-console.exe" -targetargs:"C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.Test.dll /noshadow" -output:..\..\opencover.xml 
+OpenCover.Console.exe -register:user -target:"C:\WIP\UnitTestExperiment\packages\NUnit.Runners.2.6.2\tools\nunit-console.exe" -targetdir:"C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug"  -targetargs:/noshadow  - -output:..\..\opencover.xml-coverbytest:+[Domain]*
+-filter:"+[*]* -[System.*]*"
