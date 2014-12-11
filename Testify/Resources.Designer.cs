@@ -70,11 +70,11 @@ namespace Leem.Testify {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to My Tool Window.
+        ///   Looks up a localized string similar to Testify Code Coverage.
         /// </summary>
-        internal static string ToolWindowTitle {
+        internal static string ToolWindowCodeCoverage {
             get {
-                return ResourceManager.GetString("ToolWindowTitle", resourceCulture);
+                return ResourceManager.GetString("ToolWindowCodeCoverage", resourceCulture);
             }
         }
     }

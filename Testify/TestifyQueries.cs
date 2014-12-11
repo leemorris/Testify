@@ -1041,7 +1041,7 @@ namespace Leem.Testify
 
             foreach (var entry in context.ChangeTracker.Entries())
             {
-                if (entry.State != System.Data.EntityState.Unchanged)
+                if (entry.State != EntityState.Unchanged)
                 {
                     var methodName = entry.CurrentValues.GetValue<string>("Method");
 
