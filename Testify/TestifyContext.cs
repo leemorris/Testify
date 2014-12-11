@@ -108,16 +108,6 @@ namespace Leem.Testify
            string connectionString = string.Format("Data Source={0}", path);
            return connectionString;
         }
-
-        public class MyConfiguration : DbConfiguration
-        {
-            public MyConfiguration()
-            {
-                SetProviderServices(
-                    System.Data.Entity.SqlServerCompact.SqlCeProviderServices.ProviderInvariantName,
-                    System.Data.Entity.SqlServerCompact.SqlCeProviderServices.Instance);
-            }
-        }
     }
 
 }

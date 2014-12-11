@@ -37,8 +37,6 @@ namespace Leem.Testify
     [ProvideMenuResource("Menus.ctmenu", 1)]
     // This attribute registers a tool window exposed by this package.
     [ProvideToolWindow(typeof(TestifyCoverageWindow))]
-    [ProvideToolWindow(typeof(UnitTestSelectorWindow), Style = VsDockStyle.AlwaysFloat, Window = "9197e117-9175-482a-9a0a-44f9af4f11f1")]
-
     [ProvideToolWindowVisibility(typeof(TestifyCoverageWindow), /*UICONTEXT_SolutionExists*/"f1536ef8-92ec-443c-9ed7-fdadf150da82")]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
     [Guid(GuidList.guidTestifyPkgString)]
@@ -84,8 +82,6 @@ namespace Leem.Testify
                 _timer.AutoReset = true;
                 _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
                 _timer.Elapsed += new ElapsedEventHandler(ProcessProjectLevelQueue);
-
- 
             }
             catch (Exception ex)
             {
@@ -118,6 +114,43 @@ namespace Leem.Testify
                 Log.DebugFormat("Database was found");
             }
         }
+        // Is this being used??
+        // finds the instance of IWpfTextViewHost associated with this margin
+        //public IWpfTextViewHost GetIWpfTextViewHost()
+        //{
+        //    // get an instance of IVsTextManager
+        //    IVsTextManager txtMgr = (IVsTextManager)GetService(typeof(SVsTextManager));
+
+        //    IVsTextView vTextView = null;
+
+        //    int mustHaveFocus = 1;
+
+        //    // get the active view from the TextManager
+        //    txtMgr.GetActiveView(mustHaveFocus, null, out vTextView);
+
+        //    // cast as IVsUSerData
+        //    IVsUserData userData = vTextView as IVsUserData;
+
+        //    if (userData == null)
+        //    {
+        //        Trace.WriteLine("No text view is currently open");
+        //        return null;
+        //    }
+
+        //    IWpfTextViewHost viewHost;
+        //    object holder;
+
+        //    // get the IWpfTextviewHost using the predefined guid for it
+        //    Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
+
+        //    userData.GetData(ref guidViewHost, out holder);
+
+        //    // convert to IWpfTextviewHost
+        //    viewHost = (IWpfTextViewHost)holder;
+
+        //    return viewHost;
+        //}
+
 
 
         public string GetProjectOutputBuildFolder(EnvDTE.Project proj)
@@ -219,6 +252,13 @@ namespace Leem.Testify
                 TestifyQueries.SolutionName = _solutionName;
             }
 
+            //// Fire and Forget
+            //System.Threading.Tasks.Task.Factory.StartNew(() =>
+            //{
+            //    UpdateCodeElementFilePathsForAllDocuments();
+            //});
+            
+
             var projects = new List<Poco.Project>();
 
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
@@ -228,6 +268,15 @@ namespace Leem.Testify
                 var outputPath = GetProjectOutputBuildFolder(project);
                 var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
 
+                //if (project.UniqueName == projectName || string.IsNullOrEmpty(projectName))
+                //{
+                //    Log.DebugFormat("Launching UpdateClassesAndMethods from Thread #{0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+                //    // Fire and Forget
+                //    System.Threading.Tasks.Task.Run(() =>
+                //    {
+                //        UpdateClassesAndMethods(project);
+                //    });
+                //}
                 Log.DebugFormat("Verify project name: {0}", project.Name);
                 Log.DebugFormat("  outputPath: {0}", outputPath);
                 Log.DebugFormat("  Assembly name: {0}", assemblyName);
@@ -246,14 +295,124 @@ namespace Leem.Testify
             _queries.MaintainProjects(projects);
         }
 
+
+
+        //private ICompilation BuildCompilation(EnvDTE.Project vsProject)
+        //{
+        //    var sw = new Stopwatch();
+        //    sw.Start();
+
+        //    IProjectContent project = new CSharpProjectContent();
+
+        //   // project = project.AddAssemblyReferences(builtInLibs.Value);
+        //    project.SetAssemblyName(vsProject.Name);
+        //    //project.SetProjectFileName(vsProject.FullName);
+        //    var fileName = vsProject.Name;
+
+            
+        //    if (fileName.EndsWith(".Test") == false && vsProject.ProjectItems != null)
+        //    {
+        //        Log.DebugFormat("UpdateClassesAndMethods ProjectName = {0}, Thread = {1}", vsProject.FullName, System.Threading.Thread.CurrentThread.ManagedThreadId);
+
+        //        for (var i = 1; i <= vsProject.ProjectItems.Count; i++)
+        //        {
+        //            var item = vsProject.ProjectItems.Item(i);
+
+        //            project = DrillIntoProjectItems(project, item);
+
+        //        }
+
+        //    }
+
+        //    var classes = new List<string>();
+
+        //    foreach(var file in project.Files)
+        //    {
+        //        var typeDefinitions = file.TopLevelTypeDefinitions;
+                
+        //        foreach (var typeDef in typeDefinitions)
+        //        {
+        //            classes.Add( typeDef.ReflectionName);
+        //            if(typeDef.Kind == TypeKind.Class )
+        //            {
+        //                var methods = typeDef.Methods;
+        //                //_queries.UpdateMethods(typeDef.ReflectionName, methods, file.FileName);
+        //                _queries.UpdateMethods(typeDef, methods, file.FileName);
+        //            }
+
+        //        }
+        //    }
+        //    Log.DebugFormat("Leaving UpdateClassesAndMethods  for Project {0}, on Thread #{1}, Elapsed Time = {2}",
+        //        vsProject.Name, System.Threading.Thread.CurrentThread.ManagedThreadId, sw.ElapsedMilliseconds);
+        //    return project.CreateCompilation();
+        //}
+
+        //private IProjectContent DrillIntoProjectItems(IProjectContent project, ProjectItem item)
+        //{
+        //    ICSharpCode.NRefactory.CSharp.TypeSystem.CSharpUnresolvedFile unresolvedFile = null;
+        //    if (item.ProjectItems != null)
+        //    {
+        //        if (item.ProjectItems.Count > 0)
+        //        {
+        //            // ProjectItems can be nested, so lets drill in
+        //            for (var j = 1; j <= item.ProjectItems.Count; j++)
+        //            {
+        //                var subItem = item.ProjectItems.Item(j);
+        //                project = DrillIntoProjectItems(project, subItem);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            var isGeneratedByTool = false;
+        //            var isCode = false;
+        //            var isCompiled = false;
+        //            if (item.Properties != null)
+        //            {
+        //                var itemEnumerator = item.Properties.GetEnumerator();
+        //                while (itemEnumerator.MoveNext())
+        //                {
+        //                    var property = itemEnumerator.Current as EnvDTE.Property;
+        //                    //if (property.Name == "AssemblyName")
+        //                    if (property.Name == "IsCustomToolOutput" && property.Value.ToString() == true.ToString())
+        //                    {
+        //                        isGeneratedByTool = true;
+        //                    }
+        //                    if (property.Name == "BuildAction" && property.Value.ToString() =="Compile")
+        //                    {
+        //                        isCompiled = true;
+        //                    }
+        //                    if (property.Name == "SubType" && property.Value.ToString() == "Code")
+        //                    {
+        //                        isCode = true;
+        //                    }
+                           
+        //                }
+        //            }
+        //            //var isGeneratedByTool = GetProjectPropertyByName(item.Properties, "IsCustomToolOutput");
+        //            if (item.ProjectItems.Count == 0 
+        //                && item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFile 
+        //                && !isGeneratedByTool
+        //                && isCode
+        //                && isCompiled)
+        //            {
+        //                var fileName = item.FileNames[1];
+        //                project = AddFileToProject(project, fileName);
+        //            }
+        //        }
+        //    }
+        //    return project;
+        //}
+
         public void UpdateMethodsAndClassesFromCodeFile(string filename)
         {
             IProjectContent project = new CSharpProjectContent();
+
 
             project.SetAssemblyName(filename);
             project = AddFileToProject(project, filename);
 
             var classes = new List<string>();
+
 
             var typeDefinitions = project.TopLevelTypeDefinitions;
 
@@ -269,6 +428,7 @@ namespace Leem.Testify
             }
 
         }
+
 
 
         private IProjectContent AddFileToProject(IProjectContent project, string fileName)
@@ -292,6 +452,12 @@ namespace Leem.Testify
             }
             return project;
         }
+
+        //public void UpdateClassesAndMethods(EnvDTE.Project vsProject)
+        //{
+        //    var content = BuildCompilation(vsProject);
+        //}
+  
 
         Lazy<IList<IUnresolvedAssembly>> builtInLibs = new Lazy<IList<IUnresolvedAssembly>>(
             delegate
@@ -337,6 +503,13 @@ namespace Leem.Testify
             });
             _queries = TestifyQueries.Instance;
             TestifyQueries.SolutionName = _dte.Solution.FullName;
+
+            // Fire and Forget
+            //System.Threading.Tasks.Task.Run(() =>
+            //{
+            //    UpdateClassesAndMethods(project);
+            //});
+
 
             _queries.MaintainProjects(projects);
         }
@@ -386,7 +559,7 @@ namespace Leem.Testify
                     while (item.MoveNext())
                     {
                         var property = item.Current as EnvDTE.Property;
-
+                        //if (property.Name == "AssemblyName")
                         if (property.Name == name)
                         {
                             return property.Value.ToString();
@@ -505,7 +678,7 @@ namespace Leem.Testify
         /// tool window. See the Initialize method to see how the menu item is associated to
         /// this function using the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
-        private void ShowCoverageToolWindow(object sender, EventArgs e)
+        private void ShowToolWindow(object sender, EventArgs e)
         {
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one.
@@ -521,40 +694,6 @@ namespace Leem.Testify
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
-
-        public void ShowUnitTestToolWindow(object sender, EventArgs e)
-        {
-           
-            TEST(sender,e);
-            //// Get the instance number 0 of this tool window. This window is single instance so this instance
-            //// is actually the only one.
-            //// The last flag is set to true so that if the tool window does not exists it will be created.
-            //ToolWindowPane window = this.FindToolWindow(typeof(UnitTestSelectorWindow), 0, true);
-            //if ((null == window) || (null == window.Frame))
-            //{
-            //    throw new NotSupportedException(Resources.CanNotCreateWindow);
-            //}
-            //window.Content = new UnitTestSelector((UnitTestSelectorWindow)window);
-
-            //IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            //Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
-        }
-         public void TEST(object sender, EventArgs e)
-         {
-
-                  IVsUIShell vsUIShell = (IVsUIShell)Package.GetGlobalService(typeof(SVsUIShell));
-
-            IVsWindowFrame frame;
-
-            Guid guidToolWindow2 = typeof(UnitTestSelectorWindow).GUID;
-
-            vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref guidToolWindow2, out frame);
-
-            frame.SetProperty((int)__VSFPROPID.VSFPROPID_FrameMode, VSFRAMEMODE.VSFM_Float);
-          
-
-            frame.Show();
-         }
         /////////////////////////////////////////////////////////////////////////////
         // Overridden Package Implementation
 
@@ -592,10 +731,57 @@ namespace Leem.Testify
 
                 // Create the command for the tool window
                 CommandID toolwndCommandID = new CommandID(GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidTestTool);
-                MenuCommand menuToolWin = new MenuCommand(ShowCoverageToolWindow, toolwndCommandID);
+                MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
 
-  
+                //////// Bookmark
+                // add commands for adding all bookmarks
+                // in each one of them I have used an anonymous method to call AddBookmark method
+                //CommandID menuCommandBookmark0 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark0);
+                //MenuCommand subItemBookmark0 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(0); }), menuCommandBookmark0);
+                //mcs.AddCommand(subItemBookmark0);
+
+                //CommandID menuCommandBookmark1 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark1);
+                //MenuCommand subItemBookmark1 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(1); }), menuCommandBookmark1);
+                //mcs.AddCommand(subItemBookmark1);
+
+                //CommandID menuCommandBookmark2 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark2);
+                //MenuCommand subItemBookmark2 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(2); }), menuCommandBookmark2);
+                //mcs.AddCommand(subItemBookmark2);
+
+                //CommandID menuCommandBookmark3 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark3);
+                //MenuCommand subItemBookmark3 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(3); }), menuCommandBookmark3);
+                //mcs.AddCommand(subItemBookmark3);
+
+                //CommandID menuCommandBookmark4 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark4);
+                //MenuCommand subItemBookmark4 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(4); }), menuCommandBookmark4);
+                //mcs.AddCommand(subItemBookmark4);
+
+                //CommandID menuCommandBookmark5 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark5);
+                //MenuCommand subItemBookmark5 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(5); }), menuCommandBookmark5);
+                //mcs.AddCommand(subItemBookmark5);
+
+                //CommandID menuCommandBookmark6 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark6);
+                //MenuCommand subItemBookmark6 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(6); }), menuCommandBookmark6);
+                //mcs.AddCommand(subItemBookmark6);
+
+                //CommandID menuCommandBookmark7 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark7);
+                //MenuCommand subItemBookmark7 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(7); }), menuCommandBookmark7);
+                //mcs.AddCommand(subItemBookmark7);
+
+                //CommandID menuCommandBookmark8 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark8);
+                //MenuCommand subItemBookmark8 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(8); }), menuCommandBookmark8);
+                //mcs.AddCommand(subItemBookmark8);
+
+                //CommandID menuCommandBookmark9 = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdBookmark9);
+                //MenuCommand subItemBookmark9 = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { AddOrMoveToBookmark(9); }), menuCommandBookmark9);
+                //mcs.AddCommand(subItemBookmark9);
+
+                //// add command for Clearing Bookmarks
+                //// again I have opted for an anonymous method
+                //CommandID menuCommandClearBookmark = new CommandID(GuidList.guidNumberedBookmarksCmdSet, (int)PkgCmdIDList.cmdClearBookmarks);
+                //MenuCommand subItemClearBookmark = new MenuCommand(new EventHandler(delegate(object sender, EventArgs args) { ClearAllBookmarks(); }), menuCommandClearBookmark);
+                //mcs.AddCommand(subItemClearBookmark);
             }
         }
 
@@ -615,14 +801,13 @@ namespace Leem.Testify
         {
             var projectName = _dte.ActiveDocument.ProjectItem.ContainingProject.Name.ToString();
             _queries.AddToTestQueue(projectName);
-            ShowCoverageToolWindow(sender, e);
+            ShowToolWindow(sender, e);
         }
 
         private void SolutionTestsCallback(object sender, EventArgs e)
         {
-            ShowCoverageToolWindow(sender, e);
+            ShowToolWindow(sender, e);
         }
-
         private void UnadviseSolutionEvents()
         {
             if (_solution != null)

@@ -129,7 +129,7 @@
   <data name="CanNotCreateWindow" xml:space="preserve">
     <value>Can not create tool window.</value>
   </data>
-  <data name="ToolWindowCodeCoverage" xml:space="preserve">
+  <data name="ToolWindowTitle" xml:space="preserve">
     <value>Testify Code Coverage</value>
   </data>
 </root>
