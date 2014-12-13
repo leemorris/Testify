@@ -43,4 +43,3 @@ C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.csprojRes
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.pdb
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.dll
-C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.xml
