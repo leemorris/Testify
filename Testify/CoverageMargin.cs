@@ -38,6 +38,7 @@ namespace Leem.Testify
         private ITextDocument _document;
 
 
+
         public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
         {
             _textViewHost = textViewHost;
@@ -70,11 +71,11 @@ namespace Leem.Testify
             marginCanvas.Background = Brushes.Transparent;
             
             this.ClipToBounds = true;
-            this.Background = _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
+            this.Background = Brushes.Transparent;// _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
 
-            this.BorderBrush = _textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
+            this.BorderBrush = Brushes.Transparent; //_textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
 
-            this.Width = 8;
+            this.Width = 18;
 
             this.BorderThickness = new Thickness(0.5);
 
@@ -340,8 +341,8 @@ namespace Leem.Testify
         private CodeMarkGlyph CreateCodeMarkGlyph(Poco.CoveredLinePoco line, double yPos)
         {
             // create a glyph
-            CodeMarkGlyph glyph = new CodeMarkGlyph(line);
-
+            CodeMarkGlyph glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos);
+        
             // position it
             Canvas.SetTop(glyph, yPos);
 

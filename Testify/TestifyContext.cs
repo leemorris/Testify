@@ -73,7 +73,8 @@ namespace Leem.Testify
                 .Ignore(c => c.MetadataToken);
 
             modelBuilder.Entity<TrackedMethod>()
-                .HasKey(x => x.UnitTestId);
+                .HasKey(x => x.UnitTestId)
+                .Ignore(t => t.FileId); ;
 
             modelBuilder.Entity<Poco.TrackedMethod>()
                 .Ignore(t => t.MetadataToken);

@@ -14,6 +14,7 @@
         public int UnitTestId { get; set; }
 
         public string TestProjectUniqueName { get; set; }
+        public string FilePath { get; set; }
 
         public bool IsSuccessful { get; set; }
 

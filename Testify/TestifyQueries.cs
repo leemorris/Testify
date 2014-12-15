@@ -783,8 +783,8 @@ namespace Leem.Testify
             string runTime = testOutput.time;
 
             string fileName = testOutput.name;
-
-            var x = testOutput.testsuite;
+           
+     
 
             var unitTests = GetUnitTests(testOutput.testsuite);
 
@@ -1430,6 +1430,7 @@ namespace Leem.Testify
                             {
                                 matchingUnitTest.TestProjectUniqueName = testProjectUniqueName;
                                 trackedMethod.UnitTestId = matchingUnitTest.UnitTestId;
+                                //matchingUnitTest.FilePath = 
 
                             }
                             else

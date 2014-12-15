@@ -10,9 +10,6 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>SQL Server Compact. An embedded SQL database.</description>
     <summary>SQL Server Compact. An embedded SQL database.</summary>
-    <releaseNotes />
-    <copyright />
-    <language />
     <references>
       <reference file="System.Data.SqlServerCe.dll" />
     </references>

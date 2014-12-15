@@ -71,5 +71,6 @@ namespace Leem.Testify
         void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName);
 
         CodeMethod GetMethod(string clickedMethodName);
+        List<Poco.UnitTest> GetUnitTestByName(string name);
     }
 }

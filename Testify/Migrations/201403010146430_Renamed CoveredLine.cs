@@ -13,12 +13,12 @@ namespace Leem.Testify.Migrations
             RenameTable(name: "dbo.TrackedMethodUnitTests", newName: "TrackedMethodUnitTest");
             DropForeignKey("dbo.CoveredLineTrackedMethods", "CoveredLine_CoveredLineId", "dbo.CoveredLines");
             DropForeignKey("dbo.CoveredLineTrackedMethods", "TrackedMethod_UnitTestId", "dbo.TrackedMethods");
-            DropForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLines");
-            DropForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTests");
+           // DropForeignKey("dbo.CoveredLineUnitTest", "CoveredLineId", "dbo.CoveredLines");
+           // DropForeignKey("dbo.CoveredLineUnitTest", "UnitTestId", "dbo.UnitTests");
             DropIndex("dbo.CoveredLineTrackedMethods", new[] { "CoveredLine_CoveredLineId" });
             DropIndex("dbo.CoveredLineTrackedMethods", new[] { "TrackedMethod_UnitTestId" });
-            DropIndex("dbo.CoveredLineUnitTest", new[] { "CoveredLineId" });
-            DropIndex("dbo.CoveredLineUnitTest", new[] { "UnitTestId" });
+           // DropIndex("dbo.CoveredLineUnitTest", new[] { "CoveredLineId" });
+           // DropIndex("dbo.CoveredLineUnitTest", new[] { "UnitTestId" });
             CreateTable(
                 "dbo.CoveredLinePoco",
                 c => new
@@ -49,22 +49,22 @@ namespace Leem.Testify.Migrations
                 .Index(t => t.CoveredLinePoco_CoveredLineId)
                 .Index(t => t.TrackedMethod_UnitTestId);
 
-            //CreateTable(
-            //    "dbo.CoveredLineUnitTest",
-            //    c => new
-            //        {
-            //            CoveredLineId = c.Int(nullable: false),
-            //            UnitTestId = c.Int(nullable: false),
-            //        })
-            //    .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId })
-            //    .ForeignKey("dbo.CoveredLinePoco", t => t.CoveredLineId, cascadeDelete: true)
-            //    .ForeignKey("dbo.UnitTest", t => t.UnitTestId, cascadeDelete: true)
-            //    .Index(t => t.CoveredLineId)
-            //    .Index(t => t.UnitTestId);
+            CreateTable(
+                "dbo.CoveredLineUnitTest",
+                c => new
+                    {
+                        CoveredLineId = c.Int(nullable: false),
+                        UnitTestId = c.Int(nullable: false),
+                    })
+                .PrimaryKey(t => new { t.CoveredLineId, t.UnitTestId })
+                .ForeignKey("dbo.CoveredLinePoco", t => t.CoveredLineId, cascadeDelete: true)
+                .ForeignKey("dbo.UnitTest", t => t.UnitTestId, cascadeDelete: true)
+                .Index(t => t.CoveredLineId)
+                .Index(t => t.UnitTestId);
 
             DropTable("dbo.CoveredLines");
             DropTable("dbo.CoveredLineTrackedMethods");
-            DropTable("dbo.CoveredLineUnitTest");
+           // DropTable("dbo.CoveredLineUnitTest");
         }
 
         public override void Down()

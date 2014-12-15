@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace Leem.Testify
 {
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
@@ -57,6 +58,8 @@ namespace Leem.Testify
         private volatile int _testRunId;
         private bool isFirstBuild = true;
         private ILog Log = LogManager.GetLogger(typeof(TestifyPackage));
+
+
         public TestifyPackage()
         {
             Log.DebugFormat(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
@@ -84,6 +87,7 @@ namespace Leem.Testify
                 _timer.AutoReset = true;
                 _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
                 _timer.Elapsed += new ElapsedEventHandler(ProcessProjectLevelQueue);
+
 
  
             }
@@ -539,7 +543,7 @@ namespace Leem.Testify
             //IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             //Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
-         public void TEST(object sender, EventArgs e)
+        public void TEST(object sender, EventArgs e)
          {
 
                   IVsUIShell vsUIShell = (IVsUIShell)Package.GetGlobalService(typeof(SVsUIShell));
@@ -554,7 +558,11 @@ namespace Leem.Testify
           
 
             frame.Show();
-         }
+        }
+
+
+
+
         /////////////////////////////////////////////////////////////////////////////
         // Overridden Package Implementation
 

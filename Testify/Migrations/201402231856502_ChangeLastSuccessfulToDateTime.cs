@@ -11,7 +11,7 @@ namespace Leem.Testify.Migrations
 
         public override void Down()
         {
-            AlterColumn("dbo.UnitTests", "LastSuccessfulRunDatetime", c => c.String(maxLength: 4000));
+           // AlterColumn("dbo.UnitTests", "LastSuccessfulRunDatetime", c => c.String(maxLength: 4000));
         }
     }
 }
