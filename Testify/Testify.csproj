@@ -43,18 +43,18 @@
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.0.2\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.0.2\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServerCompact">
       <HintPath>..\packages\EntityFramework.SqlServerCompact.6.1.1\lib\net45\EntityFramework.SqlServerCompact.dll</HintPath>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.4, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.5\lib\net40\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.dll</HintPath>
@@ -74,8 +74,11 @@
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Data, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Editor, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Shell.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -83,10 +86,24 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Text.UI, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -101,7 +118,7 @@
     </Reference>
     <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.4\lib\net40\Salient.Data.dll</HintPath>
+      <HintPath>..\packages\ErikEJ.SqlCeBulkCopy.2.1.6.5\lib\net40\Salient.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -117,6 +134,7 @@
       <HintPath>..\packages\EntityFramework.SqlServerCompact.4.3.6\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
     </Reference>
     <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
@@ -139,6 +157,24 @@
     <COMReference Include="EnvDTE80">
       <Guid>{1A31287A-4D7D-413E-8E32-3B374931BD89}</Guid>
       <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.VisualStudio.CommandBars">
+      <Guid>{1CBA492E-7263-47BB-87FE-639000619B15}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="stdole">
+      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>2</VersionMajor>
       <VersionMinor>0</VersionMinor>
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
@@ -186,6 +222,10 @@
     <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.cs" />
     <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.Designer.cs">
       <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201412150114511_Added_UnitTese_FileName.cs" />
+    <Compile Include="Migrations\201412150114511_Added_UnitTese_FileName.Designer.cs">
+      <DependentUpon>201412150114511_Added_UnitTese_FileName.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -242,6 +282,12 @@
     <Compile Include="TestifyQueries.cs" />
     <Compile Include="TestifyType.cs" />
     <Compile Include="TestOutputFileReader.cs" />
+    <Compile Include="UnitTestAdornment\ThemeResourceDictionary.cs" />
+    <Compile Include="UnitTestAdornment\UnitTestAdornment.cs" />
+    <Compile Include="UnitTestAdornment\UnitTestAdornmentFactory.cs" />
+    <Compile Include="UnitTestAdornment\UnitTestAdornmentManager.cs" />
+    <Compile Include="UnitTestAdornment\UnitTestAdornmentProvider.cs" />
+    <Compile Include="UnitTestAdornment\UnitTestSelector.cs" />
     <Compile Include="UnitTestSelector.xaml.cs">
       <DependentUpon>UnitTestSelector.xaml</DependentUpon>
     </Compile>
@@ -265,6 +311,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201403301750396_Added_Modules_Classes_Methods.resx">
       <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201412150114511_Added_UnitTese_FileName.resx">
+      <DependentUpon>201412150114511_Added_UnitTese_FileName.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -456,6 +505,10 @@
     <Page Include="SummaryView\SummaryViewControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UnitTestAdornment\ResourceDictionary.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UnitTestSelector.xaml">
       <Generator>MSBuild:Compile</Generator>
