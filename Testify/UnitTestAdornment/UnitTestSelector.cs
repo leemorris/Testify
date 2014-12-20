@@ -11,6 +11,8 @@ using System.Windows.Shapes;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
+using EnvDTE;
+using EnvDTE80;
 
 namespace Leem.Testify.UnitTestAdornment
 {
@@ -162,40 +164,20 @@ namespace Leem.Testify.UnitTestAdornment
         private void TestName_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
 
-            // Get an instance of the currently running Visual Studio IDE.
-            //EnvDTE80.DTE2 dte2;
-            //dte2 = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.
-            //GetActiveObject("VisualStudio.DTE.12.0");
+
             var unitTestMethodName = ((TextBox)sender).Text;
             queries = TestifyQueries.Instance;
             string filePath = string.Empty;
             int line = 0;
-            int column = 0;
+            int column = 1;
          
             string name = string.Empty;
             EnvDTE.Window openDocumentWindow = null;
             string clickedMethodName = string.Empty;
-            var result = queries.GetUnitTestByName(unitTestMethodName);
+            var unitTest = queries.GetUnitTestByName(unitTestMethodName).FirstOrDefault();
+            filePath = unitTest.FilePath;
+            line = unitTest.LineNumber;
             EnvDTE80.DTE2 dte = TestifyPackage.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE80.DTE2;
-            //queries.GetProjectFilePathFromMethod(sender.
-            //IList<CodeElement> classes;
-            //IList<CodeElement> methods;
-            //if (dte.ActiveDocument != null)
-            //{
-
-            //    CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
-
-            //    if (type == "Leem.Testify.MethodViewModel")
-            //    {
-            //        clickedMethodName = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
-
-            //        var method = queries.GetMethod(clickedMethodName);
-            //        filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-            //        line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-            //        column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
-            //    }
-            //}
-
 
             if (!string.IsNullOrEmpty(filePath) && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
@@ -221,10 +203,11 @@ namespace Leem.Testify.UnitTestAdornment
                 for (var i = 1; i <= dte.Windows.Count; i++)
                 {
                     var window = dte.Windows.Item(i);
-                    if (window.Document != null && window.Document.FullName.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+                    if (window.Document != null && window
+                        .Document.FullName.Equals(filePath, StringComparison.OrdinalIgnoreCase))
                     {
                         openDocumentWindow = window;
-                        openDocumentWindow.Activate();
+                        window.Activate();
                         var selection = window.Document.DTE.ActiveDocument.Selection as EnvDTE.TextSelection;
                         selection.StartOfDocument();
                         selection.MoveToLineAndOffset(line, column, true);
@@ -235,6 +218,7 @@ namespace Leem.Testify.UnitTestAdornment
                     }
                 }
             }
+
         }
 
        

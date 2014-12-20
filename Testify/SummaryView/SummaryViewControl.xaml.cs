@@ -62,12 +62,12 @@ namespace Leem.Testify
 
             DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
 
-            IList<CodeElement> classes;
-            IList<CodeElement> methods;
+            //IList<CodeElement> classes;
+            //IList<CodeElement> methods;
             if (dte.ActiveDocument != null)
             {
 
-                CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
+                //CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
 
                 if (type == "Leem.Testify.MethodViewModel")
                 {

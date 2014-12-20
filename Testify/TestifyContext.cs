@@ -26,7 +26,7 @@ namespace Leem.Testify
             : base(new SqlCeConnection(GetConnectionString(solutionName)),
              contextOwnsConnection: true)
         {
-            Database.SetInitializer<TestifyContext>(new DropCreateDatabaseIfModelChanges<TestifyContext>());
+            Database.SetInitializer<TestifyContext>(new CreateDatabaseIfNotExists<TestifyContext>());
         }
 
         public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
@@ -73,8 +73,8 @@ namespace Leem.Testify
                 .Ignore(c => c.MetadataToken);
 
             modelBuilder.Entity<TrackedMethod>()
-                .HasKey(x => x.UnitTestId)
-                .Ignore(t => t.FileId); ;
+                .HasKey(x => x.UnitTestId);
+       
 
             modelBuilder.Entity<Poco.TrackedMethod>()
                 .Ignore(t => t.MetadataToken);
@@ -95,8 +95,8 @@ namespace Leem.Testify
                     mc.ToTable("CoveredLineUnitTest");
                 });
 
-            modelBuilder.Entity<UnitTest>()
-                .Ignore(c => c.MetadataToken);
+            //modelBuilder.Entity<UnitTest>()
+            //    .Ignore(c => c.MetadataToken);
 
 
         }
@@ -115,6 +115,7 @@ namespace Leem.Testify
         {
             public MyConfiguration()
             {
+
                 SetProviderServices(
                     System.Data.Entity.SqlServerCompact.SqlCeProviderServices.ProviderInvariantName,
                     System.Data.Entity.SqlServerCompact.SqlCeProviderServices.Instance);

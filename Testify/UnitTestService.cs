@@ -146,10 +146,10 @@ namespace Leem.Testify
 
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
+            _queries.RemoveFromQueue(testQueueItem);
             CoverageSession coverageSession = new CoverageSession();
             resultType testOutput = new resultType();
-            try
-            {
+
                 await System.Threading.Tasks.Task.Run(() =>
                 {
                     coverageSession = GetCoverageSessionFile(fileToRead);
@@ -159,20 +159,16 @@ namespace Leem.Testify
                     testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
                 });
-            }
-            catch
-            {
-                _queries.RemoveFromQueue(testQueueItem);
-            }
+
 
 
             _queries.SaveUnitTestResults(testOutput);
 
             await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, testQueueItem.IndividualTests);
 
-            _queries.RemoveFromQueue(testQueueItem);
 
-            Log.DebugFormat("Test Completed, Name: {0}, Individual Test Count: {1}, ElapsedTime {2}",
+
+            Log.DebugFormat("SaveCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, ElapsedTime {2}",
 
             testQueueItem.ProjectName, testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
 

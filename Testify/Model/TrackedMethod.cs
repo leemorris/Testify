@@ -33,5 +33,7 @@ namespace Leem.Testify.Model
         public string Strategy { get; set; }
 
         public int UnitTestId { get; set; }
+
+        public int FileId { get; set; }
     }
 }

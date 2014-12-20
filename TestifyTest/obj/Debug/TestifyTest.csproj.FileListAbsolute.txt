@@ -30,6 +30,7 @@ C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\log4net.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ICSharpCode.NRefactory.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ICSharpCode.NRefactory.CSharp.dll
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ErikEJ.SqlCe40.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Settings.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Mono.Cecil.dll
@@ -42,4 +43,4 @@ C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudi
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.csprojResolveAssemblyReference.cache
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.pdb
-C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.dll
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.xml

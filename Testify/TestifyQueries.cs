@@ -143,6 +143,7 @@ namespace Leem.Testify
                         {
                             context.TestQueue.Add(testQueue);
                             context.SaveChanges();
+
                         }
                     }
 
@@ -190,6 +191,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
+      
                 QueuedTest nextItem = null;
 
                 if (context.TestQueue.Where(i => i.IndividualTest != null).All(x => x.TestRunId == 0))// there aren't any Individual tests currently running
@@ -228,7 +230,6 @@ namespace Leem.Testify
             {
                 using (var context = new TestifyContext(_solutionName))
                 {
-
                     var result = from project in context.Projects
                                  join testProject in context.TestProjects on project.UniqueName equals uniqueName
                                  where testProject.ProjectUniqueName == project.UniqueName
@@ -326,6 +327,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var query = from unitTest in context.TrackedMethods
                             where unitTest.Name.Contains(modifiedMethod)
                             select unitTest.UnitTestId;
@@ -341,6 +343,7 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var query = (from line in context.CoveredLines.Include(x => x.UnitTests)
 
                              where line.Method.Name.Contains(methodNameFragment)
@@ -390,7 +393,7 @@ namespace Leem.Testify
 
         public void RemoveFromQueue(QueuedTest testQueueItem)
         {
-            Log.DebugFormat("Test Completed: {0} Elapsed Time {1}", testQueueItem.ProjectName, DateTime.Now - testQueueItem.TestStartTime);
+            Log.DebugFormat("NUnit Completed for:  {0} Elapsed Time {1} ms", testQueueItem.ProjectName, DateTime.Now - testQueueItem.TestStartTime);
 
             var testsToDelete = new List<TestQueue>();
 
@@ -421,6 +424,7 @@ namespace Leem.Testify
 
                     using (var context = new TestifyContext(_solutionName))
                     {
+
                         if (testQueueItem.IndividualTests.Any())
                         {
                             foreach (var test in testQueueItem.IndividualTests)
@@ -498,6 +502,7 @@ namespace Leem.Testify
                     {
                         try
                         {
+                            context.Database.Log = L => Log.Debug(L);
                             var outerSW = new Stopwatch();
                             outerSW.Start();
                             var contextSW = new Stopwatch();
@@ -625,6 +630,7 @@ namespace Leem.Testify
 
                     using (var context = new TestifyContext(_solutionName))
                     {
+                        //context.Database.Log = L => Log.Debug(L);
                         var unitTests = context.UnitTests.Where(x => individualTests.Contains(x.TestMethodName));
 
                         unitTestIds = unitTests.Select(x => x.UnitTestId).ToList();
@@ -640,6 +646,7 @@ namespace Leem.Testify
 
                 }
 
+                
                 RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule);
                 // Fire and Forget
                 //System.Threading.Tasks.Task.Run(() =>
@@ -809,7 +816,7 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(_solutionName))
             {
-
+                context.Database.Log = L => Log.Debug(L);
                 try
                 {
                     foreach (var test in unitTests)
@@ -819,7 +826,7 @@ namespace Leem.Testify
                         if (existingTest == null)
                         {
                             // todo get the actual line number from the FileCodeModel for this unit test, to be used in the bookmark
-                            test.LineNumber = "1";
+                            test.LineNumber = 1;
 
                             context.UnitTests.Add(test);
 
@@ -851,7 +858,6 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-
                 foreach (var test in context.TestQueue)
                 {
                     test.TestRunId = 0;
@@ -865,7 +871,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-
+                //context.Database.Log = L => Log.Debug(L);
                 foreach (var currentTrackedMethod in trackedMethods)
                 {
                     //var existingTrackedMethod = context.TrackedMethods.Find(currentTrackedMethod.MetadataToken);
@@ -1115,7 +1121,7 @@ namespace Leem.Testify
                 var sw = new Stopwatch();
                 sw.Start();
                 UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
-                Log.DebugFormat("UpdateCoveredLines took {0}", sw.ElapsedMilliseconds);
+                Log.DebugFormat("UpdateCoveredLines took {0} seconds", sw.ElapsedMilliseconds/1000);
                 sw.Stop();
 
             }
@@ -1125,6 +1131,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var classLookup = context.CodeClass.ToLookup(clas => clas.Name, clas => clas);
 
                 var methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m);
@@ -1223,7 +1230,7 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(_solutionName))
             {
-
+                context.Database.Log = L => Log.Debug(L);
                 var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method).Where(w =>w.Module.AssemblyName == module.ModuleName);
                 
                 var number = coveredLines.Count();
@@ -1400,15 +1407,22 @@ namespace Leem.Testify
         private void UpdateUnitTests(Module codeModule, Module testModule)
         {
             _sw.Restart();
-
+            var coverageService = CoverageService.Instance;
             var distinctTrackedMethods = testModule.TrackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
-
+            var extractedMethods = testModule.Classes.SelectMany(c => c.Methods);
+            var filePathDictionary = (from m in extractedMethods
+                                      join t in testModule.TrackedMethods on m.MetadataToken equals t.MetadataToken
+                                      join f in testModule.Files on m.FileRef.UniqueId equals f.UniqueId
+                                      select new { t.MetadataToken, f.FullPath })
+                                    .ToDictionary(mc => mc.MetadataToken,
+                                                  mc => mc.FullPath);
             try
             {
                 if (testModule != null)
                 {
                     using (var context = new TestifyContext(_solutionName))
                     {
+                        context.Database.Log = L => Log.Debug(L);
                         var testProjectUniqueName = context.TestProjects.Where(x => x.AssemblyName.Equals(testModule.ModuleName)).First().UniqueName;
 
                         //Create Unit Test objects
@@ -1423,14 +1437,25 @@ namespace Leem.Testify
                             // The UnitTest is saved with the actual value of the argument in parenthesis
                             // Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.PatientMergeServiceTest.CanGetHealthAssessmentsByQMedPidNumber("110989")
                             // The Unit test doesn't match because  (System.String) <> ("110989")
-
+                   
                             var matchingUnitTest = context.UnitTests.FirstOrDefault(x => x.TestMethodName.Equals(testMethodName));
 
                             if (matchingUnitTest != null)
                             {
+                                string filePath;
+                                filePathDictionary.TryGetValue((int)trackedMethod.MetadataToken,out filePath);
                                 matchingUnitTest.TestProjectUniqueName = testProjectUniqueName;
                                 trackedMethod.UnitTestId = matchingUnitTest.UnitTestId;
-                                //matchingUnitTest.FilePath = 
+                                matchingUnitTest.FilePath = filePath;
+
+
+                                var method = extractedMethods.FirstOrDefault(x => x.MetadataToken == trackedMethod.MetadataToken);
+
+                                var methodInfo = coverageService.UpdateMethodLocation(method, filePath);
+                                matchingUnitTest.LineNumber = methodInfo.Line;
+                                
+                               // UpdateCodeMethodPath(methodInfo);
+                      
 
                             }
                             else
@@ -1494,6 +1519,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var result = context.CodeModule
                     .Include(x => x.Summary)
                     .Include(y => y.Classes.Select(c => c.Summary))
@@ -1511,7 +1537,6 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(_solutionName))
             {
-  
                 var result = from clas in context.CodeClass
                                 join project in context.Projects on clas.CodeModule.Name equals project.AssemblyName
                                 select project.UniqueName;
@@ -1526,7 +1551,6 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-
                 var result = from method in context.CodeMethod
                              join project in context.Projects on method.CodeClass.CodeModule.Name equals project.AssemblyName
                              select project.UniqueName;
@@ -1540,6 +1564,7 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var matchingClass = context.CodeClass.Where(x => x.Name == className ).FirstOrDefault();
                 if (matchingClass != null)
                 {
@@ -1552,21 +1577,27 @@ namespace Leem.Testify
             }
         }
 
-        public void UpdateCodeMethodPath(string methodName, string path, int line, int column)
+        public void UpdateCodeMethodPath(CodeMethodInfo methodInfo)
         {
-            using (var context = new TestifyContext(_solutionName))
+            if (methodInfo != null)
             {
-                var modifiedMethodName = methodName.ReplaceAt(methodName.LastIndexOf("."), "::")
-                    .Replace(".::ctor", "::.ctor");
-           
-                var matchingMethod = context.CodeMethod.Where(x => x.Name.Contains(methodName)).FirstOrDefault();
-                if (matchingMethod != null)
+                using (var context = new TestifyContext(_solutionName))
                 {
-                    matchingMethod.FileName = path;
-                    matchingMethod.Line = line;
-                    matchingMethod.Column = column;
+                    //context.Database.Log = L => Log.Debug(L);
+
+                    var modifiedMethodName = methodInfo.RawMethodName.ReplaceAt(methodInfo.RawMethodName.LastIndexOf("."), "::")
+                    .Replace(".::ctor", "::.ctor");
+
+                    var matchingMethod = context.CodeMethod.Where(x => x.Name.Contains(methodInfo.RawMethodName)).FirstOrDefault();
+                    if (matchingMethod != null)
+                    {
+                        matchingMethod.FileName = methodInfo.FileName;
+                        matchingMethod.Line = methodInfo.Line;
+                        matchingMethod.Column = methodInfo.Column;
+                    }
+   
+                    context.SaveChanges();
                 }
-                context.SaveChanges();
             }
         }
        
@@ -1618,6 +1649,7 @@ namespace Leem.Testify
            
             using (var context = new TestifyContext(_solutionName))
             {
+                //context.Database.Log = L => Log.Debug(L);
                 var codeClasses = from clas in context.CodeClass
                                   join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                   where clas.Name.Equals(fileClass.ReflectionName)

@@ -66,7 +66,7 @@ namespace Leem.Testify
 
         void UpdateCodeClassPath(string className, string path, int line, int column);
 
-        void UpdateCodeMethodPath(string methodName, string path, int line, int column);
+        void UpdateCodeMethodPath(CodeMethodInfo methodInfo);
 
         void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName);
 

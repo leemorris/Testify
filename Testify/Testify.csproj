@@ -129,10 +129,6 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Data.SqlServerCe.Entity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>..\packages\EntityFramework.SqlServerCompact.4.3.6\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
@@ -189,6 +185,7 @@
       <DependentUpon>CodeMarkGlyph.xaml</DependentUpon>
     </Compile>
     <Compile Include="CodeMarkManager.cs" />
+    <Compile Include="CodeMethodInfo.cs" />
     <Compile Include="CodeModelService.cs" />
     <Compile Include="CoverageFileReader.cs" />
     <Compile Include="CoverageMargin.cs" />
@@ -203,29 +200,9 @@
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="Migrations\201402181124546_Initial.cs" />
-    <Compile Include="Migrations\201402181124546_Initial.Designer.cs">
-      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.cs" />
-    <Compile Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.Designer.cs">
-      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201403010146430_Renamed CoveredLine.cs" />
-    <Compile Include="Migrations\201403010146430_Renamed CoveredLine.Designer.cs">
-      <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201403292244049_Added_summaries.cs" />
-    <Compile Include="Migrations\201403292244049_Added_summaries.Designer.cs">
-      <DependentUpon>201403292244049_Added_summaries.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.cs" />
-    <Compile Include="Migrations\201403301750396_Added_Modules_Classes_Methods.Designer.cs">
-      <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201412150114511_Added_UnitTese_FileName.cs" />
-    <Compile Include="Migrations\201412150114511_Added_UnitTese_FileName.Designer.cs">
-      <DependentUpon>201412150114511_Added_UnitTese_FileName.cs</DependentUpon>
+    <Compile Include="Migrations\201412151429429_Initial.cs" />
+    <Compile Include="Migrations\201412151429429_Initial.Designer.cs">
+      <DependentUpon>201412151429429_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -297,23 +274,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201402181124546_Initial.resx">
-      <DependentUpon>201402181124546_Initial.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201402231856502_ChangeLastSuccessfulToDateTime.resx">
-      <DependentUpon>201402231856502_ChangeLastSuccessfulToDateTime.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201403010146430_Renamed CoveredLine.resx">
-      <DependentUpon>201403010146430_Renamed CoveredLine.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201403292244049_Added_summaries.resx">
-      <DependentUpon>201403292244049_Added_summaries.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201403301750396_Added_Modules_Classes_Methods.resx">
-      <DependentUpon>201403301750396_Added_Modules_Classes_Methods.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201412150114511_Added_UnitTese_FileName.resx">
-      <DependentUpon>201412150114511_Added_UnitTese_FileName.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201412151429429_Initial.resx">
+      <DependentUpon>201412151429429_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -34,9 +34,8 @@
 
         public string TestDuration { get; set; }
 
-        public string LineNumber { get; set; }
+        public int LineNumber { get; set; }
 
-        //public Nullable<int> CoveredLineCoveredLineId { get; set; }
         public int MetadataToken { get; set; }
 
         public virtual TestProject TestProject { get; set; }

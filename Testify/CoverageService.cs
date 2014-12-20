@@ -88,11 +88,14 @@ namespace Leem.Testify
             {
                 Log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
             }
-
-            var module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
-
-            var tests = sessionModules.Where(x => x.TrackedMethods.Count() > 0).SelectMany(y => y.TrackedMethods);
             
+            var module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
+            var testModule = sessionModules.Where(y => y.ModuleName != projectAssemblyName).FirstOrDefault();
+                      
+
+         
+            var tests = sessionModules.Where(x => x.TrackedMethods.Count() > 0).SelectMany(y => y.TrackedMethods);
+
             if (module != null)
             {
                 var classes = module.Classes;
@@ -129,7 +132,10 @@ namespace Leem.Testify
 
 
 
-                                UpdateMethodLocation(method, fileName);
+                                var methodInfo = UpdateMethodLocation(method, fileName);
+
+                                Queries.UpdateCodeMethodPath(methodInfo);
+
                                 ProcessSequencePoints(coveredLines, module, tests, codeClass, method, fileName);
                             }
                            
@@ -148,6 +154,10 @@ namespace Leem.Testify
 
             return coveredLines;
         }
+
+
+
+
 
         public static string ConvertTrackedMethodFormatToUnitTestFormat(string trackedMethodName)
         {
@@ -173,7 +183,7 @@ namespace Leem.Testify
             }
 
         }
-        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class modelClass, Method method,string fileName)
+        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module, IEnumerable<Model.TrackedMethod> tests, Class modelClass, Method method, string fileName)
         {
 
 
@@ -204,6 +214,8 @@ namespace Leem.Testify
 
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
                         coveredLine.FileName = fileName;
+                        string unitTestFileName; 
+                       
                         coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
                             UniqueId = (int)trackedMethod.UniqueId,
@@ -211,7 +223,6 @@ namespace Leem.Testify
                             Strategy = trackedMethod.Strategy,
                             Name = trackedMethod.Name,
                             MetadataToken = trackedMethod.MetadataToken
-                           
                         });
 
                     }
@@ -222,7 +233,7 @@ namespace Leem.Testify
             }
         }
 
-        public void UpdateMethodLocation(Method codeMethod, string fileName)
+        public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName)
         {
             var modifiedMethodName = string.Empty;
             var rawMethodName = codeMethod.Name;
@@ -286,8 +297,9 @@ namespace Leem.Testify
                                 }
                                 if (parametersMatch)
                                 {
-                                    Queries.UpdateCodeMethodPath(rawMethodName, fileName, method.BodyRegion.BeginLine, method.BodyRegion.BeginColumn);
-                                    break;
+                                    return new CodeMethodInfo { RawMethodName = rawMethodName, FileName = fileName, Line = method.BodyRegion.BeginLine, Column = method.BodyRegion.BeginColumn };
+                                    //Queries.UpdateCodeMethodPath(rawMethodName, fileName, method.BodyRegion.BeginLine, method.BodyRegion.BeginColumn);
+                                    //break;
                                 }
 
                             }
@@ -297,13 +309,15 @@ namespace Leem.Testify
                     }
                     else if(methods.Count() == 1)
                     {
-                        Queries.UpdateCodeMethodPath(rawMethodName, fileName, methods.First().BodyRegion.BeginLine, methods.First().BodyRegion.BeginColumn);
+                        return new CodeMethodInfo { RawMethodName = rawMethodName, FileName = fileName, Line = methods.First().BodyRegion.BeginLine, Column = methods.First().BodyRegion.BeginColumn };
+
+                        //Queries.UpdateCodeMethodPath(rawMethodName, fileName, methods.First().BodyRegion.BeginLine, methods.First().BodyRegion.BeginColumn);
                     }
               
                 }
 
             }
-
+            return null;
         }
 
         internal List<string> ParseArguments(string modifiedMethodName)
