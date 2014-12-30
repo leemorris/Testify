@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
-
-namespace Leem.Testify
+﻿namespace Leem.Testify
 {
     //internal static class TestifyClassificationDefinition
     //{

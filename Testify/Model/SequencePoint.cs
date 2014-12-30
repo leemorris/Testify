@@ -10,7 +10,7 @@ using System.Xml.Serialization;
 namespace Leem.Testify.Model
 {
     /// <summary>
-    /// a sequence point
+    ///     a sequence point
     /// </summary>
     public class SequencePoint : InstrumentationPoint
     {

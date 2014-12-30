@@ -25,7 +25,7 @@ namespace Leem.Testify.UnitTestAdornment
         internal SVsServiceProvider serviceProvider = null;
         public UnitTestAdornmentFactory()
         {
-            uiShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(IVsUIShell));
+            //uiShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(IVsUIShell));
         }
 
         public void TextViewCreated(IWpfTextView textView)

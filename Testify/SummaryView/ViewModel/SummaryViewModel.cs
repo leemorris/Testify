@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
-using Leem.Testify.SummaryView.ViewModel;
-using System.Collections.Generic;
 
-namespace Leem.Testify
+namespace Leem.Testify.SummaryView.ViewModel
 {
 
     /// <summary>
@@ -89,9 +85,10 @@ namespace Leem.Testify
         }
         public SummaryViewModel(Poco.CodeMethod method)
         {
-            var start = method.Name.IndexOf("::") + 2;
-            var end = method.Name.IndexOf("(") - start;
-            Summary = new SummaryInfo(method.Summary, method.Name.Substring(start, end));
+            var methodName = method.Name.ToString();
+            var start = methodName.IndexOf("::") + 2;
+            var end = methodName.IndexOf("(") - start;
+            Summary = new SummaryInfo(method.Summary, methodName.Substring(start, end));
         }
         public ObservableCollection<SummaryViewModel> Items 
         {

@@ -1,29 +1,23 @@
-﻿using System;
+﻿using EnvDTE;
+using EnvDTE80;
+using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.TypeSystem;
+using Leem.Testify.SummaryView;
+using log4net;
+using log4net.Appender;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Timers;
-using EnvDTE;
-using EnvDTE80;
-using log4net;
-using log4net.Appender;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
-using ICSharpCode.NRefactory.CSharp;
-using ICSharpCode.NRefactory.CSharp.Resolver;
-using ICSharpCode.NRefactory.Semantics;
-using ICSharpCode.NRefactory.TypeSystem;
-using ICSharpCode.NRefactory.TypeSystem.Implementation;
 using System.Reflection;
-using System.Threading;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Timers;
 
 
 namespace Leem.Testify
@@ -42,13 +36,13 @@ namespace Leem.Testify
 
     [ProvideToolWindowVisibility(typeof(TestifyCoverageWindow), /*UICONTEXT_SolutionExists*/"f1536ef8-92ec-443c-9ed7-fdadf150da82")]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
-    [Guid(GuidList.guidTestifyPkgString)]
+    [Guid(GuidList.GuidTestifyPkgString)]
     public sealed class TestifyPackage : Package, IVsSolutionEvents3
     {
-        public EventArgs e = null;
-        private static System.Timers.Timer _timer;
+        public EventArgs E = null;
+        private static Timer _timer;
         private DocumentEvents _documentEvents;
-        private EnvDTE.DTE _dte;
+        private DTE _dte;
         private ITestifyQueries _queries;
         private UnitTestService _service;
         private IVsSolution _solution = null;
@@ -56,13 +50,13 @@ namespace Leem.Testify
         private string _solutionDirectory;
         private string _solutionName;
         private volatile int _testRunId;
-        private bool isFirstBuild = true;
-        private ILog Log = LogManager.GetLogger(typeof(TestifyPackage));
+        private bool _isFirstBuild = true;
+        private readonly ILog _log = LogManager.GetLogger(typeof(TestifyPackage));
 
 
         public TestifyPackage()
         {
-            Log.DebugFormat(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            _log.DebugFormat(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString());
             try
             {
                 FileInfo file;
@@ -73,7 +67,7 @@ namespace Leem.Testify
 #if (DEBUG == false)
                 file = new FileInfo(Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\log4net.config");
 #endif
-                Log.DebugFormat("Log4net.config path: " + file.ToString());
+                _log.DebugFormat("Log4net.config path: " + file.ToString());
                 ConfigureLogging(file);
 
                 //todo look into why this directory is needed
@@ -81,10 +75,7 @@ namespace Leem.Testify
                 //var path = Path.Combine(directory, @"TestifyCE.sdf;password=lactose");
 
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
-                _timer = new System.Timers.Timer();
-                _timer.Interval = 3000;
-                _timer.Enabled = true;
-                _timer.AutoReset = true;
+                _timer = new System.Timers.Timer {Interval = 3000, Enabled = true, AutoReset = true};
                 _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
                 _timer.Elapsed += new ElapsedEventHandler(ProcessProjectLevelQueue);
 
@@ -98,45 +89,39 @@ namespace Leem.Testify
         }
 
         public delegate void CoverageChangedEventHandler(string className, string methodName);
-        public void CheckForDatabase(string databasePath)
+
+        private void CheckForDatabase(string databasePath)
         {
-            Log.DebugFormat("CheckForDatabase: {0}", databasePath);
-            if (!System.IO.File.Exists(databasePath))
+            _log.DebugFormat("CheckForDatabase: {0}", databasePath);
+            if (!File.Exists(databasePath))
             {
-                Log.ErrorFormat("Database was not found");
+                _log.ErrorFormat("Database was not found");
 
                 // Get copy of blank database from the VSIX folder
                 string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
                 try
                 {
-                    Log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-                    System.IO.File.Copy(initialDatabasePath.ToString(), databasePath);
+                    _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
+                    File.Copy(initialDatabasePath.ToString(), databasePath);
                 }
                 catch (Exception ex)
                 {
-                    Log.ErrorFormat("Error Copying database " + ex.Message);
+                    _log.ErrorFormat("Error Copying database " + ex.Message);
                 }
             }
             else
             {
-                Log.DebugFormat("Database was found");
+                _log.DebugFormat("Database was found");
             }
         }
 
 
-        public string GetProjectOutputBuildFolder(EnvDTE.Project proj)
+        private string GetProjectOutputBuildFolder(EnvDTE.Project proj)
         {
-            EnvDTE.Configuration activeConfiguration = default(EnvDTE.Configuration);
-            EnvDTE.ConfigurationManager configManager = default(EnvDTE.ConfigurationManager);
-            string outputPath = null;
-            string absoluteOutputPath = null;
-            string projectFolder = null;
-
             try
             {
                 // Get the configuration manager of the project
-                configManager = proj.ConfigurationManager;
-                string assemblyName = string.Empty;
+                var configManager = proj.ConfigurationManager;
 
                 if (configManager == null)
                 {
@@ -145,10 +130,10 @@ namespace Leem.Testify
                 else
                 {
                     // Get the active project configuration
-                    activeConfiguration = configManager.ActiveConfiguration;
-                    assemblyName = GetProjectPropertyByName(proj.Properties, "AssemblyName");
+                    var activeConfiguration = configManager.ActiveConfiguration;
+                    string assemblyName = GetProjectPropertyByName(proj.Properties, "AssemblyName");
                     // Get the output folder
-                    outputPath = activeConfiguration.Properties.Item("OutputPath").Value.ToString();
+                    string outputPath = activeConfiguration.Properties.Item("OutputPath").Value.ToString();
 
                     // The output folder can have these patterns:
                     // 1) "\\server\folder"
@@ -156,6 +141,7 @@ namespace Leem.Testify
                     // 3) "..\..\folder"
                     // 4) "folder"
 
+                    string absoluteOutputPath = null;
                     if (outputPath.StartsWith((System.IO.Path.DirectorySeparatorChar + System.IO.Path.DirectorySeparatorChar).ToString()))
                     {
                         // This is the case 1: "\\server\folder"
@@ -166,35 +152,39 @@ namespace Leem.Testify
                         // This is the case 2: "drive:\folder"
                         absoluteOutputPath = outputPath;
                     }
-                    else if (outputPath.IndexOf("..\\") != -1)
-                    {
-                        // This is the case 3: "..\..\folder"
-                        projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
-
-                        while (outputPath.StartsWith("..\\"))
-                        {
-                            outputPath = outputPath.Substring(3);
-                            projectFolder = System.IO.Path.GetDirectoryName(projectFolder);
-                        }
-                        absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
-                    }
                     else
                     {
-                        // This is the case 4: "folder"
-                        projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
-                        absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                        string projectFolder = null;
+                        if (outputPath.IndexOf("..\\") != -1)
+                        {
+                            // This is the case 3: "..\..\folder"
+                            projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+
+                            while (outputPath.StartsWith("..\\"))
+                            {
+                                outputPath = outputPath.Substring(3);
+                                projectFolder = System.IO.Path.GetDirectoryName(projectFolder);
+                            }
+                            absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                        }
+                        else
+                        {
+                            // This is the case 4: "folder"
+                            projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+                            absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                        }
                     }
                     return System.IO.Path.Combine(absoluteOutputPath, assemblyName);
                 }
             }
             catch (Exception ex)
             {
-                Log.DebugFormat("GetProjectOutputBuildFolder could not determine folder name: {0}", ex.Message);
+                _log.DebugFormat("GetProjectOutputBuildFolder could not determine folder name: {0}", ex.Message);
                 return string.Empty;
             }
         }
 
-        public void ProcessIndividualTestQueue(object source, ElapsedEventArgs e)
+        private void ProcessIndividualTestQueue(object source, ElapsedEventArgs e)
         {
             if (_service != null)
             {
@@ -203,7 +193,7 @@ namespace Leem.Testify
 
         }
 
-        public void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
+        private void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
         {
             if (_service != null)
             {
@@ -211,7 +201,7 @@ namespace Leem.Testify
             }
         }
 
-        public async void VerifyProjects(IVsSolution solution, string projectName)
+        private async void VerifyProjects(IVsSolution solution, string projectName)
         {
             //List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
             if (_queries == null)
@@ -223,31 +213,38 @@ namespace Leem.Testify
                 TestifyQueries.SolutionName = _solutionName;
             }
 
-            var projects = new List<Poco.Project>();
+
+            var pocoProjects = new List<Poco.Project>();
 
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
-                this._documentEvents = _dte.Events.DocumentEvents;
-                this._documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
-                var outputPath = GetProjectOutputBuildFolder(project);
-                var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
-
-                Log.DebugFormat("Verify project name: {0}", project.Name);
-                Log.DebugFormat("  outputPath: {0}", outputPath);
-                Log.DebugFormat("  Assembly name: {0}", assemblyName);
-
-                projects.Add(new Poco.Project
+                if (projectName == string.Empty || project.UniqueName.Equals(projectName))
                 {
-                    Name = project.Name,
-                    AssemblyName = assemblyName,
-                    UniqueName = project.UniqueName,
-                    Path = outputPath
-                });
+
+                    _documentEvents = _dte.Events.DocumentEvents;
+                    _documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
+                    //_documentEvents.DocumentOpened += new _dispDocumentEvents_DocumentOpeningEventHandler(this.DocumentOpened);
+                    var outputPath = GetProjectOutputBuildFolder(project);
+                    var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
+
+                    _log.DebugFormat("Verify project name: {0}", project.Name);
+                    _log.DebugFormat("  outputPath: {0}", outputPath);
+                    _log.DebugFormat("  Assembly name: {0}", assemblyName);
+
+                    pocoProjects.Add(new Poco.Project
+                    {
+                        Name = project.Name,
+                        AssemblyName = assemblyName,
+                        UniqueName = project.UniqueName,
+                        Path = outputPath
+                    });
+
+                }
             }
-   
 
 
-            _queries.MaintainProjects(projects);
+
+            _queries.MaintainProjects(pocoProjects);
         }
 
         public void UpdateMethodsAndClassesFromCodeFile(string filename)
@@ -284,7 +281,7 @@ namespace Leem.Testify
             }
             catch (Exception)
             {
-                Log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
+                _log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
             }
 
             var syntaxTree = new CSharpParser().Parse(code, fileName);
@@ -309,14 +306,14 @@ namespace Leem.Testify
         //					typeof(Form).Assembly, // System.Windows.Forms.dll
 		//			        typeof(ICSharpCode.NRefactory.TypeSystem.IProjectContent).Assembly,
 				        };
-                IUnresolvedAssembly[] projectContents = new IUnresolvedAssembly[assemblies.Length];
+                var projectContents = new IUnresolvedAssembly[assemblies.Length];
                 Stopwatch total = Stopwatch.StartNew();
                 Parallel.For(
                     0, assemblies.Length,
                     delegate(int i)
                     {
                         Stopwatch w = Stopwatch.StartNew();
-                        CecilLoader loader = new CecilLoader();
+                        var loader = new CecilLoader();
                         projectContents[i] = loader.LoadAssemblyFile(assemblies[i].Location);
                         Debug.WriteLine(Path.GetFileName(assemblies[i].Location) + ": " + w.Elapsed);
                     });
@@ -348,22 +345,22 @@ namespace Leem.Testify
         private void ConfigureLogging(FileInfo file)
         {
             log4net.Config.XmlConfigurator.Configure(file);
-            var appenders = Log.Logger.Repository.GetAppenders();
+            var appenders = _log.Logger.Repository.GetAppenders();
 
-            log4net.Repository.Hierarchy.Hierarchy h =
+            var h =
             (log4net.Repository.Hierarchy.Hierarchy)LogManager.GetRepository();
             foreach (var a in h.Root.Appenders)
             {
                 if (a is FileAppender)
                 {
-                    FileAppender fa = (FileAppender)a;
+                    var fa = (FileAppender)a;
 
-                    FileInfo fileInfo = new FileInfo(fa.File);
+                    var fileInfo = new FileInfo(fa.File);
                     var logFileLocation = string.Format(@"{0}\Testify\{1}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), fileInfo.Name);
                     fa.File = logFileLocation;
                     fa.ActivateOptions();
-                    Log.DebugFormat("FileAppender is writing to: " + fa.File);
-                    Log.Debug("Log4net is configured");
+                    _log.DebugFormat("FileAppender is writing to: " + fa.File);
+                    _log.Debug("Log4net is configured");
                     break;
                 }
             }
@@ -372,7 +369,7 @@ namespace Leem.Testify
         private void DisableMenuCommandIfNoSolutionLoaded(OleMenuCommand menuCommand)
         {
             uint cookie;
-            IVsMonitorSelection monitorSelectionService = (IVsMonitorSelection)GetService(typeof(SVsShellMonitorSelection));
+            var monitorSelectionService = (IVsMonitorSelection)GetService(typeof(SVsShellMonitorSelection));
             monitorSelectionService.GetCmdUIContextCookie(new Guid(ContextGuids.vsContextGuidSolutionExists), out cookie);
             int isActive;
             monitorSelectionService.IsCmdUIContextActive(cookie, out isActive);
@@ -400,7 +397,7 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                Log.ErrorFormat("Error in GetAssemblyName: {0}", ex.Message);
+                _log.ErrorFormat("Error in GetAssemblyName: {0}", ex.Message);
             }
 
             return string.Empty;
@@ -441,10 +438,10 @@ namespace Leem.Testify
         private DTE2 GetDTE2()
         {
             // get the instance of DTE
-            DTE dte = (DTE)GetService(typeof(DTE));
+            var dte = (DTE)GetService(typeof(DTE));
 
             // cast it as DTE2, historical reasons
-            DTE2 dte2 = dte as DTE2;
+            var dte2 = dte as DTE2;
 
             if (dte2 == null)
             {
@@ -457,7 +454,7 @@ namespace Leem.Testify
         private int GetLineNumber()
         {
             // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+            var dte2 = GetDTE2();
 
             if (dte2 == null)
             {
@@ -480,10 +477,10 @@ namespace Leem.Testify
         private void MenuItemCallback(object sender, EventArgs e)
         {
             // Show a Message Box to prove we were here
-            IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
-            Guid clsid = Guid.Empty;
+            var uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
+            var clsid = Guid.Empty;
             int result;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
+            ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
                        0,
                        ref clsid,
                        "Testify",
@@ -503,7 +500,12 @@ namespace Leem.Testify
             _queries.AddToTestQueue(project.ContainingProject.UniqueName);
 
         }
+        private void OnDocumentOpening(string documentPath,bool isReadOnly)
+        {
+            //var project = document.ProjectItem;
+            //_queries.AddToTestQueue(project.ContainingProject.UniqueName);
 
+        }
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the
         /// tool window. See the Initialize method to see how the menu item is associated to
@@ -514,7 +516,7 @@ namespace Leem.Testify
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one.
             // The last flag is set to true so that if the tool window does not exists it will be created.
-            ToolWindowPane window = this.FindToolWindow(typeof(TestifyCoverageWindow), 0, true);
+            ToolWindowPane window = FindToolWindow(typeof(TestifyCoverageWindow), 0, true);
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
@@ -522,7 +524,7 @@ namespace Leem.Testify
              window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
 
@@ -585,21 +587,21 @@ namespace Leem.Testify
             if (null != mcs)
             {
                 // Create the command for the Run All Solution Tests menu item.
-                CommandID menuSolutionTestsCommandID = new CommandID(GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests);
+                CommandID menuSolutionTestsCommandID = new CommandID(GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests);
                 OleMenuCommand menuSolutionTests = new OleMenuCommand(SolutionTestsCallback, menuSolutionTestsCommandID);
                 menuSolutionTests.BeforeQueryStatus += new EventHandler(OnBeforeQueryStatus);
                 DisableMenuCommandIfNoSolutionLoaded(menuSolutionTests);
                 mcs.AddCommand(menuSolutionTests);
 
                 // Create the command for the Run All Project Tests menu item.
-                CommandID menuProjectTestsCommandID = new CommandID(GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidProjectTests);
+                CommandID menuProjectTestsCommandID = new CommandID(GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidProjectTests);
                 OleMenuCommand menuProjectTests = new OleMenuCommand(ProjectTestsCallback, menuProjectTestsCommandID);
                 menuProjectTests.BeforeQueryStatus += new EventHandler(OnBeforeQueryStatus);
                 DisableMenuCommandIfNoSolutionLoaded(menuProjectTests);
                 mcs.AddCommand(menuProjectTests);
 
                 // Create the command for the tool window
-                CommandID toolwndCommandID = new CommandID(GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidTestTool);
+                CommandID toolwndCommandID = new CommandID(GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidTestTool);
                 MenuCommand menuToolWin = new MenuCommand(ShowCoverageToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
 
@@ -648,7 +650,7 @@ namespace Leem.Testify
         #endregion Package Members
         #region Interface Methods
 
-        public EnvDTE.Project GetProject(string projectUniqueName)
+        public Project GetProject(string projectUniqueName)
         {
             IVsHierarchy hierarchy;
             _solution.GetProjectOfUniqueName(projectUniqueName, out hierarchy);
@@ -696,18 +698,18 @@ namespace Leem.Testify
 
             IVsSolution solution = SetSolutionValues();
 
-            Log.DebugFormat("Solution Opened: {0}", _solutionName);
+            _log.DebugFormat("Solution Opened: {0}", _solutionName);
             _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
             var appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
             var databasePath = GetDatabasePath(appDataDirectory);
             CheckForDatabase(databasePath);
 
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            var solutionTestsMenuCommand = mcs.FindCommand(new CommandID(Testify.GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests));
+            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            var solutionTestsMenuCommand = mcs.FindCommand(new CommandID(Testify.GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests));
             solutionTestsMenuCommand.Enabled = true;
 
-            var projectTestsMenuCommand = mcs.FindCommand(new CommandID(Testify.GuidList.guidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests));
+            var projectTestsMenuCommand = mcs.FindCommand(new CommandID(Testify.GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidSolutionTests));
             projectTestsMenuCommand.Enabled = true;
 
             // Setup Project Build Event Handler
@@ -769,30 +771,26 @@ namespace Leem.Testify
         {
             var sw = new Stopwatch();
             sw.Restart();
-            Log.DebugFormat("Project Build occurred project name: {0}", project);
+
             IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
             if (success)
             {
-                //if (isFirstBuild)
-                //{
-                    pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-                    VerifyProjects(pSolution, project);
-                //}
+                pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+                VerifyProjects(pSolution, project);
 
-      
-                isFirstBuild = false;
-                Log.DebugFormat("Project Build Successful for project name: {0}", project);
+                _isFirstBuild = false;
+                _log.DebugFormat("Project Build Successful for project name: {0}", project);
 
                 _queries.AddToTestQueue(project);
 
             }
             sw.Stop();
-            //Log.DebugFormat("ProjectBuildEventHandler Elapsed Time {0} milliseconds", sw.ElapsedMilliseconds);
+
         }
 
         private IVsSolution SetSolutionValues()
         {
-            IVsSolution pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
+            var pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
             string solutionDirectory;
             string solutionOptions;
             string solutionFile;

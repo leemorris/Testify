@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.TextManager.Interop;
-using System.Globalization;
-using Microsoft.VisualStudio.Shell;
-using System.Diagnostics;
-
-
-
 
 namespace Leem.Testify
 {
-    [Export(typeof(IWpfTextViewMarginProvider))]
+    [Export(typeof (IWpfTextViewMarginProvider))]
     [Name(CoverageMargin.MarginName)]
     [Order(After = PredefinedMarginNames.Glyph)]
     [MarginContainer(PredefinedMarginNames.Left)]
@@ -21,11 +13,9 @@ namespace Leem.Testify
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class MarginFactory : IWpfTextViewMarginProvider
     {
-        [Import]
-        internal ICoverageProviderBroker coverageProviderBroker;
+        [Import] internal ICoverageProviderBroker CoverageProviderBroker;
 
-        [Import]
-        internal SVsServiceProvider serviceProvider = null;
+        [Import] internal SVsServiceProvider ServiceProvider;
 
 
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost textViewHost, IWpfTextViewMargin containerMargin)
@@ -33,10 +23,8 @@ namespace Leem.Testify
             // create an instance of the manager and associate it with this bookmark margin
             CodeMarkManager codeMarkManager = textViewHost.TextView.Properties.GetOrCreateSingletonProperty<CodeMarkManager>
                 (delegate { return new CodeMarkManager(); });
-      
-            return new CoverageMargin(textViewHost, serviceProvider, coverageProviderBroker);
+
+            return new CoverageMargin(textViewHost, ServiceProvider, CoverageProviderBroker);
         }
-
-
     }
 }

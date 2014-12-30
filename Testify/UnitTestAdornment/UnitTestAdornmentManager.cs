@@ -1,29 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Media;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
+using System;
 
 namespace Leem.Testify.UnitTestAdornment
 {
     public class UnitTestAdornmentManager
     {
-        private readonly IWpfTextView view;
-        private readonly IAdornmentLayer layer;
-        private ITextBuffer buffer;
+        private readonly IWpfTextView _view;
+        private readonly IAdornmentLayer _layer;
+        private ITextBuffer _buffer;
 
 
         private UnitTestAdornmentManager(IWpfTextView view)
         {
-            this.view = view;
-            this.view.LayoutChanged += OnLayoutChanged;
-            this.view.Closed += OnClosed;
+            _view = view;
+            _view.LayoutChanged += OnLayoutChanged;
+            _view.Closed += OnClosed;
 
-            this.layer = view.GetAdornmentLayer("PostAdornmentLayer");
+            _layer = view.GetAdornmentLayer("PostAdornmentLayer");
 
            // this.provider = UnitTestAdornmentProvider.Create(view);
            // this.provider.PostsChanged += OnPostsChanged;
@@ -38,7 +33,7 @@ namespace Leem.Testify.UnitTestAdornment
 
         private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-            this.Detach();
+            Detach();
             //Get all of the posts that intersect any of the new or reformatted lines of text.
             //List<UnitTestSelector> newPosts = new List<UnitTestSelector>();
 
@@ -67,39 +62,39 @@ namespace Leem.Testify.UnitTestAdornment
 
         private void OnClosed(object sender, EventArgs e)
         {
-            this.Detach();
-            this.view.LayoutChanged -= OnLayoutChanged;
-            this.view.Closed -= OnClosed;
+            Detach();
+            _view.LayoutChanged -= OnLayoutChanged;
+            _view.Closed -= OnClosed;
         }
 
         public void DisplayUnitTestSelector(UnitTestAdornment coveredLineInfo)
         {
-            SnapshotSpan span = coveredLineInfo.Span.GetSpan(this.view.TextSnapshot);
+            SnapshotSpan span = coveredLineInfo.Span.GetSpan(this._view.TextSnapshot);
             //Geometry g = this.view.TextViewLines.GetMarkerGeometry(span);
 
             //if (g != null)
             //{
                 //Find the rightmost coordinate of all the lines that intersect the adornment.
                 double maxRight = 0.0;
-                foreach (ITextViewLine line in this.view.TextViewLines.GetTextViewLinesIntersectingSpan(span))
+                foreach (ITextViewLine line in this._view.TextViewLines.GetTextViewLinesIntersectingSpan(span))
                     maxRight = Math.Max(maxRight, line.Right);
 
-                var vertPos = this.view.ViewportTop + coveredLineInfo.YPosition + .5 * this.view.LineHeight;
+                var vertPos = this._view.ViewportTop + coveredLineInfo.YPosition + .5 * this._view.LineHeight;
                  //Create the visualization.
-                UnitTestSelector selector = new UnitTestSelector(vertPos, coveredLineInfo, this.layer);
+                var selector = new UnitTestSelector(vertPos, coveredLineInfo, this._layer);
 
                 //Add it to the layer.
-                this.layer.AddAdornment(span, coveredLineInfo, selector);
+                _layer.AddAdornment(span, coveredLineInfo, selector);
             //}
         }
 
         public void Detach()
         {
-            if (this.buffer != null)
+            if (_buffer != null)
             {
                 //remove the Changed listener
-                this.buffer.Changed -= OnBufferChanged;
-                this.buffer = null;
+                _buffer.Changed -= OnBufferChanged;
+                _buffer = null;
             }
         }
 

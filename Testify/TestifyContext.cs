@@ -76,7 +76,7 @@ namespace Leem.Testify
                 .HasKey(x => x.UnitTestId);
        
 
-            modelBuilder.Entity<Poco.TrackedMethod>()
+            modelBuilder.Entity<TrackedMethod>()
                 .Ignore(t => t.MetadataToken);
 
             modelBuilder.Entity<Project>()
@@ -85,7 +85,7 @@ namespace Leem.Testify
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
 
-            modelBuilder.Entity<Poco.CoveredLinePoco>().HasKey(y => y.CoveredLineId)
+            modelBuilder.Entity<CoveredLinePoco>().HasKey(y => y.CoveredLineId)
                 .HasMany(c => c.UnitTests)
                 .WithMany(u => u.CoveredLines)
                 .Map(mc =>

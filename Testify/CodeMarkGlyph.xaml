@@ -6,51 +6,13 @@
              mc:Ignorable="d"
              d:DesignHeight="16" d:DesignWidth="16" Background="Transparent">
     <UserControl.Resources>
-        <LinearGradientBrush x:Key="LightBrush" StartPoint="0,0" EndPoint="0,1">
-            <GradientBrush.GradientStops>
-                <GradientStopCollection>
-                    <GradientStop Color="#FFF" Offset="0.0" />
-                    <GradientStop Color="#EEE" Offset="1.0" />
-                </GradientStopCollection>
-            </GradientBrush.GradientStops>
-        </LinearGradientBrush>
 
-        <SolidColorBrush x:Key="SolidBorderBrush" Color="#888" />
-
-        <Style x:Key="{x:Type ToolTip}" TargetType="ToolTip">
-            <Setter Property="OverridesDefaultStyle" Value="true" />
-            <Setter Property="HasDropShadow" Value="True" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToolTip">
-                        <Border Name="Border"
-                            Background="{StaticResource LightBrush}"
-                            BorderBrush="{StaticResource SolidBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="5"
-                            Width="{TemplateBinding Width}"
-                            Height="{TemplateBinding Height}">
-                            <ContentPresenter
-                              Margin="4"
-                              HorizontalAlignment="Left"
-                              VerticalAlignment="Top" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="HasDropShadow" Value="true">
-                                <Setter TargetName="Border" Property="CornerRadius" Value="5" />
-                                <Setter TargetName="Border" Property="SnapsToDevicePixels" Value="true" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
     <Canvas x:Name="LayoutRoot">
-        <Ellipse Stroke="Green" Height="12" Width="12" x:Name="ellipse" Canvas.Left="0" Canvas.Top="0">
+        <Ellipse Stroke="Green" Height="12" Width="12" x:Name="Ellipse" Canvas.Left="0" Canvas.Top="0">
             <Ellipse.Fill>
                 <RadialGradientBrush
-                GradientOrigin="0.25, 0.15">
+                    GradientOrigin="0.25, 0.15">
                     <GradientStop Color="LimeGreen" Offset="0.2" />
                     <GradientStop Color="Green" Offset="0.9" />
                 </RadialGradientBrush>

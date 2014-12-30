@@ -1,8 +1,8 @@
-﻿namespace Leem.Testify.Poco
-{
-    using System;
-    using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+namespace Leem.Testify.Poco
+{
     public class UnitTest
     {
         public UnitTest()
@@ -20,7 +20,7 @@
 
         public string TestMethodName { get; set; }
 
-        public Nullable<int> NumberOfAsserts { get; set; }
+        public int? NumberOfAsserts { get; set; }
 
         public bool Executed { get; set; }
 

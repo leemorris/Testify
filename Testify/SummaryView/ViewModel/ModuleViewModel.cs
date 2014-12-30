@@ -1,24 +1,19 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows;
-
-namespace Leem.Testify
+﻿
+namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ModuleViewModel : TreeViewItemViewModel
     {
         readonly Poco.CodeModule _module;
-        private ITestifyQueries queries;
+        private readonly ITestifyQueries _queries;
         public ModuleViewModel()
         {
-            _module = new Poco.CodeModule();
-            _module.Summary = new Poco.Summary();
+            _module = new Poco.CodeModule {Summary = new Poco.Summary()};
         }
         public ModuleViewModel(Poco.CodeModule module)
             : base(null, true)
         {
             _module = module;
-            queries = TestifyQueries.Instance;
+            _queries = TestifyQueries.Instance;
         }
 
         public string Name
@@ -69,7 +64,7 @@ namespace Leem.Testify
 
         protected override void LoadChildren()
         {
-            var codeClasses = queries.GetClasses(_module);
+            var codeClasses = _queries.GetClasses(_module);
             foreach ( var codeClass in codeClasses )
                 base.Children.Add(new ClassViewModel(codeClass, this));
         }

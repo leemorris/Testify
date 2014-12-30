@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Text;
 
-namespace Leem.Testify
+namespace Leem.Testify.SummaryView.ViewModel
 {
     public class MethodViewModel : TreeViewItemViewModel
     {
         readonly Poco.CodeMethod _method;
-        private ClassViewModel parent;
+        private readonly ClassViewModel parent;
 
         public MethodViewModel(Poco.CodeMethod method, ClassViewModel parentClass)
             : base(parentClass, false)
@@ -21,7 +19,8 @@ namespace Leem.Testify
         {
             get
             {
-                string name = _method.Name.Substring(_method.Name.LastIndexOf("::") + 2);
+                var methodName = _method.Name.ToString();
+                string name = methodName.Substring(methodName.LastIndexOf("::") + 2);
                 name = name.Replace(".ctor", parent.Name)
                            .Replace(".cctor", parent.Name);
 
@@ -29,11 +28,11 @@ namespace Leem.Testify
                 var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
                 var originalArgumentArray = arguments.Split(',');
                 var outputArgumentArray = new string[originalArgumentArray.Length];
-                string modifiedArgument = string.Empty;
                 for (int i = 0; i < originalArgumentArray.Length; i++)
                 {
                     var arg = originalArgumentArray[i];
                     int positionOfLastPeriod = arg.LastIndexOf(".");
+                    string modifiedArgument;
                     if (positionOfLastPeriod > 0)
                     {
                         modifiedArgument = arg.Substring(positionOfLastPeriod + 1, arg.Length - positionOfLastPeriod - 1);

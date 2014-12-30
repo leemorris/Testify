@@ -1,42 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using EnvDTE;
 using EnvDTE80;
-
 
 namespace Leem.Testify
 {
     public class CodeMarkManager
-    {	
+    {
+        // this object is passed from the Package class
+        public delegate void CodeMarksEventHandler(object sender, EventArgs e);
 
-        private Dictionary<int, CodeMark> allCodeMarks = new Dictionary<int, CodeMark>();
-        private DTE2 dte2; // an object of DTE2 type, used to navigate to unit test location
-		// this object is passed from the Package class
         public const double CodeMarkGlyphSize = 16.0; // size of the glyph
-        private ICoverageService _coverageService;
-
-        public Dictionary<int, CodeMark> CodeMarks
-        {
-            get
-            {
-                return allCodeMarks;
-            }
-            set
-            {
-                allCodeMarks = value;
-				// bookmarks are changed so fire the BookmarksUpdated event
-                OnUpdate(EventArgs.Empty);
-            }
-        }
+        //private ICoverageService _coverageService;
+        private Dictionary<int, CodeMark> _allCodeMarks = new Dictionary<int, CodeMark>();
+        //private DTE2 dte2; // an object of DTE2 type, used to navigate to unit test location
 
         public CodeMarkManager()
         {
             CodeMarks = new Dictionary<int, CodeMark>();
         }
 
+        private Dictionary<int, CodeMark> CodeMarks
+        {
+            get { return _allCodeMarks; }
+            set
+            {
+                _allCodeMarks = value;
+                // bookmarks are changed so fire the BookmarksUpdated event
+                OnUpdate(EventArgs.Empty);
+            }
+        }
+
         // delegate for CodeMarks event
-        public delegate void CodeMarksEventHandler(object sender, EventArgs e);
 
         // CodeMarks event
         public event CodeMarksEventHandler CodeMarksUpdated;
@@ -48,23 +43,21 @@ namespace Leem.Testify
         }
 
 
+        //public void GotoUnitTest(int position)
+        //{
+        //    CodeMark codeMark = CodeMarks[position];
 
-        public void GotoUnitTest(int position)
-        {
+        //    // get the project item object by using the file name and dte
+        //    ProjectItem document = dte2.Solution.FindProjectItem(codeMark.FileName);
 
-            CodeMark codeMark = CodeMarks[position];
+        //    // create a selection object
+        //    var selection = dte2.ActiveDocument.Selection as TextSelection;
 
-            // get the project item object by using the file name and dte
-            EnvDTE.ProjectItem document = dte2.Solution.FindProjectItem(codeMark.FileName);
+        //    // move to the start of the document
+        //    selection.StartOfDocument();
 
-            // create a selection object
-            EnvDTE.TextSelection selection = dte2.ActiveDocument.Selection as EnvDTE.TextSelection;
-
-            // move to the start of the document
-            selection.StartOfDocument();
-
-            // move to the location specified by the line number and column number stored in bookmark
-            selection.MoveToLineAndOffset(codeMark.LineNumber, 0);
-        }
+        //    // move to the location specified by the line number and column number stored in bookmark
+        //    selection.MoveToLineAndOffset(codeMark.LineNumber, 0);
+        //}
     }
 }

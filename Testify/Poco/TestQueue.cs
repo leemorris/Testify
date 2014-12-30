@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Leem.Testify
+namespace Leem.Testify.Poco
 {
     public class TestQueue
     {

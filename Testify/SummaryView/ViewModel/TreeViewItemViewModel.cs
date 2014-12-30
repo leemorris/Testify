@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Controls;
-using System.Windows;
 
-namespace Leem.Testify
+namespace Leem.Testify.SummaryView.ViewModel
 {
     /// <summary>
     /// Base class for all ViewModel classes displayed by TreeViewItems.  
@@ -121,7 +118,7 @@ namespace Leem.Testify
                 if (value != _isSelected)
                 {
                     _isSelected = value;
-                    this.OnPropertyChanged("IsSelected");
+                    OnPropertyChanged("IsSelected");
                 }
             }
         }
@@ -159,8 +156,8 @@ namespace Leem.Testify
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion // INotifyPropertyChanged Members

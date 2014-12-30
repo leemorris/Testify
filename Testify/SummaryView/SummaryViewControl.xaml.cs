@@ -1,33 +1,31 @@
-﻿using System.Windows.Controls;
-using Leem.Testify;
-using System.Windows;
-using System;
-using log4net;
-using EnvDTE;
+﻿using EnvDTE;
 using EnvDTE80;
+using Leem.Testify.SummaryView.ViewModel;
+using System;
+using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
-namespace Leem.Testify
+namespace Leem.Testify.SummaryView
 {
     public partial class SummaryViewControl : UserControl
     {
-        private ITestifyQueries queries;
-        public TestifyCoverageWindow _parent;
-        private ILog Log = LogManager.GetLogger(typeof(SummaryViewControl));
+        private ITestifyQueries _queries;
+        private TestifyCoverageWindow _parent;
+        //private readonly ILog Log = LogManager.GetLogger(typeof(SummaryViewControl));
 
         public SummaryViewControl(TestifyCoverageWindow parent)
         {
             InitializeComponent();
             _parent = parent;
-            queries = TestifyQueries.Instance;
+            _queries = TestifyQueries.Instance;
 
 
 
             if (TestifyQueries.SolutionName != null)
             {
-                ///Todo make this async
+                //Todo make this async
                 Task<CoverageViewModel> coverageViewModel = GetSummariesAsync();
                 coverageViewModel.Wait();
                 base.DataContext =  coverageViewModel.Result;
@@ -44,23 +42,23 @@ namespace Leem.Testify
 
         private  async Task<CoverageViewModel> GetSummariesAsync()
         {
-            Poco.CodeModule[] modules =  queries.GetModules();
-            CoverageViewModel coverageViewModel = new CoverageViewModel(modules);
+            Poco.CodeModule[] modules =  _queries.GetModules();
+            var coverageViewModel = new CoverageViewModel(modules);
             return coverageViewModel;
         }
 
-        void itemDoubleClicked(object sender, RoutedEventArgs e)
+        void ItemDoubleClicked(object sender, RoutedEventArgs e)
         {
-            queries = TestifyQueries.Instance;
+            _queries = TestifyQueries.Instance;
             string filePath = string.Empty;
             int line = 0;
             int column = 0;
-            string type = ((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header.ToString();
+            string type = ((HeaderedItemsControl)(e.Source)).Header.ToString();
             string name = string.Empty;
-            EnvDTE.Window openDocumentWindow = null;
-            string clickedMethodName = string.Empty;
+            EnvDTE.Window openDocumentWindow;
+            var clickedMethodName = string.Empty;
 
-            DTE2 dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
+            var dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
 
             //IList<CodeElement> classes;
             //IList<CodeElement> methods;
@@ -71,12 +69,12 @@ namespace Leem.Testify
 
                 if (type == "Leem.Testify.MethodViewModel")
                 {
-                    clickedMethodName =((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
+                    clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
-                    var method = queries.GetMethod(clickedMethodName);
-                    filePath = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-                    line = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-                    column = ((Leem.Testify.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                   // var method = _queries.GetMethod(clickedMethodName);
+                    filePath = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    line = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
+                    column = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
                 }
             }
 
@@ -122,5 +120,9 @@ namespace Leem.Testify
 
         }
 
+        public void Connect(int connectionId, object target)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

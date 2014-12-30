@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.XPath;
+using System.IO;
 using System.Xml.Serialization;
 using Leem.Testify.Model;
-using System.IO;
 using log4net;
 
 namespace Leem.Testify
@@ -15,38 +9,35 @@ namespace Leem.Testify
     [Serializable]
     public class CoverageFileReader
     {
-        private ILog Log = LogManager.GetLogger(typeof(CoverageFileReader));
+        private readonly ILog _log = LogManager.GetLogger(typeof (CoverageFileReader));
 
         public CoverageSession ReadCoverageFile(string path)
         {
             StreamReader file;
 
-            CoverageSession summary = new CoverageSession();
+            var summary = new CoverageSession();
 
             try
             {
-                Log.DebugFormat("ReadCoverageFile for file name: {0}", path);
+                _log.DebugFormat("ReadCoverageFile for file name: {0}", path);
                 file = new StreamReader(path);
-                   
-                XmlSerializer reader = new XmlSerializer(typeof(CoverageSession));
-                
-                summary = (CoverageSession)reader.Deserialize(file);
-                Log.DebugFormat("BranchCoverage: {0}", summary.Summary.BranchCoverage);
-                Log.DebugFormat("SequenceCoverage: {0}", summary.Summary.SequenceCoverage);
-                Log.DebugFormat("VisitedBranchPoints: {0}", summary.Summary.VisitedBranchPoints);
-                Log.DebugFormat("VisitedSequencePoints: {0}", summary.Summary.VisitedSequencePoints);
-              
+
+                var reader = new XmlSerializer(typeof (CoverageSession));
+
+                summary = (CoverageSession) reader.Deserialize(file);
+                _log.DebugFormat("BranchCoverage: {0}", summary.Summary.BranchCoverage);
+                _log.DebugFormat("SequenceCoverage: {0}", summary.Summary.SequenceCoverage);
+                _log.DebugFormat("VisitedBranchPoints: {0}", summary.Summary.VisitedBranchPoints);
+                _log.DebugFormat("VisitedSequencePoints: {0}", summary.Summary.VisitedSequencePoints);
             }
             catch (Exception ex)
             {
-                Log.ErrorFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
+                _log.ErrorFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
                 throw;
             }
-            
+
             file.Close();
             return summary;
-
-        } 
-        
+        }
     }
 }

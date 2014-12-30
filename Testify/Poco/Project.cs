@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Leem.Testify.Poco
 {
-    using System;
-    using System.Collections.Generic;
-
     public class Project
     {
         public Project()
         {
-            this.TestProjects = new HashSet<Poco.TestProject>();
+            TestProjects = new HashSet<TestProject>();
         }
 
         public string UniqueName { get; set; }
@@ -21,7 +14,6 @@ namespace Leem.Testify.Poco
         public string Path { get; set; }
         public string AssemblyName { get; set; }
 
-        public virtual ICollection<Poco.TestProject> TestProjects { get; set; }
+        public virtual ICollection<TestProject> TestProjects { get; set; }
     }
 }
-

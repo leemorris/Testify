@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Leem.Testify
+﻿namespace Leem.Testify
 {
-    class CoveredLinePocoDto
+    internal class CoveredLinePocoDto
     {
         public int Module_CodeModuleId { get; set; }
         public int Class_CodeClassId { get; set; }

@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 
 namespace Leem.Testify.Poco
 {
-    using System;
-    using System.Collections.Generic;
-
     public class CoveredLinePoco
     {
         public CoveredLinePoco()
         {
-            this.TrackedMethods = new HashSet<TrackedMethod>();
-            this.UnitTests = new HashSet<UnitTest>();
+            TrackedMethods = new HashSet<TrackedMethod>();
+            UnitTests = new HashSet<UnitTest>();
         }
 
         public CodeModule Module { get; set; }

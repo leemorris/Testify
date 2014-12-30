@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Leem.Testify
+﻿namespace Leem.Testify
 {
     public class LineCoverageResult
     {
@@ -18,6 +12,5 @@ namespace Leem.Testify
         public bool IsCovered { get; set; }
         public bool IsCode { get; set; }
         public bool IsSuccessful { get; set; }
-
     }
 }

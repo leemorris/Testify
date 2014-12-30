@@ -1,17 +1,17 @@
 ﻿
 
-namespace Leem.Testify
+namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ClassViewModel : TreeViewItemViewModel
     {
         readonly Poco.CodeClass _class;
-        private ITestifyQueries queries;
+        private readonly ITestifyQueries _queries;
 
         public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule)
             : base(parentModule, true)
         {
             _class = codeClass;
-            queries = TestifyQueries.Instance;
+            _queries = TestifyQueries.Instance;
         }
 
         public string Name
@@ -66,7 +66,7 @@ namespace Leem.Testify
 
         protected override void LoadChildren()
         {
-            foreach (Poco.CodeMethod method in queries.GetMethods(_class))
+            foreach (Poco.CodeMethod method in _queries.GetMethods(_class))
                 base.Children.Add(new MethodViewModel(method, this));
         }
 

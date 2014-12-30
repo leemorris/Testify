@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Leem.Testify.Poco
 {
@@ -10,8 +6,8 @@ namespace Leem.Testify.Poco
     {
         public TrackedMethod()
         {
-            this.CoveredLines = new HashSet<CoveredLinePoco>();
-            this.UnitTests = new HashSet<UnitTest>();
+            CoveredLines = new HashSet<CoveredLinePoco>();
+            UnitTests = new HashSet<UnitTest>();
         }
 
         public int UniqueId { get; set; }
@@ -23,25 +19,24 @@ namespace Leem.Testify.Poco
         public virtual ICollection<CoveredLinePoco> CoveredLines { get; set; }
         public virtual ICollection<UnitTest> UnitTests { get; set; }
         public int MetadataToken { get; set; }
-        public string NameInUnitTestFormat 
-        { get 
+
+        public string NameInUnitTestFormat
+        {
+            get
             {
                 // Convert This:
                 // System.Void UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest::TestIt()
                 // Into This:
                 // UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest.TestIt
-                if (string.IsNullOrEmpty(this.Name))
+                if (string.IsNullOrEmpty(Name))
                 {
                     return string.Empty;
                 }
-                else
-                {
-                    int locationOfSpace = this.Name.IndexOf(' ') + 1;
-                    int locationOfParen = this.Name.IndexOf('(');
-                    var testMethodName = this.Name.Substring(locationOfSpace, locationOfParen - locationOfSpace);
-                    testMethodName = testMethodName.Replace("::", ".");
-                    return testMethodName;
-                }
+                int locationOfSpace = Name.IndexOf(' ') + 1;
+                int locationOfParen = Name.IndexOf('(');
+                string testMethodName = Name.Substring(locationOfSpace, locationOfParen - locationOfSpace);
+                testMethodName = testMethodName.Replace("::", ".");
+                return testMethodName;
             }
         }
     }

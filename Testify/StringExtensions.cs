@@ -11,7 +11,7 @@ namespace Leem.Testify
             {
                 throw new ArgumentNullException("input");
             }
-            StringBuilder builder = new StringBuilder(input);
+            var builder = new StringBuilder(input);
             builder.Remove(index, 1);
             builder.Insert(index, newString);
             return builder.ToString();

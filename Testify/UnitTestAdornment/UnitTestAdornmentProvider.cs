@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using System.Drawing;
-
-namespace Leem.Testify.UnitTestAdornment
+﻿namespace Leem.Testify.UnitTestAdornment
 {
     //public class UnitTestAdornmentProvider
     //{

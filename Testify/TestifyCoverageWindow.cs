@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Runtime.InteropServices;
+using Leem.Testify.SummaryView;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Leem.Testify;

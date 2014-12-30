@@ -1,15 +1,12 @@
-﻿using System;
+﻿using EnvDTE;
+using Leem.Testify.Model;
+using log4net;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 using System.IO;
-using Leem.Testify.Model;
-using System.Timers;
-using EnvDTE80;
-using EnvDTE;
-using OpenCover;
-using log4net;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Leem.Testify
@@ -18,20 +15,20 @@ namespace Leem.Testify
 
     public class UnitTestService
     {
-        private  List<TestQueue> _testQueue;
-        private string _testOutputDirectory;
-        private string _solutionDirectory;
-        private string _solutionName;
-        private DTE _dte;
-        private List<string> _projectNames;
-        private ITestifyQueries _queries;
-        private string _openCoverCommandLine;
-        private string _outputFolder;
-        private ILog Log = LogManager.GetLogger(typeof(UnitTestService));
-        private string _nunitPath;
+        //private  List<TestQueue> _testQueue;
+        //private string _testOutputDirectory;
+        private readonly string _solutionDirectory;
+        private readonly string _solutionName;
+        //private DTE _dte;
+        //private List<string> _projectNames;
+        private readonly ITestifyQueries _queries;
+        private readonly string _openCoverCommandLine;
+        private readonly string _outputFolder;
+        private readonly ILog Log = LogManager.GetLogger(typeof(UnitTestService));
+        private readonly string _nunitPath;
         public event CoverageChangedHandler CoverageChanged;
 
-        public string ProjectFileName { get; set; }
+        //public string ProjectFileName { get; set; }
         
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
@@ -41,7 +38,7 @@ namespace Leem.Testify
 
             TestifyQueries.SolutionName = solutionName;
 
-            _dte = dte;
+            //_dte = dte;
 
             _solutionName = solutionName;
 
@@ -129,7 +126,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                  // Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                 }
             }
             catch(Exception ex)
@@ -146,11 +143,12 @@ namespace Leem.Testify
 
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
+            var sw = Stopwatch.StartNew();
             _queries.RemoveFromQueue(testQueueItem);
-            CoverageSession coverageSession = new CoverageSession();
-            resultType testOutput = new resultType();
+            var coverageSession = new CoverageSession();
+            var testOutput = new resultType();
 
-                await System.Threading.Tasks.Task.Run(() =>
+                await Task.Run(() =>
                 {
                     coverageSession = GetCoverageSessionFile(fileToRead);
 
@@ -159,32 +157,29 @@ namespace Leem.Testify
                     testOutput = testOutputFileReader.ReadTestResultFile(GetOutputFolder() + resultFilename);
 
                 });
-
-
+            Log.DebugFormat("Coverage and Test Result Files Read Elapsed Time = {0}", sw.ElapsedMilliseconds);
+            sw.Reset();
 
             _queries.SaveUnitTestResults(testOutput);
-
+            Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
+            sw.Reset();
             await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, testQueueItem.IndividualTests);
+            Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
 
+            Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
 
-
-            Log.DebugFormat("SaveCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, ElapsedTime {2}",
-
-            testQueueItem.ProjectName, testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
+                testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0: testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
 
             System.IO.File.Delete(fileToRead);
         }
 
 
-
-
-
-        public async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
+        private async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
         {
 
-            Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.ProjectName, item.TestRunId);
+            Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.TestRunId, item.ProjectName);
 
-            var projectInfo = new ProjectInfo();
+            ProjectInfo projectInfo;
 
             if (item.IndividualTests == null || !item.IndividualTests.Any())
             {
@@ -204,10 +199,10 @@ namespace Leem.Testify
                 
                 StringBuilder testParameters = GetTestParameters(item.ProjectName, item.IndividualTests, projectInfo, fileNameGuid);
                
-                Log.DebugFormat("openCoverCommandLine: {0}", _openCoverCommandLine.ToString());
-                Log.DebugFormat("Test Parameters: {0}", testParameters.ToString());
+                Log.DebugFormat("openCoverCommandLine: {0}", _openCoverCommandLine);
+                Log.DebugFormat("Test Parameters: {0}", testParameters);
                 
-                await System.Threading.Tasks.Task.Run(() =>
+                await Task.Run(() =>
                     {
                         RunNunitTests(_openCoverCommandLine, testParameters.ToString(), projectInfo, fileNameGuid, item);
                     });
@@ -221,7 +216,7 @@ namespace Leem.Testify
 
         private StringBuilder GetTestParameters(string projectName, List<string> individualTests, ProjectInfo projectInfo, Guid fileNameGuid)
         {
-            StringBuilder testParameters = new StringBuilder();
+            var testParameters = new StringBuilder();
             testParameters.Append(GetTarget());
             if (individualTests != null && individualTests.Any())
             {
@@ -230,7 +225,7 @@ namespace Leem.Testify
                 testParameters.Append(GetCommaSeparatedListOfTests(individualTests));
                 testParameters.Append(" ");
             }
-            var timeout = 3000;
+            const int timeout = 3000;
             testParameters.Append(projectInfo.TestProject.Path);
             testParameters.Append(".dll");
             testParameters.Append(" /result:");
@@ -248,7 +243,7 @@ namespace Leem.Testify
             return testParameters;
         }
 
-        private StringBuilder GetCommaSeparatedListOfTests(List<string> individualTests)
+        private StringBuilder GetCommaSeparatedListOfTests(IEnumerable<string> individualTests)
         {
             var listOfTests = new StringBuilder();
             foreach(var test in individualTests)
@@ -267,7 +262,7 @@ namespace Leem.Testify
 
         private string GetOutputFolder()
         {
-            StringBuilder folderPath = new StringBuilder();
+            var folderPath = new StringBuilder();
 
             folderPath.Append(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)));
             folderPath.Append("\\Testify\\");
@@ -283,7 +278,7 @@ namespace Leem.Testify
 
             var reader = new CoverageFileReader();
 
-            CoverageSession codeCoverage = reader.ReadCoverageFile(filename);
+            var codeCoverage = reader.ReadCoverageFile(filename);
 
             return codeCoverage;
         }

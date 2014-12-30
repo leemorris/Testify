@@ -1,12 +1,12 @@
-﻿namespace Leem.Testify.Poco
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace Leem.Testify.Poco
+{
     public class TestProject
     {
         public TestProject()
         {
-            this.UnitTests = new HashSet<UnitTest>();
+            UnitTests = new HashSet<UnitTest>();
         }
 
         public string UniqueName { get; set; }

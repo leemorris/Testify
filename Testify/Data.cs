@@ -1,21 +1,13 @@
-﻿
-
-using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-
+﻿using System.Collections.Generic;
 
 namespace Leem.Testify
 {
-
     public class League
     {
+        private readonly List<League> _divisions;
+        private readonly string _name;
+        private bool bValue;
+
         public League(string name)
         {
             _name = name;
@@ -23,34 +15,22 @@ namespace Leem.Testify
             _divisions = new List<League>();
         }
 
+        public string Name
+        {
+            get { return _name; }
+        }
 
-        string _name;
-        bool bValue;
-
-        public string Name { get { return _name; } }
         public bool IsChecked
         {
             get { return true; }
 
-            set
-            {
-                bValue = value;
-            }
-
+            set { bValue = value; }
         }
 
-        List<League> _divisions;
         public List<League> Divisions
         {
-            get
-            {
-                return _divisions;
-            }
-
-
+            get { return _divisions; }
         }
-
-
     }
 
     public class ListLeagueList : List<League>

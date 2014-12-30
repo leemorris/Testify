@@ -1,168 +1,158 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Shell;
 using EnvDTE;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using Leem.Testify;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Diagnostics;
+using Leem.Testify.Poco;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
+using Task = System.Threading.Tasks.Task;
 
 namespace Leem.Testify
 {
-    class CoverageMargin : Border, IWpfTextViewMargin
+    internal class CoverageMargin : Border, IWpfTextViewMargin
     {
         public const string MarginName = "CoverageMargin";
 
         // this is a pre-defined constant for code view
         // used to tell Visual Studio to specify the type of content the extension should be
         // associated with
-        public const string vsViewKindCode = "{7651A701-06E5-11D1-8EBD-00A0C90F26EA}";
+        //public const string vsViewKindCode = "{7651A701-06E5-11D1-8EBD-00A0C90F26EA}";
 
-        Canvas marginCanvas; // canvas object which is added to the margin to hold glyphs
-
-        private IWpfTextViewHost _textViewHost;
-        private bool _isDisposed = false;
         private const double Left = 1.0;
-        private CodeMarkManager _codeMarkManager;
-        private CoverageProvider _coverageProvider;
-        private DTE _dte;
+        private readonly CodeMarkManager _codeMarkManager;
+        private readonly CoverageProvider _coverageProvider;
+        private readonly string _documentName;
+        private readonly DTE _dte;
+        private readonly IWpfTextViewHost _textViewHost;
+        private readonly Canvas _marginCanvas; // canvas object which is added to the margin to hold glyphs
         private List<CodeMark> _codeMarks;
-        private string _documentName;
-        private ITextDocument _document;
+        private bool _isDisposed;
 
 
-
-        public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
+        public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider,
+            ICoverageProviderBroker coverageProviderBroker)
         {
+            ITextDocument document;
             _textViewHost = textViewHost;
 
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            _dte = (DTE) serviceProvider.GetService(typeof (DTE));
 
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
 
             _codeMarkManager = new CodeMarkManager();
 
             _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider);
-      
-            _codeMarks = GetAllCodeMarksForMargin(); 
+
+            _codeMarks = GetAllCodeMarksForMargin();
 
             // subscribe to LayoutChanged event of text view, so we can change the
             // positions of the glyphs when the layout changes
-            _textViewHost.TextView.LayoutChanged += new EventHandler<TextViewLayoutChangedEventArgs>(TextView_LayoutChanged);
+            _textViewHost.TextView.LayoutChanged += TextViewLayoutChanged;
 
-            _textViewHost.TextView.GotAggregateFocus += new EventHandler(TextView_GotAggregateFocus);
+            _textViewHost.TextView.GotAggregateFocus += TextViewGotAggregateFocus;
 
-			// subscribe to the ViewportHeightChanged, o we can change the);
-			// positions of glyphs when the Viewport changes
-            _textViewHost.TextView.ViewportHeightChanged += new EventHandler(TextView_ViewportHeightChanged);
+            // subscribe to the ViewportHeightChanged, o we can change the);
+            // positions of glyphs when the Viewport changes
+            _textViewHost.TextView.ViewportHeightChanged += TextViewViewportHeightChanged;
 
-            _textViewHost.TextView.TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(TextBuffer_Changed);
+            _textViewHost.TextView.TextBuffer.Changed += TextBufferChanged;
 
-             //create a canvas to hold the margin UI and set its properties
-            marginCanvas = new Canvas();
+            //create a canvas to hold the margin UI and set its properties
+            _marginCanvas = new Canvas();
 
-            marginCanvas.Background = Brushes.Transparent;
-            
-            this.ClipToBounds = true;
-            this.Background = Brushes.Transparent;// _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
+            _marginCanvas.Background = Brushes.Transparent;
 
-            this.BorderBrush = Brushes.Transparent; //_textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
+            ClipToBounds = true;
+            Background = Brushes.Transparent;
+                // _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
 
-            this.Width = 18;
+            BorderBrush = Brushes.Transparent;
+                //_textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
 
-            this.BorderThickness = new Thickness(0.5);
+            Width = 18;
 
-			// add margin canvas to the children list
-            this.Child = marginCanvas;
+            BorderThickness = new Thickness(0.5);
+
+            // add margin canvas to the children list
+            Child = _marginCanvas;
 
             UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
 
-            _textViewHost.TextView.TextBuffer.Properties.TryGetProperty(typeof(Microsoft.VisualStudio.Text.ITextDocument), out _document);
         }
 
-        public void Coverage_Changed(string className, string methodName)
+        public void CoverageChanged(string className, string methodName)
         {
         }
 
         private List<CodeMark> GetAllCodeMarksForMargin()
         {
-            var coveredLines = _coverageProvider.GetCoveredLines(_textViewHost.TextView);
+            ConcurrentDictionary<int, CoveredLinePoco> coveredLines =
+                _coverageProvider.GetCoveredLines(_textViewHost.TextView);
 
             var allCodeMarks = new List<CodeMark>();
 
             foreach (var line in coveredLines)
             {
-
-                allCodeMarks.Add(new CodeMark { LineNumber=line.Value.LineNumber,
-                                                FileName = line.Value.Module.Name,
-                                                UnitTests = line.Value.UnitTests.Cast<Poco.UnitTest>().ToList()
+                allCodeMarks.Add(new CodeMark
+                {
+                    LineNumber = line.Value.LineNumber,
+                    FileName = line.Value.Module.Name,
+                    UnitTests = line.Value.UnitTests.Cast<UnitTest>().ToList()
                 });
-
             }
             return allCodeMarks;
         }
 
-        void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+        private void TextViewLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-            
             if (e.VerticalTranslation || e.TranslatedLines.Any())
             {
-
                 UpdateCodeMarks();
-
             }
-
         }
 
-        void TextView_GotAggregateFocus (object sender, EventArgs e)
+        private void TextViewGotAggregateFocus(object sender, EventArgs e)
         {
+            _coverageProvider.RecreateCoverage((IWpfTextView) sender);
 
-            _coverageProvider.RecreateCoverage((IWpfTextView)sender);
-
-            this.UpdateCodeMarks();
-
+            UpdateCodeMarks();
         }
 
-        void TextView_ViewportHeightChanged(object sender, EventArgs e)
+        private void TextViewViewportHeightChanged(object sender, EventArgs e)
         {
-
-            this.UpdateCodeMarks();
-
+            UpdateCodeMarks();
         }
 
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        private void TextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            List<int> linesEdited;
+            //List<int> linesEdited;
 
             if (e.Changes.IncludesLineChanges)
             {
                 // Fire and Forget
-                System.Threading.Tasks.Task.Run(() =>
-                {
-                    RunTestsThatCoverCursor();
-                });
-
+                Task.Run(() => { RunTestsThatCoverCursor(); });
             }
         }
 
         private void RunTestsThatCoverCursor()
         {
-            vsCMElement kind = vsCMElement.vsCMElementFunction;
-            var textPoint = GetCursorTextPoint();
+            //var kind = vsCMElement.vsCMElementFunction;
+            TextPoint textPoint = GetCursorTextPoint();
 
-            var codeElement = GetMethodFromTextPoint(textPoint);
+            CodeElement codeElement = GetMethodFromTextPoint(textPoint);
 
-            var projectItem = _dte.ActiveDocument.ProjectItem;
+            ProjectItem projectItem = _dte.ActiveDocument.ProjectItem;
 
             BuildAndRunTests(textPoint, codeElement, projectItem);
-
         }
 
         private void BuildAndRunTests(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
@@ -182,7 +172,6 @@ namespace Leem.Testify
                     _coverageProvider.Queries.AddToTestQueue(testQueue);
 
                     _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, true);
-
                 }
                 else
                 {
@@ -190,180 +179,108 @@ namespace Leem.Testify
                     _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, true);
 
                     RunTestsThatCoverElement(textPoint, codeElement, projectItem);
-
-
                 }
-
             }
         }
 
         private void ThrowIfDisposed()
         {
-
             if (_isDisposed)
                 throw new ObjectDisposedException(MarginName);
-
         }
 
         private void UpdateCodeMarks()
         {
-			// if we have any child in margin canvas then remove them
-            if (marginCanvas.Children.Count > 0)
+            // if we have any child in margin canvas then remove them
+            if (_marginCanvas.Children.Count > 0)
             {
-
-                marginCanvas.Children.Clear();
-
+                _marginCanvas.Children.Clear();
             }
 
             if (_codeMarkManager != null)
             {
-
                 UpdateCodeMarksAsync(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
-
             }
         }
 
-        private async System.Threading.Tasks.Task UpdateCodeMarksAsync(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines) 
+        private async Task UpdateCodeMarksAsync(ConcurrentDictionary<int, CoveredLinePoco> coveredLines)
         {
             UpdateCodeMarks(coveredLines);
         }
 
-        private void UpdateCodeMarks(ConcurrentDictionary<int, Poco.CoveredLinePoco> coveredLines)
+        private void UpdateCodeMarks(ConcurrentDictionary<int, CoveredLinePoco> coveredLines)
         {
-
-            var fcm = _coverageProvider.GetFileCodeModel(_documentName);
+            FileCodeModel fcm = _coverageProvider.GetFileCodeModel(_documentName);
             int apparentLineNumber = 0;
 
-            foreach (var textViewLine in _textViewHost.TextView.TextViewLines.ToList())
+            foreach (ITextViewLine textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
-///Todo calculate offset to account for lines above that are enclosed in a Region and not visible, 
+                //Todo calculate offset to account for lines above that are enclosed in a Region and not visible, 
 ////currently the Glyphs are offset down the screen by collapsed regions above
 
 
-                if (textViewLine.VisibilityState == Microsoft.VisualStudio.Text.Formatting.VisibilityState.FullyVisible && coveredLines.Count > 0)
+                if (textViewLine.VisibilityState == VisibilityState.FullyVisible && coveredLines.Count > 0)
                 {
                     apparentLineNumber++;
-                    var hj = textViewLine.Start.GetContainingLine().LineNumber;
+                    int hj = textViewLine.Start.GetContainingLine().LineNumber;
 
                     // calculate y postion for this particular bookmark
-                    var coveredLine = new Poco.CoveredLinePoco();
+                    var coveredLine = new CoveredLinePoco();
 
-                    var g = _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(x => x.LineNumber.Equals(hj));
+                    ITextSnapshotLine g =
+                        _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(
+                            x => x.LineNumber.Equals(hj));
 
-                    var lineNumber = g.End.GetContainingLine().LineNumber;
-                    var text = g.Extent.GetText();
-                    var isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
+                    //var lineNumber = g.End.GetContainingLine().LineNumber;
+                    //var text = g.Extent.GetText();
+                    bool isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
 
                     if (g.Extent.IsEmpty == false && isCovered && g.Extent.GetText() != "\t\t#endregion")
                     {
                         Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
 
-                        double yPos = (apparentLineNumber - 1) * 16;// GetYCoordinateForBookmark(coveredLine);
+                        double yPos = (apparentLineNumber - 1)*16; // GetYCoordinateForBookmark(coveredLine);
 
-                       // yPos = AdjustYCoordinateForBoundaries(yPos);
+                        // yPos = AdjustYCoordinateForBoundaries(yPos);
 
-                        CodeMarkGlyph glyph;
+                        var glyph = CreateCodeMarkGlyph(coveredLine, yPos);
 
-                        glyph = CreateCodeMarkGlyph(coveredLine, yPos);
-
-                        marginCanvas.Children.Add(glyph);
+                        _marginCanvas.Children.Add(glyph);
                     }
                 }
-
             }
-
+            var pont = new SnapshotPoint(_textViewHost.TextView.TextSnapshot, 0);
+            //var point = _textViewHost.TextView.GetTextViewLineContainingBufferPosition(pont).GetInsertionBufferPositionFromXCoordinate();
+            _textViewHost.TextView.DisplayTextLineContainingBufferPosition(pont, 0.0, ViewRelativePosition.Bottom);
         }
-
-
-        #region IWpfTextViewMargin Members
-
-        /// <summary>
-        /// The <see cref="Sytem.Windows.FrameworkElement"/> that implements the visual representation
-        /// of the margin.
-        /// </summary>
-        public System.Windows.FrameworkElement VisualElement
-        {
-            // Since this margin implements Canvas, this is the object which renders
-            // the margin.
-            get
-            {
-                ThrowIfDisposed();
-                return this;
-            }
-        }
-
-        #endregion
-
-        #region ITextViewMargin Members
-
-        public double MarginSize
-        {
-            // Since this is a horizontal margin, its width will be bound to the width of the text view.
-            // Therefore, its size is its height.
-            get
-            {
-                ThrowIfDisposed();
-                return this.ActualHeight;
-            }
-        }
-
-        public bool Enabled
-        {
-            // The margin should always be enabled
-            get
-            {
-                ThrowIfDisposed();
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Returns an instance of the margin if this is the margin that has been requested.
-        /// </summary>
-        /// <param name="marginName">The name of the margin requested</param>
-        /// <returns>An instance of EditorMargin4 or null</returns>
-        public ITextViewMargin GetTextViewMargin(string marginName)
-        {
-            return (marginName == CoverageMargin.MarginName) ? (IWpfTextViewMargin)this : null;
-        }
-
-        public void Dispose()
-        {
-            if (!_isDisposed)
-            {
-                GC.SuppressFinalize(this);
-                _isDisposed = true;
-            }
-        }
-        #endregion
 
         // create a bookmark glyph for numbered bookmarks
-        private CodeMarkGlyph CreateCodeMarkGlyph(Poco.CoveredLinePoco line, double yPos)
+        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLinePoco line, double yPos)
         {
             // create a glyph
-            CodeMarkGlyph glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos);
-        
+            var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos);
+
             // position it
             Canvas.SetTop(glyph, yPos);
 
             Canvas.SetLeft(glyph, 0);
 
             // set tooltip with the information stored
-            StringBuilder tooltip = new StringBuilder();
+            var tooltip = new StringBuilder();
 
             tooltip.AppendFormat("Covering Tests:\t {0}\n", line.UnitTests.Count);
 
-            var isBroken = !line.UnitTests.Any(x => x.IsSuccessful);
+            bool isBroken = !line.UnitTests.Any(x => x.IsSuccessful);
 
             if (isBroken)
             {
-                foreach (var test in line.UnitTests.Where(x=>x.IsSuccessful.Equals(false)))
+                foreach (UnitTest test in line.UnitTests.Where(x => x.IsSuccessful.Equals(false)))
                 {
-                    tooltip.AppendFormat("{0}\n", System.IO.Path.GetFileName(test.TestMethodName));
+                    tooltip.AppendFormat("{0}\n", Path.GetFileName(test.TestMethodName));
                 }
             }
 
-            foreach (var test in line.UnitTests)
+            foreach (UnitTest test in line.UnitTests)
             {
                 tooltip.AppendFormat("{0}\n", test.TestMethodName);
             }
@@ -389,45 +306,46 @@ namespace Leem.Testify
         }
 
         // get y position for this bookmark
-        private double GetYCoordinateForBookmark(Poco.CoveredLinePoco line)
+        private double GetYCoordinateForBookmark(CoveredLinePoco line)
         {
             // calculate y position from line number with this bookmark
             return GetYCoordinateFromLineNumber(line.LineNumber);
         }
-            
+
 
         // calculate y position from the line number
         private double GetYCoordinateFromLineNumber(int lineNumber)
         {
-            var firstLineNumber = GetFirstVisibleLineNumber(_textViewHost.TextView);
+            int firstLineNumber = GetFirstVisibleLineNumber(_textViewHost.TextView);
 
-            var lineHeight = _textViewHost.TextView.LineHeight;
+            double lineHeight = _textViewHost.TextView.LineHeight;
 
-            var yPosition = (lineNumber - firstLineNumber ) * lineHeight;
+            double yPosition = (lineNumber - firstLineNumber)*lineHeight;
 
-            return Math.Max(yPosition,0); // final position and return it
+            return Math.Max(yPosition, 0); // final position and return it
         }
 
         private int GetFirstVisibleLineNumber(IWpfTextView wpfTextView)
         {
-            var firstLineNumber = wpfTextView.TextViewLines.FirstVisibleLine.Start.GetContainingLine().LineNumber + 1;
+            int firstLineNumber = wpfTextView.TextViewLines.FirstVisibleLine.Start.GetContainingLine().LineNumber + 1;
 
-            var lastLineNumber = wpfTextView.TextViewLines.LastVisibleLine.End.GetContainingLine().LineNumber + 1;
+            //int lastLineNumber = wpfTextView.TextViewLines.LastVisibleLine.End.GetContainingLine().LineNumber + 1;
 
-            var first = wpfTextView.TextViewLines.FirstOrDefault(x => x.VisibilityState == Microsoft.VisualStudio.Text.Formatting.VisibilityState.FullyVisible);
-            
+            //ITextViewLine first =
+                wpfTextView.TextViewLines.FirstOrDefault(x => x.VisibilityState == VisibilityState.FullyVisible);
+
             return firstLineNumber;
         }
 
         private void RunTestsThatCoverElement(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
         {
-            var projectName = projectItem.ContainingProject.UniqueName;
+            string projectName = projectItem.ContainingProject.UniqueName;
 
-            var className = projectItem.Name;
+            string className = projectItem.Name;
 
-            var methodName = codeElement.Name;
+            string methodName = codeElement.Name;
 
-            var lineNumber = textPoint.Line;
+            int lineNumber = textPoint.Line;
 
             _coverageProvider.Queries.RunTestsThatCoverLine(projectName, className, methodName, lineNumber);
         }
@@ -436,30 +354,29 @@ namespace Leem.Testify
         {
             // Discover every code element containing the insertion point.
             string elems = "";
-            vsCMElement scopes = 0;
+            const vsCMElement scopes = 0;
             foreach (vsCMElement scope in Enum.GetValues(scopes.GetType()))
             {
-                CodeElement elem = textPoint.get_CodeElement(scope);
+                CodeElement elem = textPoint.CodeElement[scope];
                 if (elem != null)
                     elems += elem.Name +
-                        " (" + scope.ToString() + ")\n";
+                             " (" + scope + ")\n";
             }
 
             foreach (vsCMElement scope in Enum.GetValues(scopes.GetType()))
             {
-                CodeElement elem = textPoint.get_CodeElement(vsCMElement.vsCMElementFunction);
+                CodeElement elem = textPoint.CodeElement[vsCMElement.vsCMElementFunction];
                 if (elem != null)
                 {
                     return elem;
                 }
-
             }
 
             return null;
         }
 
 
-        private EnvDTE.TextPoint GetCursorTextPoint()
+        private TextPoint GetCursorTextPoint()
         {
             TextPoint textPoint = null;
             try
@@ -467,92 +384,143 @@ namespace Leem.Testify
                 var textSelection = _dte.ActiveDocument.Selection as TextSelection;
                 textPoint = textSelection.ActivePoint;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
             }
 
             return textPoint;
         }
 
-        private CodeElement GetCodeElementAtTextPoint(vsCMElement codeElementKind, CodeElements codeElements, TextPoint textPoint)
+        //private CodeElement GetCodeElementAtTextPoint(vsCMElement codeElementKind, CodeElements codeElements,
+        //    TextPoint textPoint)
+        //{
+        //    CodeElement resultCodeElement = default(CodeElement);
+
+
+        //    if (codeElements != null)
+        //    {
+        //        foreach (CodeElement element in codeElements)
+        //        {
+        //            if (element.StartPoint.GreaterThan(textPoint))
+        //            {
+        //                // The code element starts beyond the point
+        //            }
+        //            else if (element.EndPoint.LessThan(textPoint))
+        //            {
+        //                // The code element ends before the point
+        //            }
+        //            else
+        //            {
+        //                // The code element contains the point
+        //                if (element.Kind == codeElementKind)
+        //                {
+        //                    // Found
+        //                    resultCodeElement = element;
+        //                }
+
+        //                // We enter in recursion, just in case there is an inner code element that also 
+        //                // satisfies the conditions, for example, if we are searching a namespace or a class
+        //                CodeElements colCodeElementMembers = GetCodeElementMembers(element);
+
+        //                CodeElement memberCodeElement = GetCodeElementAtTextPoint(codeElementKind, colCodeElementMembers,
+        //                    textPoint);
+
+        //                if ((memberCodeElement != null))
+        //                {
+        //                    // A nested code element also satisfies the conditions
+        //                    resultCodeElement = memberCodeElement;
+        //                }
+
+        //                break; // TODO: might not be correct. Was : Exit For
+        //            }
+        //        }
+        //    }
+
+        //    return resultCodeElement;
+        //}
+
+        private CodeElements GetCodeElementMembers(CodeElement objCodeElement)
         {
-
-            EnvDTE.CodeElement resultCodeElement = default(EnvDTE.CodeElement);
-            EnvDTE.CodeElements colCodeElementMembers = default(EnvDTE.CodeElements);
-            EnvDTE.CodeElement memberCodeElement = default(EnvDTE.CodeElement);
+            CodeElements colCodeElements = default(CodeElements);
 
 
-            if (codeElements != null)
+            if (objCodeElement is CodeNamespace)
             {
-
-                foreach (EnvDTE.CodeElement element in codeElements)
-                {
-
-                    if (element.StartPoint.GreaterThan(textPoint))
-                    {
-                        // The code element starts beyond the point
-                    }
-                    else if (element.EndPoint.LessThan(textPoint))
-                    {
-                        // The code element ends before the point
-                    }
-                    else
-                    {
-                        // The code element contains the point
-                        if (element.Kind == codeElementKind)
-                        {
-                            // Found
-                            resultCodeElement = element;
-                        }
-
-                        // We enter in recursion, just in case there is an inner code element that also 
-                        // satisfies the conditions, for example, if we are searching a namespace or a class
-                        colCodeElementMembers = GetCodeElementMembers(element);
-
-                        memberCodeElement = GetCodeElementAtTextPoint(codeElementKind, colCodeElementMembers, textPoint);
-
-                        if ((memberCodeElement != null))
-                        {
-                            // A nested code element also satisfies the conditions
-                            resultCodeElement = memberCodeElement;
-                        }
-
-                        break; // TODO: might not be correct. Was : Exit For
-
-                    }
-
-                }
-
+                colCodeElements = ((CodeNamespace) objCodeElement).Members;
             }
-
-            return resultCodeElement;
-
-        }
-
-        private EnvDTE.CodeElements GetCodeElementMembers(CodeElement objCodeElement)
-        {
-
-            EnvDTE.CodeElements colCodeElements = default(EnvDTE.CodeElements);
-
-
-            if (objCodeElement is EnvDTE.CodeNamespace)
+            else if (objCodeElement is CodeType)
             {
-                colCodeElements = ((EnvDTE.CodeNamespace)objCodeElement).Members;
-
-
+                colCodeElements = ((CodeType) objCodeElement).Members;
             }
-            else if (objCodeElement is EnvDTE.CodeType)
+            else if (objCodeElement is CodeFunction)
             {
-                colCodeElements = ((EnvDTE.CodeType)objCodeElement).Members;
-            }
-            else if (objCodeElement is EnvDTE.CodeFunction)
-            {
-                colCodeElements = ((EnvDTE.CodeFunction)objCodeElement).Parameters;
+                colCodeElements = ((CodeFunction) objCodeElement).Parameters;
             }
 
             return colCodeElements;
-
         }
 
+        #region IWpfTextViewMargin Members
+
+        /// <summary>
+        ///     The <see cref="Sytem.Windows.FrameworkElement" /> that implements the visual representation
+        ///     of the margin.
+        /// </summary>
+        public FrameworkElement VisualElement
+        {
+            // Since this margin implements Canvas, this is the object which renders
+            // the margin.
+            get
+            {
+                ThrowIfDisposed();
+                return this;
+            }
+        }
+
+        #endregion
+
+        #region ITextViewMargin Members
+
+        public double MarginSize
+        {
+            // Since this is a horizontal margin, its width will be bound to the width of the text view.
+            // Therefore, its size is its height.
+            get
+            {
+                ThrowIfDisposed();
+                return ActualHeight;
+            }
+        }
+
+        public bool Enabled
+        {
+            // The margin should always be enabled
+            get
+            {
+                ThrowIfDisposed();
+                return true;
+            }
+        }
+
+        /// <summary>
+        ///     Returns an instance of the margin if this is the margin that has been requested.
+        /// </summary>
+        /// <param name="marginName">The name of the margin requested</param>
+        /// <returns>An instance of EditorMargin4 or null</returns>
+        public ITextViewMargin GetTextViewMargin(string marginName)
+        {
+            return (marginName == MarginName) ? this : null;
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                GC.SuppressFinalize(this);
+                _isDisposed = true;
+            }
+        }
+
+        #endregion
     }
 }

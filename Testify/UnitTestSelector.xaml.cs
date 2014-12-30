@@ -1,17 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Leem.Testify
 {
@@ -31,6 +19,11 @@ namespace Leem.Testify
             var x = 1;
             //    // call RemoveBookmark function of the manager on right mouse button down event
             //    _coverageManager.RemoveBookmark(BookmarkNumber);
+        }
+
+        public void Connect(int connectionId, object target)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
-
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using EnvDTE;
@@ -17,32 +13,29 @@ namespace Leem.Testify.VSEvents
     public class CoverageProviderBroker : ICoverageProviderBroker
     {
 
-        private Dictionary<IWpfTextView, CoverageProvider> dictionary;
-         private TestifyQueries _testifyQueries;
+        private Dictionary<string, CoverageProvider> dictionary;
+        private TestifyQueries _testifyQueries;
 
-         [ImportingConstructor]
-         public CoverageProviderBroker(SVsServiceProvider serviceProvider)
-         {
-             dictionary = new Dictionary<IWpfTextView, CoverageProvider>();
-             var dte = (DTE)serviceProvider.GetService(typeof(DTE));
-             _testifyQueries =  TestifyQueries.Instance;
-             TestifyQueries.SolutionName = dte.Solution.FullName;
-         }
-
+        [ImportingConstructor]
+        public CoverageProviderBroker(SVsServiceProvider serviceProvider)
+        {
+            dictionary = new Dictionary<string, CoverageProvider>();
+            var dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            _testifyQueries = TestifyQueries.Instance;
+        }
         ICoverageService coverageService = new CoverageService();
         public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider)
         {
             CoverageProvider provider;
-
-            if (dictionary.TryGetValue(textView, out provider))
+            var filename = CoverageProvider.GetFileName(textView.TextBuffer);
+            if (dictionary.TryGetValue(filename, out provider))
             {
                 return provider;
             }
-            else 
+            else
             {
                 provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries);
-
-                dictionary.Add(textView, provider);
+                dictionary.Add(filename, provider);
             }
 
             return provider;

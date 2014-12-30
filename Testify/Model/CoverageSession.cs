@@ -3,20 +3,20 @@
 //
 // This source code is released under the MIT License; see the accompanying license file.
 //
-using System.Collections.Generic;
 
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace Leem.Testify.Model
 {
     /// <summary>
-    /// A coverage session
+    ///     A coverage session
     /// </summary>
     [XmlRoot("CoverageSession")]
     public class CoverageSession
     {
         /// <summary>
-        /// initialise a coverage session
+        ///     initialise a coverage session
         /// </summary>
         public CoverageSession()
         {
@@ -25,17 +25,17 @@ namespace Leem.Testify.Model
         }
 
         /// <summary>
-        /// A unique session identifier
+        ///     A unique session identifier
         /// </summary>
         public string SessionId { get; set; }
 
         /// <summary>
-        /// A Summary of results for the session
+        ///     A Summary of results for the session
         /// </summary>
         public Summary Summary { get; set; }
 
         /// <summary>
-        /// A list of modules that have been profiled under the session
+        ///     A list of modules that have been profiled under the session
         /// </summary>
         public List<Module> Modules { get; set; }
     }

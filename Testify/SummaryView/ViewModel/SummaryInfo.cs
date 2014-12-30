@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Leem.Testify.SummaryView.ViewModel
 {
     public class SummaryInfo
     {
-        private Poco.Summary _summary;
+        private readonly Poco.Summary _summary;
 
         public SummaryInfo()
         {

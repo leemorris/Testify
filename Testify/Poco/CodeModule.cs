@@ -1,28 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Leem.Testify.Model;
 
 namespace Leem.Testify.Poco
 {
     public class CodeModule
     {
-        public int CodeModuleId { get; set; }
-    
         public CodeModule()
         {
-            this.Classes = new HashSet<CodeClass>();
+            Classes = new HashSet<CodeClass>();
         }
 
-        public CodeModule(Model.Module module)
+        public CodeModule(Module module)
         {
-            this.Classes = new HashSet<CodeClass>();
+            Classes = new HashSet<CodeClass>();
             Name = module.ModuleName;
             Summary = new Summary(module.Summary);
             AssemblyName = module.AssemblyName;
-            
         }
+
+        public int CodeModuleId { get; set; }
+
         public virtual ICollection<CodeClass> Classes { get; set; }
         public string Name { get; set; }
         public string FileName { get; set; }

@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Leem.Testify.Poco
+﻿namespace Leem.Testify.Poco
 {
     public class Summary
     {
-
-
         public Summary(Model.Summary summary)
         {
             BranchCoverage = summary.BranchCoverage;
@@ -39,6 +31,5 @@ namespace Leem.Testify.Poco
         public decimal BranchCoverage { get; set; }
         public int MaxCyclomaticComplexity { get; set; }
         public int MinCyclomaticComplexity { get; set; }
-
     }
 }
