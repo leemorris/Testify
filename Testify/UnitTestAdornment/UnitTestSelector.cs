@@ -207,8 +207,8 @@ namespace Leem.Testify.UnitTestAdornment
                         openDocumentWindow = window;
                         window.Activate();
                         var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
-                        selection.StartOfDocument();
-                        selection.MoveToLineAndOffset(line, column, true);
+                        //selection.StartOfDocument();
+                        selection.MoveToLineAndOffset(line-1, column, true);
 
                         selection.SelectLine();
                     }
