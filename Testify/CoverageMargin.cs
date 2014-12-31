@@ -36,6 +36,7 @@ namespace Leem.Testify
         private readonly Canvas _marginCanvas; // canvas object which is added to the margin to hold glyphs
         private List<CodeMark> _codeMarks;
         private bool _isDisposed;
+        private const int _marginWidth = 18;
 
 
         public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider,
@@ -73,12 +74,9 @@ namespace Leem.Testify
 
             ClipToBounds = true;
             Background = Brushes.Transparent;
-                // _textViewHost.TextView.Background;//. SolidColorBrush(Colors.LightGray);
-
             BorderBrush = Brushes.Transparent;
-                //_textViewHost.TextView.Background; //new SolidColorBrush(Colors.DarkGray);
 
-            Width = 18;
+            Width = (_textViewHost.TextView.ZoomLevel / 100) * _marginWidth;
 
             BorderThickness = new Thickness(0.5);
 
@@ -139,13 +137,12 @@ namespace Leem.Testify
             if (e.Changes.IncludesLineChanges)
             {
                 // Fire and Forget
-                Task.Run(() => { RunTestsThatCoverCursor(); });
+              Task.Run(() => { RunTestsThatCoverCursor(); });
             }
         }
 
         private void RunTestsThatCoverCursor()
         {
-            //var kind = vsCMElement.vsCMElementFunction;
             TextPoint textPoint = GetCursorTextPoint();
 
             CodeElement codeElement = GetMethodFromTextPoint(textPoint);
@@ -215,33 +212,24 @@ namespace Leem.Testify
 
             foreach (ITextViewLine textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
-                //Todo calculate offset to account for lines above that are enclosed in a Region and not visible, 
-////currently the Glyphs are offset down the screen by collapsed regions above
-
-
                 if (textViewLine.VisibilityState == VisibilityState.FullyVisible && coveredLines.Count > 0)
                 {
                     apparentLineNumber++;
                     int hj = textViewLine.Start.GetContainingLine().LineNumber;
 
-                    // calculate y postion for this particular bookmark
                     var coveredLine = new CoveredLinePoco();
 
                     ITextSnapshotLine g =
                         _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(
                             x => x.LineNumber.Equals(hj));
 
-                    //var lineNumber = g.End.GetContainingLine().LineNumber;
-                    //var text = g.Extent.GetText();
                     bool isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
 
                     if (g.Extent.IsEmpty == false && isCovered && g.Extent.GetText() != "\t\t#endregion")
                     {
                         Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
 
-                        double yPos = (apparentLineNumber - 1)*16; // GetYCoordinateForBookmark(coveredLine);
-
-                        // yPos = AdjustYCoordinateForBoundaries(yPos);
+                        double yPos = (_textViewHost.TextView.ZoomLevel / 100) * (apparentLineNumber - 1) * _textViewHost.TextView.LineHeight + (.1 * _textViewHost.TextView.LineHeight); // GetYCoordinateForBookmark(coveredLine);
 
                         var glyph = CreateCodeMarkGlyph(coveredLine, yPos);
 
@@ -250,11 +238,10 @@ namespace Leem.Testify
                 }
             }
             var pont = new SnapshotPoint(_textViewHost.TextView.TextSnapshot, 0);
-            //var point = _textViewHost.TextView.GetTextViewLineContainingBufferPosition(pont).GetInsertionBufferPositionFromXCoordinate();
+
             _textViewHost.TextView.DisplayTextLineContainingBufferPosition(pont, 0.0, ViewRelativePosition.Bottom);
         }
 
-        // create a bookmark glyph for numbered bookmarks
         private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLinePoco line, double yPos)
         {
             // create a glyph
@@ -265,7 +252,7 @@ namespace Leem.Testify
 
             Canvas.SetLeft(glyph, 0);
 
-            // set tooltip with the information stored
+
             var tooltip = new StringBuilder();
 
             tooltip.AppendFormat("Covering Tests:\t {0}\n", line.UnitTests.Count);
@@ -329,11 +316,6 @@ namespace Leem.Testify
         {
             int firstLineNumber = wpfTextView.TextViewLines.FirstVisibleLine.Start.GetContainingLine().LineNumber + 1;
 
-            //int lastLineNumber = wpfTextView.TextViewLines.LastVisibleLine.End.GetContainingLine().LineNumber + 1;
-
-            //ITextViewLine first =
-                wpfTextView.TextViewLines.FirstOrDefault(x => x.VisibilityState == VisibilityState.FullyVisible);
-
             return firstLineNumber;
         }
 
@@ -391,53 +373,6 @@ namespace Leem.Testify
             return textPoint;
         }
 
-        //private CodeElement GetCodeElementAtTextPoint(vsCMElement codeElementKind, CodeElements codeElements,
-        //    TextPoint textPoint)
-        //{
-        //    CodeElement resultCodeElement = default(CodeElement);
-
-
-        //    if (codeElements != null)
-        //    {
-        //        foreach (CodeElement element in codeElements)
-        //        {
-        //            if (element.StartPoint.GreaterThan(textPoint))
-        //            {
-        //                // The code element starts beyond the point
-        //            }
-        //            else if (element.EndPoint.LessThan(textPoint))
-        //            {
-        //                // The code element ends before the point
-        //            }
-        //            else
-        //            {
-        //                // The code element contains the point
-        //                if (element.Kind == codeElementKind)
-        //                {
-        //                    // Found
-        //                    resultCodeElement = element;
-        //                }
-
-        //                // We enter in recursion, just in case there is an inner code element that also 
-        //                // satisfies the conditions, for example, if we are searching a namespace or a class
-        //                CodeElements colCodeElementMembers = GetCodeElementMembers(element);
-
-        //                CodeElement memberCodeElement = GetCodeElementAtTextPoint(codeElementKind, colCodeElementMembers,
-        //                    textPoint);
-
-        //                if ((memberCodeElement != null))
-        //                {
-        //                    // A nested code element also satisfies the conditions
-        //                    resultCodeElement = memberCodeElement;
-        //                }
-
-        //                break; // TODO: might not be correct. Was : Exit For
-        //            }
-        //        }
-        //    }
-
-        //    return resultCodeElement;
-        //}
 
         private CodeElements GetCodeElementMembers(CodeElement objCodeElement)
         {

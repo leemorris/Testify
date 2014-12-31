@@ -30,6 +30,7 @@ namespace Leem.Testify
             YPosition = yPosition;
             this._view = view;
             _coveredLine = line;
+            Ellipse.Height = (view.LineHeight * view.ZoomLevel/100) * .8;
             Ellipse.Width = Ellipse.Height;
             if (!line.UnitTests.Any() && line.IsCode)
             {

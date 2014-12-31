@@ -6,5 +6,7 @@ CREATE INDEX [IX_CodeModule_Name] ON [CodeModule] ([Name] ASC);
 GO
 CREATE INDEX [IX_TestMethodName] ON [UnitTest] ([TestMethodName] ASC);
 GO
+CREATE INDEX [IX_CodeClassId] ON [CoveredLinePoco] ([Class_CodeClassId] ASC);
+GO
 
 

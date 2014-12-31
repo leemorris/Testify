@@ -67,7 +67,7 @@ namespace Leem.Testify.SummaryView
 
                 //CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
 
-                if (type == "Leem.Testify.MethodViewModel")
+                if (type == "Leem.Testify.SummaryView.ViewModel.MethodViewModel")
                 {
                     clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 

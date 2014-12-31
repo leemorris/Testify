@@ -173,15 +173,27 @@ namespace Leem.Testify
 
         public IEnumerable<CoveredLinePoco> GetCoveredLines(TestifyContext context, string className)
         {
-            var sw = new Stopwatch();
 
-            sw.Restart();
+            //context.Database.Log = L => Log.Debug(L);
+            var module = new Poco.CodeModule();
+            IEnumerable<CodeMethod> methods = new List<CodeMethod>();
+            IEnumerable<CoveredLinePoco> coveredLines = new List<CoveredLinePoco>();
+            IEnumerable<UnitTest> unitTests;
 
-            var coveredLines = context.CoveredLines
-                                        .Include(u => u.UnitTests)
-                                        .Include(mo => mo.Module).Include(c =>c.Class)
-                                        .Include(me =>me.Method)
-                                        .Where(x => x.Class.Name.Equals(className));
+            var clas = context.CodeClass.FirstOrDefault(c=> c.Name == className);
+
+
+            module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
+
+            var sw = Stopwatch.StartNew();
+            coveredLines = context.CoveredLines.Where(line => line.Class.CodeClassId == clas.CodeClassId)
+                .Include(u => u.UnitTests)
+                .Include(me => me.Method).ToList();
+
+            sw.Stop();
+            Log.DebugFormat("Get CoveredLines with Include {0} ms.",sw.ElapsedMilliseconds);
+
+            coveredLines.Select(x => { x.Module = module; return x; });
 
             return coveredLines;
         }

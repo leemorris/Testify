@@ -151,23 +151,28 @@ namespace Leem.Testify
 
         private void GetCoveredLinesFromCodeModel(FileCodeModel fcm)
         {
+            var sw = Stopwatch.StartNew();
             IList<CodeElement> classes;
             IList<CodeElement> methods;
             var getCodeBlocksSw = Stopwatch.StartNew();
+
             CodeModelService.GetCodeBlocks(fcm, out classes, out methods);
             _log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
             var coveredLines = new List<CoveredLinePoco>();
-            var sw = new Stopwatch();
-            sw.Restart();
-            foreach (CodeElement codeClass in classes.ToList())
-            {
-                using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
-                {
-                    IEnumerable<CoveredLinePoco> lines = Queries.GetCoveredLines(context, codeClass.FullName);
 
-                    coveredLines.AddRange(lines);
-                }
+            IEnumerable<CoveredLinePoco> lines;
+
+            using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
+            {
+                lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
             }
+
+            _log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
+
+            var addRangeSw = Stopwatch.StartNew();
+            coveredLines.AddRange(lines);
+            _log.DebugFormat("coveredLines.AddRange Elapsed Time {0}", addRangeSw.ElapsedMilliseconds);
+
 
             sw.Stop();
 
