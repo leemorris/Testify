@@ -490,8 +490,11 @@ namespace Leem.Testify
 
             List<Module> sessionModules = coverageSession.Modules;
             Module module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
+            Module testModule = sessionModules.FirstOrDefault(x => x.ModuleName != projectAssemblyName);
             IEnumerable<TrackedMethod> tests =
                 sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
+            var testsRun = tests.Where(x => uniqueIds.Contains((int)x.UniqueId));
+            var methodsTested = module.Classes.SelectMany(m => m.Methods).Where(x=> x.SequenceCoverage > 0);
 
             if (module != null)
             {
@@ -506,20 +509,10 @@ namespace Leem.Testify
                 _log.DebugFormat("First Module Name: {0}", module.ModuleName);
                 _log.DebugFormat("Number of Classes: {0}", classes.Count());
 
-                foreach (Class moduleClass in classes)
-                {
-                    if (!moduleClass.FullName.Contains("_"))
-                    {
-                        var codeClass = new CodeClass
-                        {
-                            Name = moduleClass.FullName,
-                            Summary = new Summary(moduleClass.Summary)
-                        };
 
-                        List<Method> methods = moduleClass.Methods;
-
-                        foreach (Method method in methods)
+                foreach (Method method in methodsTested)
                         {
+                            
                             string methodName = method.Name.ToString();
                             if (!methodName.Contains("_")
                                 && !methodName.StartsWith("get_")
@@ -530,29 +523,44 @@ namespace Leem.Testify
                                     Name = method.Name,
                                     Summary = new Summary(method.Summary)
                                 };
+                                string modifiedMethodName = methodName;
+                                if (method.IsConstructor)
+                                {
+                                    modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(methodName);
+                                    modifiedMethodName = modifiedMethodName.Replace("..","::.");
+                                }
+
+                             
+                                var modelClass = module.Classes.SelectMany(clas => clas.Methods).FirstOrDefault(m => m.Name.Contains(modifiedMethodName));
+                                var codeClass = new CodeClass
+                                {
+                                    Name = modelClass.Name,
+                                    Summary = new Summary(modelClass.Summary)
+                                };
 
                                 List<SequencePoint> sequencePoints = method.SequencePoints;
                                 foreach (SequencePoint sequencePoint in sequencePoints)
                                 {
-                                    if (tests.Any())
+                                    if (testsRun.Any())
                                     {
-                                        //var coveringTests = new List<Poco.TrackedMethod>();
+                                        var coveredLine = new LineCoverageInfo
+                                        {
+                                            IsCode = true,
+                                            LineNumber = sequencePoint.StartLine,
+                                            IsCovered = (sequencePoint.VisitCount > 0),
+                                            Module = codeModule,
+                                            Class = codeClass,
+                                            Method = codeMethod,
+                                            FileName = module.Files.FirstOrDefault(x => x.UniqueId == method.FileRef.UniqueId).FullPath,
+                                            //   UnitTests = testsRun.ToList()
+                                        };
 
                                         foreach (TrackedMethodRef trackedMethodRef in sequencePoint.TrackedMethodRefs)
                                         {
-                                            var coveredLine = new LineCoverageInfo
-                                            {
-                                                IsCode = true,
-                                                LineNumber = sequencePoint.StartLine,
-                                                IsCovered = (sequencePoint.VisitCount > 0),
-                                                Module = codeModule,
-                                                Class = codeClass,
-                                                Method = codeMethod
-                                            };
 
                                             IEnumerable<TrackedMethod> testsThatCoverLine =
-                                                tests.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
-
+                                                testsRun.Where(y => y.UniqueId.Equals(trackedMethodRef.UniqueId));
+                                            var fileNames = module.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
                                             foreach (TrackedMethod test in testsThatCoverLine)
                                             {
                                                 coveredLine.IsCode = true;
@@ -568,14 +576,15 @@ namespace Leem.Testify
                                                 });
                                             }
 
-                                            coveredLines.Add(coveredLine);
+                                            
                                         }
+                                        coveredLines.Add(coveredLine);
                                     }
                                 }
                             }
                         }
-                    }
-                }
+                    //}
+                //}
             }
 
             return coveredLines;

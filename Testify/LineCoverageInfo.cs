@@ -27,5 +27,7 @@ namespace Leem.Testify
         public List<UnitTest> UnitTests { get; set; }
 
         public string FileName { get; set; }
+
+        public object IsBranch { get; set; }
     }
 }

@@ -18,10 +18,8 @@ namespace Leem.Testify
 {
     public class TestifyContext : DbContext
     {
-
         public TestifyContext() : base("name=TestifyDb") { }
-
-
+        
         public TestifyContext(string solutionName)
             : base(new SqlCeConnection(GetConnectionString(solutionName)),
              contextOwnsConnection: true)
@@ -49,6 +47,8 @@ namespace Leem.Testify
 
         public DbSet<UnitTest> UnitTests { get; set; }
 
+        //public DbSet<Config> Configuration { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
@@ -75,7 +75,6 @@ namespace Leem.Testify
             modelBuilder.Entity<TrackedMethod>()
                 .HasKey(x => x.UnitTestId);
        
-
             modelBuilder.Entity<TrackedMethod>()
                 .Ignore(t => t.MetadataToken);
 
@@ -94,10 +93,6 @@ namespace Leem.Testify
                     mc.MapRightKey("UnitTestId");
                     mc.ToTable("CoveredLineUnitTest");
                 });
-
-            //modelBuilder.Entity<UnitTest>()
-            //    .Ignore(c => c.MetadataToken);
-
 
         }
 

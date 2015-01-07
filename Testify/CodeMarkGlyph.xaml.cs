@@ -37,7 +37,7 @@ namespace Leem.Testify
                 Ellipse.Fill = new SolidColorBrush(Colors.Orange);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Orange);
             }
-            else if (line.UnitTests.Any(x => x.IsSuccessful.Equals(true)))
+            else if (line.UnitTests.All(x => x.IsSuccessful.Equals(true)))
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Green);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Green);

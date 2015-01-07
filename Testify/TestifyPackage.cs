@@ -70,16 +70,9 @@ namespace Leem.Testify
                 _log.DebugFormat("Log4net.config path: " + file.ToString());
                 ConfigureLogging(file);
 
-                //todo look into why this directory is needed
-                //var directory = @"c:\WIP\Testify\DataLayer\";
-                //var path = Path.Combine(directory, @"TestifyCE.sdf;password=lactose");
-
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
-                _timer = new System.Timers.Timer {Interval = 3000, Enabled = true, AutoReset = true};
-                _timer.Elapsed += new ElapsedEventHandler(ProcessIndividualTestQueue);
-                _timer.Elapsed += new ElapsedEventHandler(ProcessProjectLevelQueue);
-
-
+                _timer = new System.Timers.Timer {Interval = 30000, Enabled = true, AutoReset = true};
+                _timer.Elapsed += new ElapsedEventHandler(ProcessTestQueue);
  
             }
             catch (Exception ex)
@@ -184,22 +177,22 @@ namespace Leem.Testify
             }
         }
 
-        private void ProcessIndividualTestQueue(object source, ElapsedEventArgs e)
+        private void ProcessTestQueue(object source, ElapsedEventArgs e)
         {
             if (_service != null)
             {
-                _service.ProcessIndividualTestQueue(++_testRunId);
+                _service.ProcessTestQueue(++_testRunId);
             }
 
         }
 
-        private void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
-        {
-            if (_service != null)
-            {
-                _service.ProcessProjectTestQueue(++_testRunId);
-            }
-        }
+        //private void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
+        //{
+        //    if (_service != null)
+        //    {
+        //        _service.ProcessProjectTestQueue(++_testRunId);
+        //    }
+        //}
 
         private async void VerifyProjects(IVsSolution solution, string projectName)
         {

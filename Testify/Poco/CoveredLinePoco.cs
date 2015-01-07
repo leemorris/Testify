@@ -24,5 +24,7 @@ namespace Leem.Testify.Poco
 
         public virtual ICollection<TrackedMethod> TrackedMethods { get; set; }
         public virtual ICollection<UnitTest> UnitTests { get; set; }
+
+        public object IsBranch { get; set; }
     }
 }

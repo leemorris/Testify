@@ -181,19 +181,22 @@ namespace Leem.Testify
             IEnumerable<UnitTest> unitTests;
 
             var clas = context.CodeClass.FirstOrDefault(c=> c.Name == className);
+            if (clas != null)
+            {
 
 
-            module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
+                module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
 
-            var sw = Stopwatch.StartNew();
-            coveredLines = context.CoveredLines.Where(line => line.Class.CodeClassId == clas.CodeClassId)
-                .Include(u => u.UnitTests)
-                .Include(me => me.Method).ToList();
+                var sw = Stopwatch.StartNew();
+                coveredLines = context.CoveredLines.Where(line => line.Class.CodeClassId == clas.CodeClassId)
+                    .Include(u => u.UnitTests)
+                    .Include(me => me.Method).ToList();
 
-            sw.Stop();
-            Log.DebugFormat("Get CoveredLines with Include {0} ms.",sw.ElapsedMilliseconds);
-
-            coveredLines.Select(x => { x.Module = module; return x; });
+                sw.Stop();
+                Log.DebugFormat("Get CoveredLines with Include {0} ms.", sw.ElapsedMilliseconds);
+                coveredLines.Select(x => { x.Module = module; return x; });
+            }
+            
 
             return coveredLines;
         }
@@ -225,6 +228,36 @@ namespace Leem.Testify
 
                 var testsToMarkInProgress = new List<TestQueue>();
 //Todo is this doing what is intended
+
+                if (nextItem != null)
+                {
+                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
+                }
+
+                return nextItem;
+            }
+
+        }
+
+        public QueuedTest GetProjectTestQueue(int testRunId)  
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                QueuedTest nextItem = null;
+
+                if (context.TestQueue.All(x => x.TestRunId == 0))// there aren't any tests currently running
+                 {
+
+                    var query = (from queueItem in context.TestQueue
+                                 where queueItem.IndividualTest == null
+                                 orderby queueItem.QueuedDateTime
+                                 group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest { ProjectName = x.Key });
+
+                    nextItem = query.FirstOrDefault();
+
+                }
+
+                var testsToMarkInProgress = new List<TestQueue>();
 
                 if (nextItem != null)
                 {
@@ -289,35 +322,6 @@ namespace Leem.Testify
             }
         }
 
-        public QueuedTest GetProjectTestQueue(int testRunId) // List<TestQueueItem> 
-        {
-            using (var context = new TestifyContext(_solutionName))
-            {
-                QueuedTest nextItem = null;
-
-                if (context.TestQueue.Where(i => i.IndividualTest == null).All(x => x.TestRunId == 0))// there aren't any Project tests currently running
-                {
-
-                    var query = (from queueItem in context.TestQueue
-                                 where queueItem.IndividualTest == null
-                                 orderby queueItem.QueuedDateTime
-                                 group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest { ProjectName = x.Key });
-
-                    nextItem = query.FirstOrDefault();
-
-                }
-
-                var testsToMarkInProgress = new List<TestQueue>();
-
-                if (nextItem != null)
-                {
-                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
-                }
-
-                return nextItem;
-            }
-
-        }
 
         public IList<TestProject> GetTestProjects()
         {
@@ -358,7 +362,7 @@ namespace Leem.Testify
                 //context.Database.Log = L => Log.Debug(L);
                 var query = (from line in context.CoveredLines.Include(x => x.UnitTests)
 
-                             where line.Method.Name.ToString().Contains(methodNameFragment)
+                             where line.Method.Name.Contains(methodNameFragment)
                              select line.UnitTests);
 
                 tests = query.SelectMany(x => x).ToList();
@@ -463,7 +467,7 @@ namespace Leem.Testify
 
         }
 
-        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, ProjectInfo projectInfo, List<string> individualTests)
+        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput,ProjectInfo projectInfo, List<string> individualTests)
         {
             Log.DebugFormat("SaveCoverageSessionResults for ModuleName {0} ", projectInfo.ProjectName);
             var setUpSW = new Stopwatch();
@@ -481,12 +485,16 @@ namespace Leem.Testify
             sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
 
             var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
-            setUpSW.Stop();   
+            setUpSW.Stop();
+
+
+            SaveUnitTestResults(testOutput, testModule);
+
 
             var updateSummariesSW = new Stopwatch();
             updateSummariesSW.Start();
 
-            UpdateModulesClassesMethodsSummaries(sessionModule);
+          
             updateSummariesSW.Stop();
       
             try
@@ -494,7 +502,7 @@ namespace Leem.Testify
                 if (individualTests == null || !individualTests.Any())
                 {
                     // Tests have been run on the whole module, so any line not in CoverageSession is not "Covered"
-
+                    UpdateModulesClassesMethodsSummaries(sessionModule);
                     newCoveredLineInfos = coverageService.GetCoveredLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName);
                     Log.DebugFormat("Count of Lines From CoverageSession = {0} ", newCoveredLineInfos.Count);
                     var newCoveredLineList = new List<CoveredLinePocoDto>();
@@ -647,6 +655,35 @@ namespace Leem.Testify
                             newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestUniqueIds);
                             changedClasses = newCoveredLineInfos.Select(x => x.Class.Name).Distinct().ToList();
                         }
+                        foreach (var line in newCoveredLineInfos.ToList())
+                        {
+                            string xx = line.Method.Name;
+                            var modifiedLine = context.CoveredLines.FirstOrDefault(x => x.Method.Name == line.Method.Name);
+                            if (modifiedLine != null)
+                            {
+                                modifiedLine.IsBranch = line.IsBranch;
+                                modifiedLine.IsCode = line.IsCode;
+                                modifiedLine.IsCovered = line.IsCovered;
+                               // modifiedLine.IsSuccessful = line.UnitTests.All(y => y.IsSuccessful);
+                            }
+                            else 
+                            {
+                                var coveredLine = new CoveredLinePoco{Class=line.Class,
+                                    FileName=line.FileName,
+                                    //IsBranch=line.IsBranch,
+                                    IsCode=line.IsCode, 
+                                    IsCovered=line.IsCovered,
+                                    IsSuccessful=line.UnitTests.All(y => y.IsSuccessful),
+                                    LineNumber=line.LineNumber,
+                                    Method=line.Method,
+                                    Module=line.Module,
+                                    TrackedMethods=line.TrackedMethods,
+                                    //UnitTests=line.UnitTests
+                                };
+
+                                context.CoveredLines.Add(coveredLine);
+                            }
+                        }
                         context.SaveChanges();
                     }
 
@@ -691,6 +728,9 @@ namespace Leem.Testify
 
             if (existingLine.IsCovered != line.IsCovered)
                 existingLine.IsCovered = line.IsCovered;
+
+            if (existingLine.IsBranch != line.IsBranch)
+                existingLine.IsBranch = line.IsBranch;
 
             if (existingLine.FileName != line.FileName)
                 existingLine.FileName = line.FileName;
@@ -744,7 +784,7 @@ namespace Leem.Testify
         //        }
         //    }
         //}
-        public void SaveUnitTestResults(resultType testOutput)
+        public void SaveUnitTestResults(resultType testOutput, Module testModule)
         {
 
             string runDate = testOutput.date;
@@ -752,29 +792,27 @@ namespace Leem.Testify
             string runTime = testOutput.time;
 
             string fileName = testOutput.name;
-           
-     
+
+            var extractedMethods = testModule.Classes.SelectMany(c => c.Methods);
+            var filePathDictionary = (from m in extractedMethods
+                                      join t in testModule.TrackedMethods on m.MetadataToken equals t.MetadataToken
+                                      join f in testModule.Files on m.FileRef.UniqueId equals f.UniqueId
+                                      select new { t.Name, f.FullPath })
+                                    .ToDictionary(mc => mc.Name.Substring(mc.Name.IndexOf(" ") + 1),
+                                                  mc => mc.FullPath);
 
             var unitTests = GetUnitTests(testOutput.testsuite);
 
-            foreach (var test in unitTests)
-            {
-                test.LastRunDatetime = runDate + " " + runTime;
+            //foreach (var test in unitTests)
+            //{
 
-                test.AssemblyName = fileName;
 
-                if (test.IsSuccessful)
-                {
-                    test.LastSuccessfulRunDatetime = DateTime.Parse(test.LastRunDatetime);
+            //    if (test.TestMethodName.Contains("("))
+            //    {
+            //        Debug.WriteLine("test.TestMethodName= {0}", test.TestMethodName);
+            //    }
 
-                }
-
-                if (test.TestMethodName.Contains("("))
-                {
-                    Debug.WriteLine("test.TestMethodName= {0}", test.TestMethodName);
-                }
-
-            }
+            //}
 
             using (var context = new TestifyContext(_solutionName))
             {
@@ -784,11 +822,24 @@ namespace Leem.Testify
                     foreach (var test in unitTests)
                     {
                         var existingTest = context.UnitTests.FirstOrDefault(y => y.TestMethodName.Equals(test.TestMethodName));
+                        test.LastRunDatetime = runDate + " " + runTime;
+
+                        test.AssemblyName = fileName;
+
+                        if (test.IsSuccessful)
+                        {
+                            test.LastSuccessfulRunDatetime = DateTime.Parse(test.LastRunDatetime);
+                        }
 
                         if (existingTest == null)
                         {
                             // todo get the actual line number from the FileCodeModel for this unit test, to be used in the bookmark
                             test.LineNumber = 1;
+
+                            var testName = ConvertUnitTestFormatToFormatTrackedMethod(test.TestMethodName);
+                            string filePath;
+                            filePathDictionary.TryGetValue(testName, out filePath);
+                            test.FilePath = filePath;
 
                             context.UnitTests.Add(test);
 
@@ -797,11 +848,11 @@ namespace Leem.Testify
                         }
                         else
                         {
-                            test.UnitTestId = existingTest.UnitTestId;
-
+                            //test.UnitTestId = existingTest.UnitTestId;
+                            //existingTest.FilePath = test.FilePath;
                             existingTest.LastSuccessfulRunDatetime = test.LastSuccessfulRunDatetime;
 
-                            context.Entry(existingTest).CurrentValues.SetValues(test);
+                           // context.Entry(existingTest).CurrentValues.SetValues(test);
                         }
 
                     }
@@ -958,7 +1009,7 @@ namespace Leem.Testify
                 // if we are running all the tests for the project, we can remove all the individual and Project tests 
                 foreach (var testToRun in nextItem.IndividualTests)
                 {
-                    testsToMarkInProgress = context.TestQueue.Where(x => x.IndividualTest.Equals(testToRun)).ToList();
+                    testsToMarkInProgress.Add(context.TestQueue.FirstOrDefault(x => x.IndividualTest.Equals(testToRun)));
                 }
             }
 
@@ -1165,13 +1216,11 @@ namespace Leem.Testify
 
         private void UpdateCodeMethods(Class codeClass, CodeClass pocoCodeClass, ILookup<string, CodeMethod> methodLookup)
         {
-            foreach (var moduleMethod in codeClass.Methods)
+            foreach (var moduleMethod in codeClass.Methods.Where(x=>x.SkippedDueTo != SkippedMethod.AutoImplementedProperty))
             {
                 var moduleMethodName = moduleMethod.Name;
                 var codeMethod = methodLookup[moduleMethodName].FirstOrDefault();
-            
-
-
+ 
                     if (codeMethod != null)
                     {
                         UpdateSummary(moduleMethod.Summary, codeMethod.Summary);
@@ -1396,7 +1445,7 @@ namespace Leem.Testify
                             if (matchingUnitTest != null)
                             {
                                 string filePath;
-                                filePathDictionary.TryGetValue((int)trackedMethod.MetadataToken,out filePath);
+                                filePathDictionary.TryGetValue((int)trackedMethod.MetadataToken, out filePath);
                                 matchingUnitTest.TestProjectUniqueName = testProjectUniqueName;
                                 trackedMethod.UnitTestId = matchingUnitTest.UnitTestId;
                                 matchingUnitTest.FilePath = filePath;
@@ -1404,7 +1453,7 @@ namespace Leem.Testify
 
                                 var method = extractedMethods.FirstOrDefault(x => x.MetadataToken == trackedMethod.MetadataToken);
 
-                                var methodInfo = coverageService.UpdateMethodLocation(method, filePath);
+                                var methodInfo = coverageService.UpdateMethodLocation(method, matchingUnitTest.FilePath);
                                 matchingUnitTest.LineNumber = methodInfo.Line;
                                 
                                // UpdateCodeMethodPath(methodInfo);

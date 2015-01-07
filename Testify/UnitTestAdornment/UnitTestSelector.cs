@@ -13,6 +13,8 @@ using Leem.Testify.Poco;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Window = EnvDTE.Window;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Leem.Testify.UnitTestAdornment
 {
@@ -162,6 +164,56 @@ namespace Leem.Testify.UnitTestAdornment
             _layer.RemoveAllAdornments();
         }
 
+        ///// <summary>
+        ///// Gets IVsTextView for a file
+        ///// </summary>
+        ///// <param name="file">File path</param>
+        ///// <param name="forceOpen">Whether the file should be opened, if it's closed</param>
+        ///// <param name="activate">Whether the window frame should be activated (focused)</param>        
+        //public static IVsTextView GetTextViewForFile(string file, bool forceOpen, bool activate)
+        //{
+        //    if (string.IsNullOrEmpty(file)) throw new ArgumentNullException("file");
+
+        //    IVsWindowFrame frame = GetWindowFrameForFile(file, forceOpen);
+
+        //    if (frame != null)
+        //    {
+        //        if (forceOpen || activate) frame.Show();
+        //        if (activate)
+        //        {
+        //            VsShellUtilities.GetWindowObject(frame).Activate();
+        //        }
+        //        return VsShellUtilities.GetTextView(frame);
+        //    }
+        //    else throw new Exception("Cannot get window frame for " + file);
+        //}
+        ///// Gets IVsWindowFrame for a file
+        ///// </summary>
+        ///// <param name="file">File path</param>
+        ///// <param name="forceOpen">Whether the file should be opened, if it's closed</param>        
+        //public static IVsWindowFrame GetWindowFrameForFile(string file, bool forceOpen)
+        //{
+        //    if (string.IsNullOrEmpty(file)) throw new ArgumentNullException("file");
+
+        //    IVsUIHierarchy uiHierarchy;
+        //    uint itemID;
+        //    IVsWindowFrame windowFrame;
+
+        //    if (VsShellUtilities.IsDocumentOpen(serviceProvider, file, Guid.Empty, out uiHierarchy, out itemID, out windowFrame))
+        //    {
+        //        return windowFrame;
+        //    }
+        //    else if (forceOpen)
+        //    {
+        //        VsShellUtilities.OpenDocument(serviceProvider, file);
+        //        if (VsShellUtilities.IsDocumentOpen(serviceProvider, file, Guid.Empty, out uiHierarchy, out itemID, out windowFrame))
+        //        {
+        //            return windowFrame;
+        //        }
+        //        else throw new InvalidOperationException("Cannot force open file " + file);
+        //    }
+        //    else return null;
+        //}
         private void TestName_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             string unitTestMethodName = ((TextBox) sender).Text;
@@ -176,13 +228,14 @@ namespace Leem.Testify.UnitTestAdornment
             string filePath = unitTest.FilePath;
             line = unitTest.LineNumber;
             var dte = Package.GetGlobalService(typeof (DTE)) as DTE2;
-
+            //var textViewForUnitTestFile = GetTextViewForFile(filePath,true,true);
+            //textViewForUnitTestFile.SetSelection();
             if (!string.IsNullOrEmpty(filePath) && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
                 openDocumentWindow = dte.ItemOperations.OpenFile(filePath);
                 if (openDocumentWindow != null)
                 {
-                    openDocumentWindow.Activate();
+                    ActivateWindowAtUnitTest(line, column, openDocumentWindow);
                 }
                 else
                 {
@@ -191,6 +244,7 @@ namespace Leem.Testify.UnitTestAdornment
                         if (dte.Documents.Item(i).Name == name)
                         {
                             openDocumentWindow = dte.Documents.Item(i).ProjectItem.Document.ActiveWindow;
+                            ActivateWindowAtUnitTest(line, column, openDocumentWindow);
                         }
                     }
                 }
@@ -204,16 +258,22 @@ namespace Leem.Testify.UnitTestAdornment
                     if (window.Document != null && window
                         .Document.FullName.Equals(filePath, StringComparison.OrdinalIgnoreCase))
                     {
-                        openDocumentWindow = window;
-                        window.Activate();
-                        var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
-                        //selection.StartOfDocument();
-                        selection.MoveToLineAndOffset(line-1, column, true);
-
-                        selection.SelectLine();
+                        //openDocumentWindow = window;
+                        ActivateWindowAtUnitTest(line, column, window);
                     }
                 }
             }
+        }
+
+        private static void ActivateWindowAtUnitTest(int line, int column, Window window)
+        {
+            //openDocumentWindow.Selection;
+            window.Activate();
+            var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
+            ////selection.StartOfDocument();
+            selection.MoveToLineAndOffset(line - 1, column, true);
+
+            selection.SelectLine();
         }
     }
 }

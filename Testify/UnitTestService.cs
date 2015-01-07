@@ -15,20 +15,14 @@ namespace Leem.Testify
 
     public class UnitTestService
     {
-        //private  List<TestQueue> _testQueue;
-        //private string _testOutputDirectory;
         private readonly string _solutionDirectory;
         private readonly string _solutionName;
-        //private DTE _dte;
-        //private List<string> _projectNames;
         private readonly ITestifyQueries _queries;
         private readonly string _openCoverCommandLine;
         private readonly string _outputFolder;
         private readonly ILog Log = LogManager.GetLogger(typeof(UnitTestService));
         private readonly string _nunitPath;
         public event CoverageChangedHandler CoverageChanged;
-
-        //public string ProjectFileName { get; set; }
         
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
@@ -37,8 +31,6 @@ namespace Leem.Testify
             _queries = TestifyQueries.Instance;
 
             TestifyQueries.SolutionName = solutionName;
-
-            //_dte = dte;
 
             _solutionName = solutionName;
 
@@ -126,7 +118,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                  // Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                 }
             }
             catch(Exception ex)
@@ -160,10 +152,10 @@ namespace Leem.Testify
             Log.DebugFormat("Coverage and Test Result Files Read Elapsed Time = {0}", sw.ElapsedMilliseconds);
             sw.Reset();
 
-            _queries.SaveUnitTestResults(testOutput);
+
             Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
             sw.Reset();
-            await _queries.SaveCoverageSessionResults(coverageSession, projectInfo, testQueueItem.IndividualTests);
+            await _queries.SaveCoverageSessionResults(coverageSession, testOutput,projectInfo, testQueueItem.IndividualTests);
             Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
 
             Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
@@ -232,14 +224,18 @@ namespace Leem.Testify
             testParameters.Append(_outputFolder);
             testParameters.Append(fileNameGuid);
             testParameters.Append("-result.xml");
-            testParameters.Append(" /noshadow");
+
             testParameters.Append(" /timeout=" + timeout);
             testParameters.Append("\"");
             testParameters.Append(" -coverbytest:*.Test.dll -hideskipped: ");
             testParameters.Append(Path.GetFileNameWithoutExtension(projectName));
+            testParameters.Append(" -skipautoprops: ");
+            
             testParameters.Append(" -filter:\"+[" + projectInfo.ProjectAssemblyName + "]* +[" + projectInfo.TestProject.AssemblyName + "]* \"");
+            testParameters.Append("  -targetdir:" + Path.GetDirectoryName(projectInfo.TestProject.Path));
             testParameters.Append(" -register:user -output:");
             testParameters.Append(_outputFolder);
+            
             return testParameters;
         }
 
@@ -283,20 +279,25 @@ namespace Leem.Testify
             return codeCoverage;
         }
 
-        public void ProcessIndividualTestQueue(int testRunId)
+        public void ProcessTestQueue(int testRunId)
         {
 
             var queuedTest = _queries.GetIndividualTestQueue(testRunId);
 
-             if (queuedTest != null)
-             {
-                 Log.DebugFormat("Ready to run another test from Individual Test queue");
+            if (queuedTest != null)
+            {
+                Log.DebugFormat("Ready to run another test from Individual Test queue");
 
-                 queuedTest.TestStartTime = DateTime.Now;
+                queuedTest.TestStartTime = DateTime.Now;
 
-                 RunAllNunitTestsForProject(queuedTest);
-
-             }
+                RunAllNunitTestsForProject(queuedTest);
+              
+                
+            }
+            else 
+            {
+                ProcessProjectTestQueue(testRunId);
+            }
         }
 
         public void ProcessProjectTestQueue(int testRunId)
