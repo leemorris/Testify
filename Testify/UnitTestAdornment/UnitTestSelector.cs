@@ -24,10 +24,8 @@ namespace Leem.Testify.UnitTestAdornment
         private static Pen solidPen;
         private static Pen dashPen;
         private readonly IAdornmentLayer _layer;
-        //private ICollection<UnitTest> collection;
         private ITestifyQueries _queries;
-        //private Geometry textGeometry;
-        //private double vertPos;
+
 
         public UnitTestSelector(double ypos, UnitTestAdornment coveredLineInfo, IAdornmentLayer layer)
         {
@@ -63,7 +61,6 @@ namespace Leem.Testify.UnitTestAdornment
             var Margin = new Thickness(marginWidth, 0, marginWidth, 0);
 
             Grid postGrid = new Grid();
-            //this.postGrid.ShowGridLines = true;
 
             postGrid.RowDefinitions.Add(new RowDefinition());
             postGrid.RowDefinitions.Add(new RowDefinition());
@@ -80,7 +77,6 @@ namespace Leem.Testify.UnitTestAdornment
 
             var inf = new Size(double.PositiveInfinity, double.PositiveInfinity);
             tb.Measure(inf);
-            //this.postGrid.Width = 600;//tb.DesiredSize.Width + 2 * MarginWidth;
 
             Grid.SetColumn(rect, 0);
             Grid.SetRow(rect, 0);
@@ -96,10 +92,11 @@ namespace Leem.Testify.UnitTestAdornment
             Grid.SetColumnSpan(header, 3);
             header.Content = string.Format("Unit tests covering Line # {0}", coveredLineInfo.CoveredLine.LineNumber);
             postGrid.Children.Add(header);
-
-            for (int i = 0; i < coveredLineInfo.CoveredLine.UnitTests.Count; i++)
+            var unitTests = coveredLineInfo.CoveredLine.UnitTests;
+            var sortedUnitTests = unitTests.OrderByDescending(x => x.IsSuccessful ? 0 : 1).ToList();
+            for (int i = 0; i < sortedUnitTests.Count; i++)
             {
-                UnitTest test = coveredLineInfo.CoveredLine.UnitTests.ElementAt(i);
+                UnitTest test = sortedUnitTests.ElementAt(i);
                 postGrid.RowDefinitions.Add(new RowDefinition());
                 var icon = new Label {Background = backgroundBrush, BorderBrush = borderBrush, FocusVisualStyle = null};
                 if (test.IsSuccessful)
@@ -124,25 +121,26 @@ namespace Leem.Testify.UnitTestAdornment
                     Foreground = textBrush,
                     Background = backgroundBrush,
                     BorderBrush = borderBrush,
-                    FocusVisualStyle = null
+                    FocusVisualStyle = null,
+                    DataContext = test,
+                    Text = test.TestMethodName,
+                    Margin = Margin
                 };
-                testName.DataContext = test;
+
                 var testBinding = new Binding("TestMethodName");
-                testName.Text = test.TestMethodName;
+
                 testName.MouseDoubleClick += TestName_MouseDoubleClick;
                 testName.SetBinding(TextBox.TextProperty, testBinding);
                 Grid.SetRow(testName, i + 1);
                 Grid.SetColumn(testName, 1);
                 postGrid.Children.Add(testName);
                 testName.Measure(inf);
-                testName.Margin = Margin;
-                // testName.Width =( 2* testName.DesiredSize.Width) + 2 * MarginWidth; 
+
                 if (testName.DesiredSize.Width > desiredSize)
                 {
                     desiredSize = testName.DesiredSize.Width;
                 }
             }
-
 
             SetLeft(postGrid, 0);
             SetTop(postGrid, ypos);
@@ -164,56 +162,7 @@ namespace Leem.Testify.UnitTestAdornment
             _layer.RemoveAllAdornments();
         }
 
-        ///// <summary>
-        ///// Gets IVsTextView for a file
-        ///// </summary>
-        ///// <param name="file">File path</param>
-        ///// <param name="forceOpen">Whether the file should be opened, if it's closed</param>
-        ///// <param name="activate">Whether the window frame should be activated (focused)</param>        
-        //public static IVsTextView GetTextViewForFile(string file, bool forceOpen, bool activate)
-        //{
-        //    if (string.IsNullOrEmpty(file)) throw new ArgumentNullException("file");
 
-        //    IVsWindowFrame frame = GetWindowFrameForFile(file, forceOpen);
-
-        //    if (frame != null)
-        //    {
-        //        if (forceOpen || activate) frame.Show();
-        //        if (activate)
-        //        {
-        //            VsShellUtilities.GetWindowObject(frame).Activate();
-        //        }
-        //        return VsShellUtilities.GetTextView(frame);
-        //    }
-        //    else throw new Exception("Cannot get window frame for " + file);
-        //}
-        ///// Gets IVsWindowFrame for a file
-        ///// </summary>
-        ///// <param name="file">File path</param>
-        ///// <param name="forceOpen">Whether the file should be opened, if it's closed</param>        
-        //public static IVsWindowFrame GetWindowFrameForFile(string file, bool forceOpen)
-        //{
-        //    if (string.IsNullOrEmpty(file)) throw new ArgumentNullException("file");
-
-        //    IVsUIHierarchy uiHierarchy;
-        //    uint itemID;
-        //    IVsWindowFrame windowFrame;
-
-        //    if (VsShellUtilities.IsDocumentOpen(serviceProvider, file, Guid.Empty, out uiHierarchy, out itemID, out windowFrame))
-        //    {
-        //        return windowFrame;
-        //    }
-        //    else if (forceOpen)
-        //    {
-        //        VsShellUtilities.OpenDocument(serviceProvider, file);
-        //        if (VsShellUtilities.IsDocumentOpen(serviceProvider, file, Guid.Empty, out uiHierarchy, out itemID, out windowFrame))
-        //        {
-        //            return windowFrame;
-        //        }
-        //        else throw new InvalidOperationException("Cannot force open file " + file);
-        //    }
-        //    else return null;
-        //}
         private void TestName_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             string unitTestMethodName = ((TextBox) sender).Text;
@@ -223,13 +172,12 @@ namespace Leem.Testify.UnitTestAdornment
 
             string name = string.Empty;
             Window openDocumentWindow;
-            //string clickedMethodName = string.Empty;
+
             var unitTest = _queries.GetUnitTestByName(unitTestMethodName).FirstOrDefault();
             string filePath = unitTest.FilePath;
             line = unitTest.LineNumber;
             var dte = Package.GetGlobalService(typeof (DTE)) as DTE2;
-            //var textViewForUnitTestFile = GetTextViewForFile(filePath,true,true);
-            //textViewForUnitTestFile.SetSelection();
+
             if (!string.IsNullOrEmpty(filePath) && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
                 openDocumentWindow = dte.ItemOperations.OpenFile(filePath);
@@ -267,10 +215,9 @@ namespace Leem.Testify.UnitTestAdornment
 
         private static void ActivateWindowAtUnitTest(int line, int column, Window window)
         {
-            //openDocumentWindow.Selection;
             window.Activate();
             var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
-            ////selection.StartOfDocument();
+
             selection.MoveToLineAndOffset(line - 1, column, true);
 
             selection.SelectLine();

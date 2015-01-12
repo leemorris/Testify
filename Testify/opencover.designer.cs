@@ -142,7 +142,7 @@ namespace Lactose
                 System.IO.FileInfo xmlFile = new System.IO.FileInfo(fileName);
                 streamWriter = xmlFile.CreateText();
                 streamWriter.WriteLine(xmlString);
-                streamWriter.Close();
+                //streamWriter.Close();
             }
             finally
             {
@@ -192,7 +192,7 @@ namespace Lactose
                 sr = new System.IO.StreamReader(file);
                 string xmlString = sr.ReadToEnd();
                 sr.Close();
-                file.Close();
+                //file.Close();
                 return Deserialize(xmlString);
             }
             finally

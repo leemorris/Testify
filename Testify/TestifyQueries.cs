@@ -467,14 +467,267 @@ namespace Leem.Testify
 
         }
 
-        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput,ProjectInfo projectInfo, List<string> individualTests)
+        //public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput,ProjectInfo projectInfo, List<string> individualTests)
+        //{
+        //    Log.DebugFormat("SaveCoverageSessionResults for ModuleName {0} ", projectInfo.ProjectName);
+        //    var setUpSW = new Stopwatch();
+        //    setUpSW.Start();
+        //    var coverageService = CoverageService.Instance;
+        //    coverageService.Queries = this;
+
+        //    coverageService.SolutionName = _solutionName;
+
+        //    var changedClasses = new List<string>();
+
+        //    IList<LineCoverageInfo> newCoveredLineInfos = new List<LineCoverageInfo>();
+
+        //    var sessionModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
+        //    sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
+
+        //    var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
+        //    setUpSW.Stop();
+
+
+        //    SaveUnitTestResults(testOutput, testModule);
+
+
+        //    var updateSummariesSW = new Stopwatch();
+        //    updateSummariesSW.Start();
+
+          
+        //    updateSummariesSW.Stop();
+      
+        //    try
+        //    {
+        //        if (individualTests == null || !individualTests.Any())
+        //        {
+        //            // Tests have been run on the whole module, so any line not in CoverageSession is not "Covered"
+        //            UpdateModulesClassesMethodsSummaries(sessionModule);
+        //            newCoveredLineInfos = coverageService.GetCoveredLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName);
+        //            Log.DebugFormat("Count of Lines From CoverageSession = {0} ", newCoveredLineInfos.Count);
+        //            var newCoveredLineList = new List<CoveredLinePocoDto>();
+
+        //            UpdateUnitTests(testModule);
+
+        //            using (var context = new TestifyContext(_solutionName))
+        //            {
+        //                try
+        //                {
+        //                    //context.Database.Log = L => Log.Debug(L);
+        //                    var outerSW = new Stopwatch();
+        //                    outerSW.Start();
+        //                    var contextSW = new Stopwatch();
+        //                    var addNewLineSW = new Stopwatch();
+        //                    var coveredLineSW = new Stopwatch();
+        //                    var unitTestByNameSW = new Stopwatch();
+        //                    var processExistingLinesSW = new Stopwatch();
+        //                    var parseMethodNameSW = new Stopwatch();
+
+        //                    var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
+        //                    var trackedMethodLoopSW = new Stopwatch();
+                            
+        //                    //var unitTests = context.UnitTests.Where(x => x.AssemblyName.Contains(projectInfo.TestProject.Path));
+        //                    ILookup<string, CodeMethod> methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m );
+        //                    ILookup<string, CodeClass> classLookup = context.CodeClass.ToLookup(c => c.Name, c => c );
+        //                    ILookup<string, UnitTest> unitTestLookup = context.UnitTests.ToLookup(c => c.TestMethodName, c => c);
+
+        //                    var module = context.CodeModule.FirstOrDefault(x => x.Name.Equals(sessionModule.ModuleName));
+        //                    // The module has a list of file names and each method has a file uid. Need to use this to set the file name of the method 
+        //                    // and use NRefactory to get Line number of the Method
+
+        //                    foreach (var line in newCoveredLineInfos)
+        //                    {
+        //                        contextSW.Start();
+        //                        await GetModuleClassMethodForLine(context, line, methodLookup, classLookup);
+        //                        line.Module = module;
+        //                        contextSW.Stop();
+        //                        parseMethodNameSW.Start();
+
+        //                        CoveredLinePoco existingLine = null;
+
+        //                        //CSharp.Task.WhenAll(getModuleClassMethodTask);
+        //                        coveredLineSW.Start();
+        //                        existingLine =  await GetCoveredLinesByClassAndLine(existingCoveredLines, line);
+        //                        coveredLineSW.Stop();                         
+        //                        if (existingLine != null)
+        //                        {
+        //                            processExistingLinesSW.Start();
+        //                            changedClasses.Add(await ProcessExistingLine(unitTestLookup, line, existingLine));
+        //                            processExistingLinesSW.Stop();
+
+        //                        }
+        //                        else 
+        //                        {
+        //                            var methodName = line.MethodName.ToString();
+        //                            var isNotAnonOrGetterSetter = !methodName.Contains("__")
+        //                                                            && !methodName.Contains("::get_")
+        //                                                            && !methodName.Contains("::set_");
+        //                            parseMethodNameSW.Stop();
+        //                            if (isNotAnonOrGetterSetter) 
+        //                            {
+        //                                addNewLineSW.Start();
+        //                                var newCoverage = ConstructCoveredLinePocoDto(line);
+
+        //                                newCoveredLineList.Add(newCoverage);
+        //                                //context.CoveredLines.Add(newCoverage);
+        //                                addNewLineSW.Stop();
+        //                            }
+
+        //                        }
+
+
+        //                        ///todo remove  deleted Unit Tests
+        //                        ///
+      
+        //                    }
+
+        //                    changedClasses.AddRange(newCoveredLineInfos.Select(x => x.Class.Name).Distinct().ToList());
+
+        //                    outerSW.Stop();
+
+        //                    Log.DebugFormat("SaveCoverageSessionResults Elapsed Times");
+        //                    Log.DebugFormat("Setup Elapsed Time: {0} ms", setUpSW.ElapsedMilliseconds);
+        //                    Log.DebugFormat("  Update Summaries Elapsed Time: {0} ms", updateSummariesSW.ElapsedMilliseconds);
+                            
+                            
+        //                    Log.DebugFormat("Outer Loop in Elapsed Time: {0} ms", outerSW.ElapsedMilliseconds);
+        //                    Log.DebugFormat("  Access Context Elapsed Time:{0}", contextSW.ElapsedMilliseconds);
+        //                    Log.DebugFormat("  Parse Method Names Elapsed Time: {0}", parseMethodNameSW.ElapsedMilliseconds);
+        //                    Log.DebugFormat("  Add New Line Elapsed Time: {0}", addNewLineSW.ElapsedMilliseconds);
+        //                    Log.DebugFormat("    Process ExistingLines Elapsed Time: {0}", processExistingLinesSW.ElapsedMilliseconds);
+                           
+                        
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
+        //                }
+                       
+        //                DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
+        //                // var isDirty = CheckForChanges(context);
+
+        //                try
+        //                {
+        //                    context.SaveChanges();
+        //                }
+        //                catch (DbEntityValidationException dbEx)
+        //                {
+        //                    foreach (var validationErrors in dbEx.EntityValidationErrors)
+        //                    {
+        //                        foreach (var validationError in validationErrors.ValidationErrors)
+        //                        {
+        //                            Log.ErrorFormat("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
+        //                        }
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
+        //                }
+
+
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Only a single unit test was run, so only the lines in the CoverageSession will be updated
+        //            // Get the MetadataTokens for the unitTests we just ran
+
+        //            var individualTestUniqueIds = new List<int>();
+
+        //            foreach (var test in individualTests)
+        //            {
+        //                var testMethodName = ConvertUnitTestFormatToFormatTrackedMethod(test);
+        //                individualTestUniqueIds.Add((int)testModule.TrackedMethods
+        //                                                         .Where(x => x.Name.Contains(testMethodName))
+        //                                                         .FirstOrDefault().UniqueId);
+        //            }
+
+        //            // GetMetadatTokenForUnitTest(individualTests);                     
+
+        //            using (var context = new TestifyContext(_solutionName))
+        //            {
+        //                //context.Database.Log = L => Log.Debug(L);
+        //                var unitTests = context.UnitTests.Where(x => individualTests.Contains(x.TestMethodName));
+
+        //                List<int> unitTestIds = unitTests.Select(x => x.UnitTestId).ToList();
+
+        //                if (unitTestIds != null)
+        //                {
+        //                    newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestUniqueIds);
+        //                    changedClasses = newCoveredLineInfos.Select(x => x.Class.Name).Distinct().ToList();
+        //                }
+        //                foreach (var line in newCoveredLineInfos.ToList())
+        //                {
+        //                    string xx = line.Method.Name;
+        //                    var modifiedLine = context.CoveredLines.FirstOrDefault(x => x.Method.Name == line.Method.Name);
+        //                    if (modifiedLine != null)
+        //                    {
+        //                        string changedClass = string.Empty;// await ProcessExistingLine(unitTestLookup, line, modifiedLine);
+        //                        changedClasses.Add(changedClass);
+        //                        // should I be using ProcessExistingLine here?
+
+        //                        //modifiedLine.IsBranch = line.IsBranch;
+        //                        //modifiedLine.IsCode = line.IsCode;
+        //                        //modifiedLine.IsCovered = line.IsCovered;
+        //                       // modifiedLine.IsSuccessful = line.UnitTests.All(y => y.IsSuccessful);
+        //                    }
+        //                    else 
+        //                    {
+        //                        var coveredLine = new CoveredLinePoco{Class=line.Class,
+        //                            FileName=line.FileName,
+        //                            //IsBranch=line.IsBranch,
+        //                            IsCode=line.IsCode, 
+        //                            IsCovered=line.IsCovered,
+        //                            IsSuccessful=line.UnitTests.All(y => y.IsSuccessful),
+        //                            LineNumber=line.LineNumber,
+        //                            Method=line.Method,
+        //                            Module=line.Module,
+        //                            TrackedMethods=line.TrackedMethods,
+        //                            //UnitTests=line.UnitTests
+        //                        };
+
+        //                        context.CoveredLines.Add(coveredLine);
+        //                        changedClasses.Add(coveredLine.Class.Name);
+        //                    }
+        //                }
+        //                context.SaveChanges();
+        //            }
+
+
+        //        }
+
+                
+        //        RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule);
+        //        // Fire and Forget
+        //        //System.Threading.Tasks.Task.Run(() =>
+        //        //{
+        //        //    UpdateClassesAndMethods(project);
+        //        //});
+        //        OnClassChanged(changedClasses);
+        //        Log.DebugFormat("SaveCoverageSessionResults exiting ");
+        //        return changedClasses;
+
+        //    }
+
+        //    catch (Exception ex)
+        //    {
+
+        //        Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
+        //        return new List<string>();
+
+        //    }
+        //}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo, List<string> individualTests)
         {
             Log.DebugFormat("SaveCoverageSessionResults for ModuleName {0} ", projectInfo.ProjectName);
-            var setUpSW = new Stopwatch();
-            setUpSW.Start();
+
             var coverageService = CoverageService.Instance;
             coverageService.Queries = this;
-
             coverageService.SolutionName = _solutionName;
 
             var changedClasses = new List<string>();
@@ -485,26 +738,20 @@ namespace Leem.Testify
             sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
 
             var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
-            setUpSW.Stop();
-
 
             SaveUnitTestResults(testOutput, testModule);
 
-
-            var updateSummariesSW = new Stopwatch();
-            updateSummariesSW.Start();
-
-          
-            updateSummariesSW.Stop();
-      
             try
             {
                 if (individualTests == null || !individualTests.Any())
                 {
                     // Tests have been run on the whole module, so any line not in CoverageSession is not "Covered"
-                    UpdateModulesClassesMethodsSummaries(sessionModule);
+                    foreach (var module in coverageSession.Modules) 
+                    {
+                        UpdateModulesClassesMethodsSummaries(module);
+                    }
+                    
                     newCoveredLineInfos = coverageService.GetCoveredLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName);
-                    Log.DebugFormat("Count of Lines From CoverageSession = {0} ", newCoveredLineInfos.Count);
                     var newCoveredLineList = new List<CoveredLinePocoDto>();
 
                     UpdateUnitTests(testModule);
@@ -513,116 +760,38 @@ namespace Leem.Testify
                     {
                         try
                         {
-                            //context.Database.Log = L => Log.Debug(L);
-                            var outerSW = new Stopwatch();
-                            outerSW.Start();
-                            var contextSW = new Stopwatch();
-                            var addNewLineSW = new Stopwatch();
-                            var coveredLineSW = new Stopwatch();
-                            var unitTestByNameSW = new Stopwatch();
-                            var processExistingLinesSW = new Stopwatch();
-                            var parseMethodNameSW = new Stopwatch();
-
-                            var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
-                            var trackedMethodLoopSW = new Stopwatch();
-                            
-                            //var unitTests = context.UnitTests.Where(x => x.AssemblyName.Contains(projectInfo.TestProject.Path));
-                            ILookup<string, CodeMethod> methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m );
-                            ILookup<string, CodeClass> classLookup = context.CodeClass.ToLookup(c => c.Name, c => c );
-                            ILookup<string, UnitTest> unitTestLookup = context.UnitTests.ToLookup(c => c.TestMethodName, c => c);
+                             var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
 
                             var module = context.CodeModule.FirstOrDefault(x => x.Name.Equals(sessionModule.ModuleName));
                             // The module has a list of file names and each method has a file uid. Need to use this to set the file name of the method 
                             // and use NRefactory to get Line number of the Method
 
-                            foreach (var line in newCoveredLineInfos)
-                            {
-                                contextSW.Start();
-                                await GetModuleClassMethodForLine(context, line, methodLookup, classLookup);
-                                line.Module = module;
-                                contextSW.Stop();
-                                parseMethodNameSW.Start();
+                            var modifiedLines=await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module);
+ 
+                            foreach (var item in modifiedLines)
+	                        {
+                                var newCoverage = ConstructCoveredLinePocoDto(item);
+                                newCoveredLineList.Add(newCoverage);
+                                changedClasses.Add(item.ClassName);
+	                        }
 
-                                CoveredLinePoco existingLine = null;
-
-                                //CSharp.Task.WhenAll(getModuleClassMethodTask);
-                                coveredLineSW.Start();
-                                existingLine =  await GetCoveredLinesByClassAndLine(existingCoveredLines, line);
-                                coveredLineSW.Stop();                         
-                                if (existingLine != null)
-                                {
-                                    processExistingLinesSW.Start();
-                                    ProcessExistingLine(unitTestLookup, line, existingLine);
-                                    processExistingLinesSW.Stop();
-
-                                }
-                                else 
-                                {
-                                    var methodName = line.MethodName.ToString();
-                                    var isNotAnonOrGetterSetter = !methodName.Contains("__")
-                                                                    && !methodName.Contains("::get_")
-                                                                    && !methodName.Contains("::set_");
-                                    parseMethodNameSW.Stop();
-                                    if (isNotAnonOrGetterSetter) 
-                                    {
-                                        addNewLineSW.Start();
-                                        var newCoverage = ConstructCoveredLine(line);
-
-                                        newCoveredLineList.Add(newCoverage);
-                                        //context.CoveredLines.Add(newCoverage);
-                                        addNewLineSW.Stop();
-                                    }
-
-                                }
-
-
-                                ///todo remove  deleted Unit Tests
-                                ///
-      
-                            }
-
-                            outerSW.Stop();
-
-                            Log.DebugFormat("SaveCoverageSessionResults Elapsed Times");
-                            Log.DebugFormat("Setup Elapsed Time: {0} ms", setUpSW.ElapsedMilliseconds);
-                            Log.DebugFormat("  Update Summaries Elapsed Time: {0} ms", updateSummariesSW.ElapsedMilliseconds);
-                            
-                            
-                            Log.DebugFormat("Outer Loop in Elapsed Time: {0} ms", outerSW.ElapsedMilliseconds);
-                            Log.DebugFormat("  Access Context Elapsed Time:{0}", contextSW.ElapsedMilliseconds);
-                            Log.DebugFormat("  Parse Method Names Elapsed Time: {0}", parseMethodNameSW.ElapsedMilliseconds);
-                            Log.DebugFormat("  Add New Line Elapsed Time: {0}", addNewLineSW.ElapsedMilliseconds);
-                            Log.DebugFormat("    Process ExistingLines Elapsed Time: {0}", processExistingLinesSW.ElapsedMilliseconds);
-                           
-                        
                         }
                         catch (Exception ex)
                         {
                             Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
                         }
-                       
-                        DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
-                        // var isDirty = CheckForChanges(context);
 
+                        DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
+ 
                         try
                         {
                             context.SaveChanges();
                         }
-                        catch (DbEntityValidationException dbEx)
-                        {
-                            foreach (var validationErrors in dbEx.EntityValidationErrors)
-                            {
-                                foreach (var validationError in validationErrors.ValidationErrors)
-                                {
-                                    Log.ErrorFormat("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
-                                }
-                            }
-                        }
+
                         catch (Exception ex)
                         {
                             Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
                         }
-
 
                     }
                 }
@@ -641,11 +810,8 @@ namespace Leem.Testify
                                                                  .FirstOrDefault().UniqueId);
                     }
 
-                    // GetMetadatTokenForUnitTest(individualTests);                     
-
                     using (var context = new TestifyContext(_solutionName))
                     {
-                        //context.Database.Log = L => Log.Debug(L);
                         var unitTests = context.UnitTests.Where(x => individualTests.Contains(x.TestMethodName));
 
                         List<int> unitTestIds = unitTests.Select(x => x.UnitTestId).ToList();
@@ -655,64 +821,80 @@ namespace Leem.Testify
                             newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestUniqueIds);
                             changedClasses = newCoveredLineInfos.Select(x => x.Class.Name).Distinct().ToList();
                         }
-                        foreach (var line in newCoveredLineInfos.ToList())
-                        {
-                            string xx = line.Method.Name;
-                            var modifiedLine = context.CoveredLines.FirstOrDefault(x => x.Method.Name == line.Method.Name);
-                            if (modifiedLine != null)
-                            {
-                                modifiedLine.IsBranch = line.IsBranch;
-                                modifiedLine.IsCode = line.IsCode;
-                                modifiedLine.IsCovered = line.IsCovered;
-                               // modifiedLine.IsSuccessful = line.UnitTests.All(y => y.IsSuccessful);
-                            }
-                            else 
-                            {
-                                var coveredLine = new CoveredLinePoco{Class=line.Class,
-                                    FileName=line.FileName,
-                                    //IsBranch=line.IsBranch,
-                                    IsCode=line.IsCode, 
-                                    IsCovered=line.IsCovered,
-                                    IsSuccessful=line.UnitTests.All(y => y.IsSuccessful),
-                                    LineNumber=line.LineNumber,
-                                    Method=line.Method,
-                                    Module=line.Module,
-                                    TrackedMethods=line.TrackedMethods,
-                                    //UnitTests=line.UnitTests
-                                };
 
-                                context.CoveredLines.Add(coveredLine);
-                            }
+                        var module = context.CodeModule.FirstOrDefault(x => x.Name.Equals(sessionModule.ModuleName));
+                        var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
+                        var modifiedLines = await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module);
+
+                        foreach (var item in modifiedLines)
+                        {
+                            context.CoveredLines.Add(ConstructCoveredLinePoco(item));
                         }
                         context.SaveChanges();
                     }
 
-
                 }
 
-                
                 RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule);
-                // Fire and Forget
-                //System.Threading.Tasks.Task.Run(() =>
-                //{
-                //    UpdateClassesAndMethods(project);
-                //});
-                OnClassChanged(changedClasses);
+
+                OnClassChanged(changedClasses.Distinct().ToList());
                 Log.DebugFormat("SaveCoverageSessionResults exiting ");
                 return changedClasses;
-
             }
-
             catch (Exception ex)
             {
-
                 Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
                 return new List<string>();
-
             }
         }
 
+        private async CSharp.Task<List<LineCoverageInfo>> AddOrUpdateCoveredLine(IList<string> changedClasses, IList<LineCoverageInfo> newCoveredLineList, TestifyContext context, ILookup<int, CoveredLinePoco> existingCoveredLines, CodeModule module)
+        {
+            var modifiedLineCoverageInfos = new List<LineCoverageInfo>();
+            ILookup<string, CodeMethod> methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m);
+            ILookup<string, CodeClass> classLookup = context.CodeClass.ToLookup(c => c.Name, c => c);
+            ILookup<string, UnitTest> unitTestLookup = context.UnitTests.ToLookup(c => c.TestMethodName, c => c);
 
+            foreach (var line in newCoveredLineList)
+            {
+                await GetModuleClassMethodForLine(context, line, methodLookup, classLookup);
+                line.Module = module;
+                CoveredLinePoco existingLine = null;
+
+                existingLine = await GetCoveredLinesByClassAndLine(existingCoveredLines, line);
+
+                if (existingLine != null)
+                {
+                    var changedClass = await ProcessExistingLine(unitTestLookup, line, existingLine);
+                    if(changedClass != string.Empty)
+                        changedClasses.Add(changedClass);
+                }
+                else
+                {
+                    var methodName = line.MethodName.ToString();
+                    var isNotAnonOrGetterSetter = !methodName.Contains("__")
+                                                    && !methodName.Contains("::get_")
+                                                    && !methodName.Contains("::set_");
+                    if (isNotAnonOrGetterSetter)
+                    {
+                        modifiedLineCoverageInfos.Add(line);
+                    }
+
+                }
+
+
+                ///todo remove  deleted Unit Tests
+                ///
+
+            }
+            return modifiedLineCoverageInfos;
+        }
+///////////////////////////////////////////////////////////
+
+
+
+
+ 
         private async CSharp.Task GetModuleClassMethodForLine(TestifyContext context, LineCoverageInfo line, ILookup<string,CodeMethod> methodLookup, ILookup<string,CodeClass> classLookup)
         {
             line.Class = classLookup[line.ClassName].FirstOrDefault();
@@ -720,20 +902,23 @@ namespace Leem.Testify
 
         }
 
-        private async CSharp.Task ProcessExistingLine(ILookup<string, UnitTest> unitTestLookup, LineCoverageInfo line, Poco.CoveredLinePoco existingLine)
+        private async CSharp.Task<string> ProcessExistingLine(ILookup<string, UnitTest> unitTestLookup, LineCoverageInfo line, Poco.CoveredLinePoco existingLine)
         {
+            var classThatChanged = string.Empty;
 
-            if (existingLine.IsCode != line.IsCode)
+            if (  existingLine.IsCode != line.IsCode
+               || existingLine.IsCovered != line.IsCovered
+               || existingLine.IsBranch != line.IsBranch
+               || existingLine.FileName != line.FileName)
+            {
                 existingLine.IsCode = line.IsCode;
-
-            if (existingLine.IsCovered != line.IsCovered)
                 existingLine.IsCovered = line.IsCovered;
-
-            if (existingLine.IsBranch != line.IsBranch)
                 existingLine.IsBranch = line.IsBranch;
-
-            if (existingLine.FileName != line.FileName)
                 existingLine.FileName = line.FileName;
+                classThatChanged = existingLine.Class.Name;
+            }
+
+             
 
             // Todo Profile and refactor to improve performance
             foreach (var trackedMethod in line.TrackedMethods)
@@ -747,12 +932,13 @@ namespace Leem.Testify
                     if (!existingLine.UnitTests.Any(x => x.UnitTestId == matchingUnitTest.UnitTestId))
                     {
                         existingLine.UnitTests.Add(matchingUnitTest);
+                        classThatChanged = existingLine.Class.Name;
                     }
                 }
 
 
             }
-
+            return classThatChanged;
         }
 
         private async CSharp.Task ProcessTrackedMethods(TestifyContext context, Stopwatch unitTestByNameSW, LineCoverageInfo line, ILookup<string, UnitTest> unitTestLookup)
@@ -767,23 +953,7 @@ namespace Leem.Testify
             }
         }
 
-        //public void SaveUnitTest(UnitTest test)
-        //{
-        //    using (var context = new TestifyContext(_solutionName))
-        //    {
-        //        context.UnitTests.Add(test);
 
-        //        try
-        //        {
-        //            context.SaveChanges();
-        //        }
-
-        //        catch (Exception ex)
-        //        {
-        //            Log.ErrorFormat("Error SaveUnitTest, InnerException:{0}, UnitTest Name: {1}", ex.InnerException, test.TestMethodName);
-        //        }
-        //    }
-        //}
         public void SaveUnitTestResults(resultType testOutput, Module testModule)
         {
 
@@ -803,16 +973,6 @@ namespace Leem.Testify
 
             var unitTests = GetUnitTests(testOutput.testsuite);
 
-            //foreach (var test in unitTests)
-            //{
-
-
-            //    if (test.TestMethodName.Contains("("))
-            //    {
-            //        Debug.WriteLine("test.TestMethodName= {0}", test.TestMethodName);
-            //    }
-
-            //}
 
             using (var context = new TestifyContext(_solutionName))
             {
@@ -884,10 +1044,8 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-                //context.Database.Log = L => Log.Debug(L);
                 foreach (var currentTrackedMethod in trackedMethods)
                 {
-                    //var existingTrackedMethod = context.TrackedMethods.Find(currentTrackedMethod.MetadataToken);
                     var existingTrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(currentTrackedMethod.Name));
 
                     if (existingTrackedMethod == null)
@@ -897,23 +1055,9 @@ namespace Leem.Testify
 
                 }
 
-                _sw.Stop();
-
-                Log.DebugFormat("UpdateTrackedMethods Elapsed Time {0} milliseconds", _sw.ElapsedMilliseconds);
-
                 try
                 {
                     context.SaveChanges();
-                }
-                catch (DbEntityValidationException dbEx)
-                {
-                    foreach (var validationErrors in dbEx.EntityValidationErrors)
-                    {
-                        foreach (var validationError in validationErrors.ValidationErrors)
-                        {
-                            Log.ErrorFormat("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
-                        }
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -935,7 +1079,7 @@ namespace Leem.Testify
             }
         }
 
-        private static CoveredLinePocoDto ConstructCoveredLine(LineCoverageInfo line)
+        private static CoveredLinePocoDto ConstructCoveredLinePocoDto(LineCoverageInfo line)
         {
 
             var newCoverage = new CoveredLinePocoDto
@@ -953,6 +1097,26 @@ namespace Leem.Testify
             return newCoverage;
         }
 
+        private static CoveredLinePoco ConstructCoveredLinePoco(LineCoverageInfo line)
+        {
+
+            var coveredLine = new CoveredLinePoco
+            {
+                Class = line.Class,
+                FileName = line.FileName,
+                //IsBranch=line.IsBranch,
+                IsCode = line.IsCode,
+                IsCovered = line.IsCovered,
+                IsSuccessful = line.UnitTests.All(y => y.IsSuccessful),
+                LineNumber = line.LineNumber,
+                Method = line.Method,
+                Module = line.Module,
+                TrackedMethods = line.TrackedMethods,
+                //UnitTests=line.UnitTests
+            };
+
+            return coveredLine;
+        }
         private static void DoBulkCopy(string tableName, IEnumerable<CoveredLinePocoDto> coveredLines, TestifyContext context)
         {
             //var options = new SqlCeBulkCopyOptions();
@@ -1253,29 +1417,19 @@ namespace Leem.Testify
                 foreach (var coveredLine in coveredLines)
                 {
                     var line = newCoveredLineInfos.FirstOrDefault(x => x.Method != null && x.Method.CodeMethodId.Equals(coveredLine.Method.CodeMethodId) && x.LineNumber.Equals(coveredLine.LineNumber));
-                
-                    string testMethodName = string.Empty;
 
                     if (line != null && line.TrackedMethods.Any())
                     {
-                        testMethodName = line.TrackedMethods.FirstOrDefault().NameInUnitTestFormat;
-                    }
-
-                    var unitTests = unitTestLookup[testMethodName];
-                    
-                    foreach (var test in unitTests)
-                    {
-                        coveredLine.UnitTests.Add(test);
-                    }
-
-                    if (unitTests.Any(x => x.IsSuccessful == true))
-                    {
-                        coveredLine.IsSuccessful = true;
-                    }
-
-                    if (unitTests.Any(x => x.IsSuccessful == false))
-                    {
-                        coveredLine.IsSuccessful = false;
+                        string testMethodName  = line.TrackedMethods.FirstOrDefault().NameInUnitTestFormat;
+                        coveredLine.UnitTests = unitTestLookup[testMethodName].ToList();
+                        if (coveredLine.UnitTests.All(x => x.IsSuccessful == true))
+                        {
+                            coveredLine.IsSuccessful = true;
+                        }
+                        else
+                        {
+                            coveredLine.IsSuccessful = false;
+                        }
                     }
 
                 }

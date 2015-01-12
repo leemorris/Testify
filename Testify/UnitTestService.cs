@@ -22,7 +22,7 @@ namespace Leem.Testify
         private readonly string _outputFolder;
         private readonly ILog Log = LogManager.GetLogger(typeof(UnitTestService));
         private readonly string _nunitPath;
-        public event CoverageChangedHandler CoverageChanged;
+
         
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {

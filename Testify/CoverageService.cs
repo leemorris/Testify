@@ -118,65 +118,62 @@ namespace Leem.Testify
             foreach (Module sessionModule in sessionModules)
             {
                 _log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
-            }
+                //}
 
-            Module module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
-            //var testModule = sessionModules.Where(y => y.ModuleName != projectAssemblyName).FirstOrDefault();
+                //Module module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
+                //var testModule = sessionModules.Where(y => y.ModuleName != projectAssemblyName).FirstOrDefault();
 
 
-            IEnumerable<TrackedMethod> tests =
-                sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
+                IEnumerable<TrackedMethod> tests =
+                    sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
 
-            if (module != null)
-            {
-                List<Class> classes = module.Classes;
-
-                _log.DebugFormat("First Module Name: {0}", module.ModuleName);
-                _log.DebugFormat("Number of Classes: {0}", classes.Count());
-
-                foreach (var codeClass in classes)
+                if (sessionModule != null)
                 {
-                    List<Method> methods = codeClass.Methods;
+                    List<Class> classes = sessionModule.Classes;
 
-                    foreach (var method in methods)
+                    _log.DebugFormat("First Module Name: {0}", sessionModule.ModuleName);
+                    _log.DebugFormat("Number of Classes: {0}", classes.Count());
+
+                    foreach (var codeClass in classes)
                     {
-                        if (!method.Name.ToString().Contains("__") && !method.IsGetter && !method.IsSetter)
+                        List<Method> methods = codeClass.Methods;
+
+                        foreach (var method in methods)
                         {
-                            var fileNames = new List<File>();
-                            if (method.FileRef != null)
+                            if (!method.Name.ToString().Contains("__") && !method.IsGetter && !method.IsSetter)
                             {
-                                fileNames = module.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
+                                var fileNames = new List<File>();
+                                if (method.FileRef != null)
+                                {
+                                    fileNames = sessionModule.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
+                                }
+
+                                string fileName;
+                                if (fileNames.Any())
+                                {
+                                    fileName = fileNames.FirstOrDefault().FullPath;
+
+
+                                    // remove closing paren
+                                    // modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+                                    // Raw: System.Void Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions::.ctor()
+                                    // modified:        Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
+                                    //Needed:           Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
+
+
+                                    CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName);
+
+                                    Queries.UpdateCodeMethodPath(methodInfo);
+
+                                    ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName);
+                                }
                             }
 
-                            string fileName;
-                            if (fileNames.Any())
-                            {
-                                fileName = fileNames.FirstOrDefault().FullPath;
 
-
-                                // remove closing paren
-                                // modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
-                                // Raw: System.Void Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions::.ctor()
-                                // modified:        Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
-                                //Needed:           Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
-
-
-                                CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName);
-
-                                Queries.UpdateCodeMethodPath(methodInfo);
-
-                                ProcessSequencePoints(coveredLines, module, tests, codeClass, method, fileName);
-                            }
                         }
-
-                        //else
-                        //{
-                        //    Log.DebugFormat("Skipping  Class: {0}   Method {1}: ",codeClass.FullName, method.Name);
-                        //}
                     }
                 }
             }
-
             return coveredLines;
         }
 

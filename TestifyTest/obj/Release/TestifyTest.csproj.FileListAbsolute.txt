@@ -44,3 +44,7 @@ C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Release\Microsoft.VisualStu
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Release\TestifyTest.csprojResolveAssemblyReference.cache
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Release\TestifyTest.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Release\TestifyTest.pdb
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Release\TestifyTest.dll.config
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Release\EntityFramework.SqlServer.dll
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Release\System.Data.SqlServerCe.dll
+C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Release\EntityFramework.SqlServer.xml

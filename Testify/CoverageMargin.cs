@@ -66,6 +66,7 @@ namespace Leem.Testify
             _textViewHost.TextView.ViewportHeightChanged += TextViewViewportHeightChanged;
 
             _textViewHost.TextView.TextBuffer.Changed += TextBufferChanged;
+            _textViewHost.TextView.Closed += TextViewClosed;
 
             //create a canvas to hold the margin UI and set its properties
             _marginCanvas = new Canvas();
@@ -87,9 +88,22 @@ namespace Leem.Testify
 
         }
 
-        public void CoverageChanged(string className, string methodName)
+        private void TextViewClosed(object sender, EventArgs e)
         {
+            _coverageProvider.WasClosed = true;
         }
+
+        public void Subscribe(TestifyQueries queries)
+        {
+            queries.ClassChanged += CoverageChanged;
+        }
+
+        private void CoverageChanged(object sender, ClassChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        
+
 
         private List<CodeMark> GetAllCodeMarksForMargin()
         {
@@ -103,7 +117,7 @@ namespace Leem.Testify
                 allCodeMarks.Add(new CodeMark
                 {
                     LineNumber = line.Value.LineNumber,
-                    FileName = line.Value.Module.Name,
+                    FileName = line.Value.FileName,
                     UnitTests = line.Value.UnitTests.Cast<UnitTest>().ToList()
                 });
             }

@@ -12,18 +12,25 @@ namespace Leem.Testify
         }
 
         public CodeModule Module { get; set; }
+
         public CodeClass Class { get; set; }
+
         public CodeMethod Method { get; set; }
+
         public string ModuleName { get; set; }
+
         public string ClassName { get; set; }
+
         public string MethodName { get; set; }
+
         public int LineNumber { get; set; }
+
         public bool IsCode { get; set; }
+
         public bool IsCovered { get; set; }
-/*
-        public string MetadataToken { get; set; }
-*/
+
         public List<TrackedMethod> TrackedMethods { get; set; }
+
         public List<UnitTest> UnitTests { get; set; }
 
         public string FileName { get; set; }
