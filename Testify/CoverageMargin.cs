@@ -55,14 +55,10 @@ namespace Leem.Testify
 
             _codeMarks = GetAllCodeMarksForMargin();
 
-            // subscribe to LayoutChanged event of text view, so we can change the
-            // positions of the glyphs when the layout changes
             _textViewHost.TextView.LayoutChanged += TextViewLayoutChanged;
 
             _textViewHost.TextView.GotAggregateFocus += TextViewGotAggregateFocus;
 
-            // subscribe to the ViewportHeightChanged, o we can change the);
-            // positions of glyphs when the Viewport changes
             _textViewHost.TextView.ViewportHeightChanged += TextViewViewportHeightChanged;
 
             _textViewHost.TextView.TextBuffer.Changed += TextBufferChanged;
@@ -146,7 +142,6 @@ namespace Leem.Testify
 
         private void TextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            //List<int> linesEdited;
 
             if (e.Changes.IncludesLineChanges)
             {
@@ -253,7 +248,6 @@ namespace Leem.Testify
             }
             var pont = new SnapshotPoint(_textViewHost.TextView.TextSnapshot, 0);
 
-           // _textViewHost.TextView.DisplayTextLineContainingBufferPosition(pont, 0.0, ViewRelativePosition.Bottom);
         }
 
         private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLinePoco line, double yPos)
@@ -270,16 +264,6 @@ namespace Leem.Testify
             var tooltip = new StringBuilder();
 
             tooltip.AppendFormat("Covering Tests:\t {0}\n", line.UnitTests.Count);
-
-            //bool isBroken = !line.UnitTests.All(x => x.IsSuccessful);
-
-            //if (isBroken)
-            //{
-            //    foreach (UnitTest test in line.UnitTests.Where(x => x.IsSuccessful.Equals(false)))
-            //    {
-            //        tooltip.AppendFormat("{0}\n", Path.GetFileName(test.TestMethodName));
-            //    }
-            //}
 
             foreach (UnitTest test in line.UnitTests.OrderBy(x=>x.IsSuccessful))
             {

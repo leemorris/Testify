@@ -15,20 +15,20 @@ namespace Leem.Testify
             var _methods = new List<CodeElement>();
             var _classes = new List<CodeElement>();
 
-            foreach (CodeElement element in fcm.CodeElements)
+            try
             {
-                //CodeElements elements = GetCodeElementMembers(element);
-                if (element.Kind == vsCMElement.vsCMElementNamespace)
+                foreach (CodeElement element in fcm.CodeElements)
                 {
-                    foreach (CodeElement classElement in element.Children)
-                    {
-                        if (classElement.Kind == vsCMElement.vsCMElementClass)
-                        {
-                            _classes.Add(classElement);
-                        }
 
-                        //foreach (CodeElement methodElement in classElement.Children)
-                        //{
+                    if (element.Kind == vsCMElement.vsCMElementNamespace)
+                    {
+                        foreach (CodeElement classElement in element.Children)
+                        {
+                            if (classElement.Kind == vsCMElement.vsCMElementClass)
+                            {
+                                _classes.Add(classElement);
+                            }
+
                             foreach (CodeElement method in classElement.Children)
                             {
                                 if (method.Kind == vsCMElement.vsCMElementFunction)
@@ -36,14 +36,19 @@ namespace Leem.Testify
                                     _methods.Add(method);
                                 }
                             }
-                        //}
+
+                        }
                     }
                 }
             }
+            catch (System.ObjectDisposedException)
+            {
+                // If the user closes the Solution, we may have a FileCodeModel that has been disposed
+            }
 
-            methods = _methods.ToList();
+            methods = _methods != null ? _methods.ToList() : new List<CodeElement>();
 
-            classes = _classes.ToList();
+            classes = _classes != null ? _classes.ToList() : new List<CodeElement>();
         }
 
         private static List<CodeFunction2> GetConstructors(CodeClass2 codeClass)

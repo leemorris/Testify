@@ -20,7 +20,6 @@ namespace Leem.Testify
 
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost textViewHost, IWpfTextViewMargin containerMargin)
         {
-            // create an instance of the manager and associate it with this bookmark margin
             CodeMarkManager codeMarkManager = textViewHost.TextView.Properties.GetOrCreateSingletonProperty<CodeMarkManager>
                 (delegate { return new CodeMarkManager(); });
 

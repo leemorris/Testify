@@ -17,7 +17,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Leem.Testify
 {
-    public class CoverageProvider //: IVsSolutionEvents3
+    public class CoverageProvider 
     {
 
         private readonly ILog _log = LogManager.GetLogger(typeof (CoverageProvider));
@@ -126,8 +126,6 @@ namespace Leem.Testify
                     _currentVersion = snapshot.Version.VersionNumber;
                 }
 
-
-                // Log.DebugFormat("Rebuilding Covered Lines - Complete Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
             }
             catch (Exception ex)
             {
@@ -147,6 +145,7 @@ namespace Leem.Testify
             }
 
             FileCodeModel fcm = projectItem.FileCodeModel;
+
             return fcm;
         }
 
@@ -165,7 +164,7 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
             {
-                lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
+                lines = Queries.GetCoveredLines(context, classes.FirstOrDefault().FullName).ToList();
             }
 
             _log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
@@ -254,8 +253,6 @@ namespace Leem.Testify
             return projectItem;
         }
 
-
-
         internal ConcurrentDictionary<int, CoveredLinePoco> GetCoveredLines(IWpfTextView view)
         {
             if (view.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion 
@@ -271,7 +268,6 @@ namespace Leem.Testify
 
         internal void RecreateCoverage(IWpfTextView view)
         {
-            //Log.DebugFormat("Launching RebuildCoverage");
             if (!_IsRebuilding) 
             { 
                 string documentName = GetFileName(view.TextBuffer);

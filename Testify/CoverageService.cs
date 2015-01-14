@@ -99,8 +99,6 @@ namespace Leem.Testify
             }
         }
 
-        //public List<LineCoverageInfo> CoveredLines { get; set; }
-
         public IList<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage,
             string projectAssemblyName)
         {
@@ -118,12 +116,7 @@ namespace Leem.Testify
             foreach (Module sessionModule in sessionModules)
             {
                 _log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
-                //}
-
-                //Module module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
-                //var testModule = sessionModules.Where(y => y.ModuleName != projectAssemblyName).FirstOrDefault();
-
-
+           
                 IEnumerable<TrackedMethod> tests =
                     sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
 
@@ -220,8 +213,6 @@ namespace Leem.Testify
 
                 if (tests.Any())
                 {
-                   // var coveringTests = new Poco.TrackedMethod();
-
                     foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                     {
                         TrackedMethod trackedMethod =
@@ -231,7 +222,6 @@ namespace Leem.Testify
 
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
                         coveredLine.FileName = fileName;
-                       // string unitTestFileName;
 
                         coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
@@ -307,8 +297,7 @@ namespace Leem.Testify
                                         parametersMatch = false;
                                         break;
                                     }
-                                    //_log.DebugFormat("Method Parameter Type: " + typeName + " should equal " + parameters[i]);
-
+ 
                                 }
                                 if (parametersMatch)
                                 {
@@ -319,8 +308,6 @@ namespace Leem.Testify
                                         Line = method.BodyRegion.BeginLine,
                                         Column = method.BodyRegion.BeginColumn
                                     };
-                                    //Queries.UpdateCodeMethodPath(rawMethodName, fileName, method.BodyRegion.BeginLine, method.BodyRegion.BeginColumn);
-                                    //break;
                                 }
                             }
                         }
@@ -335,7 +322,6 @@ namespace Leem.Testify
                             Column = methods.First().BodyRegion.BeginColumn
                         };
 
-                        //Queries.UpdateCodeMethodPath(rawMethodName, fileName, methods.First().BodyRegion.BeginLine, methods.First().BodyRegion.BeginColumn);
                     }
                 }
             }
@@ -580,8 +566,7 @@ namespace Leem.Testify
                                 }
                             }
                         }
-                    //}
-                //}
+
             }
 
             return coveredLines;

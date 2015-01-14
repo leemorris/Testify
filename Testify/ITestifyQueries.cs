@@ -23,9 +23,6 @@ namespace Leem.Testify
 
         void RemoveFromQueue(QueuedTest testQueueItem);
 
-        //Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession,resultType testOutput, ProjectInfo projectInfo,
-        //    List<string> individualTest);
-
         Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo,
             List<string> individualTest);
 
