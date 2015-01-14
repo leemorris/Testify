@@ -4,7 +4,6 @@ namespace Leem.Testify.Poco
 {
     public class TrackedMethod
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public TrackedMethod()
         {
             CoveredLines = new HashSet<CoveredLinePoco>();

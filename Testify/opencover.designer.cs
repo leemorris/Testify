@@ -142,7 +142,6 @@ namespace Lactose
                 System.IO.FileInfo xmlFile = new System.IO.FileInfo(fileName);
                 streamWriter = xmlFile.CreateText();
                 streamWriter.WriteLine(xmlString);
-                //streamWriter.Close();
             }
             finally
             {

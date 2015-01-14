@@ -164,7 +164,17 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
             {
-                lines = Queries.GetCoveredLines(context, classes.FirstOrDefault().FullName).ToList();
+                if (classes.Count > 0)
+                {
+                    lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
+                }
+                else 
+                {
+                    // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
+                    // just return an empty list because we are essentially terminated.
+                    lines = new List<CoveredLinePoco>();
+                }
+                
             }
 
             _log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
