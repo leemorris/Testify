@@ -22,12 +22,12 @@ namespace Leem.Testify
         private readonly string _outputFolder;
         private readonly ILog Log = LogManager.GetLogger(typeof(UnitTestService));
         private readonly string _nunitPath;
-
+        private readonly DTE _dte;
         
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
             Log.DebugFormat("Inside 3 argument Constructor");
-
+            _dte = dte;
             _queries = TestifyQueries.Instance;
 
             TestifyQueries.SolutionName = solutionName;
@@ -112,7 +112,15 @@ namespace Leem.Testify
                 // Call WaitForExit and then the using statement will close.
                  using (System.Diagnostics.Process exeProcess = System.Diagnostics.Process.Start(startInfo))
                 {
-                    exeProcess.StartInfo.RedirectStandardOutput = true;
+                    //long AffinityMask = (long)exeProcess.ProcessorAffinity;
+                    //AffinityMask = 0x0002; // use only the second processor, despite availability
+                    //exeProcess.ProcessorAffinity = (IntPtr)AffinityMask;
+
+                    if (testQueueItem.IndividualTests == null)
+                    {
+                        // lower the priority if running all tests for a project.
+                        exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+                    }
 
                     stdout = exeProcess.StandardOutput.ReadToEnd(); 
 
@@ -223,7 +231,7 @@ namespace Leem.Testify
             testParameters.Append(" /result:");
             testParameters.Append(_outputFolder);
             testParameters.Append(fileNameGuid);
-            testParameters.Append("-result.xml");
+            testParameters.Append("-result.xml /apartment=STA ");
 
             testParameters.Append(" /timeout=" + timeout);
             testParameters.Append("\"");
@@ -287,7 +295,7 @@ namespace Leem.Testify
             if (queuedTest != null)
             {
                 Log.DebugFormat("Ready to run another test from Individual Test queue");
-
+                _dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
                 queuedTest.TestStartTime = DateTime.Now;
 
                 RunAllNunitTestsForProject(queuedTest);
@@ -308,7 +316,7 @@ namespace Leem.Testify
             if (queuedTest != null)
             {
                 Log.DebugFormat("Ready to run another test from Project Test queue");
-
+                _dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
                 queuedTest.TestStartTime = DateTime.Now;
 
                 RunAllNunitTestsForProject(queuedTest);

@@ -690,6 +690,7 @@ namespace Leem.Testify
             }
 
             IVsSolution solution = SetSolutionValues();
+            _dte = (DTE)GetService(typeof(DTE));
 
             _log.DebugFormat("Solution Opened: {0}", _solutionName);
             _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
@@ -706,7 +707,7 @@ namespace Leem.Testify
             projectTestsMenuCommand.Enabled = true;
 
             // Setup Project Build Event Handler
-            _dte = (DTE)GetService(typeof(DTE));
+ 
             var projectEvents = ((Events2)_dte.Events).BuildEvents;
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
 
