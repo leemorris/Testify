@@ -174,7 +174,7 @@ namespace Leem.Testify
         }
 
 
-        private async Task RunAllNunitTestsForProject(QueuedTest item)//(string projectName, List<string> individualTests)
+        private async Task RunAllNunitTestsForProject(QueuedTest item)
         {
 
             Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.TestRunId, item.ProjectName);
@@ -231,7 +231,7 @@ namespace Leem.Testify
             testParameters.Append(" /result:");
             testParameters.Append(_outputFolder);
             testParameters.Append(fileNameGuid);
-            testParameters.Append("-result.xml /apartment=STA ");
+            testParameters.Append("-result.xml ");
 
             testParameters.Append(" /timeout=" + timeout);
             testParameters.Append("\"");
@@ -240,7 +240,7 @@ namespace Leem.Testify
             testParameters.Append(" -skipautoprops: ");
             
             testParameters.Append(" -filter:\"+[" + projectInfo.ProjectAssemblyName + "]* +[" + projectInfo.TestProject.AssemblyName + "]* \"");
-            testParameters.Append("  -targetdir:" + Path.GetDirectoryName(projectInfo.TestProject.Path));
+            testParameters.Append(" -targetdir:" + Path.GetDirectoryName(projectInfo.TestProject.Path));
             testParameters.Append(" -register:user -output:");
             testParameters.Append(_outputFolder);
             
@@ -295,7 +295,9 @@ namespace Leem.Testify
             if (queuedTest != null)
             {
                 Log.DebugFormat("Ready to run another test from Individual Test queue");
-                _dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
+                //_dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
+                // remove project from TestQueue
+              
                 queuedTest.TestStartTime = DateTime.Now;
 
                 RunAllNunitTestsForProject(queuedTest);

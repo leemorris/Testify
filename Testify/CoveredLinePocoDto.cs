@@ -13,5 +13,6 @@
         public bool IsSuccessful { get; set; }
         public int UnitTestId { get; set; }
         public string FileName { get; set; }
+        public bool IsBranch { get; set; }
     }
 }

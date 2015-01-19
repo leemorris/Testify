@@ -197,8 +197,10 @@ namespace Leem.Testify
             IEnumerable<TrackedMethod> tests, Class modelClass, Method method, string fileName)
         {
             List<SequencePoint> sequencePoints = method.SequencePoints;
+            List<BranchPoint> branchPoints = method.BranchPoints;
             foreach (SequencePoint sequencePoint in sequencePoints)
             {
+                var branchPoint = branchPoints.FirstOrDefault(x => x.StartLine == sequencePoint.StartLine);
                 var coveredLine = new LineCoverageInfo
                 {
                     IsCode = true,
@@ -208,7 +210,8 @@ namespace Leem.Testify
                     ClassName = modelClass.FullName,
                     MethodName = method.Name,
                     FileName = fileName,
-                    UnitTests = new List<UnitTest>()
+                    UnitTests = new List<UnitTest>(),
+                    IsBranch = branchPoint != null
                 };
 
                 if (tests.Any())
@@ -535,6 +538,7 @@ namespace Leem.Testify
                                             Class = codeClass,
                                             Method = codeMethod,
                                             FileName = module.Files.FirstOrDefault(x => x.UniqueId == method.FileRef.UniqueId).FullPath,
+                                            MethodName = method.Name
                                             //   UnitTests = testsRun.ToList()
                                         };
 
@@ -560,6 +564,10 @@ namespace Leem.Testify
                                             }
 
                                             
+                                        }
+                                        if (coveredLine.Class == null)
+                                        {
+                                            _log.ErrorFormat("CoveredLine.Class is null for method:{0}", method.Name);
                                         }
                                         coveredLines.Add(coveredLine);
                                     }

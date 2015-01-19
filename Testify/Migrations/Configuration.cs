@@ -1,17 +1,19 @@
-using System.Data.Entity.Migrations;
-
 namespace Leem.Testify.Migrations
 {
-    internal sealed class Configuration : DbMigrationsConfiguration<TestifyContext>
+    using System;
+    using System.Data.Entity;
+    using System.Data.Entity.Migrations;
+    using System.Linq;
+
+    internal sealed class Configuration : DbMigrationsConfiguration<Leem.Testify.TestifyContext>
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            AutomaticMigrationsEnabled = true;
         }
 
-        protected override void Seed(TestifyContext context)
+        protected override void Seed(Leem.Testify.TestifyContext context)
         {
-
             //  This method will be called after migrating to the latest version.
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 

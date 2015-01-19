@@ -177,12 +177,12 @@ namespace Leem.Testify
 
                     _coverageProvider.Queries.AddToTestQueue(testQueue);
 
-                   // _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, true);
+                    _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, true);
                 }
                 else
                 {
-                    //This is a test project
-                   // _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, true);
+                  
+                    _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, true);
 
                     RunTestsThatCoverElement(textPoint, codeElement, projectItem);
                 }

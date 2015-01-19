@@ -12,14 +12,15 @@ using Leem.Testify.Poco;
 using System.Data.SqlServerCe;
 using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Data.Entity.ModelConfiguration.Configuration;
-
+using log4net;
 
 namespace Leem.Testify
 {
     public class TestifyContext : DbContext
     {
         public TestifyContext() : base("name=TestifyDb") { }
-        
+        private static readonly ILog Log = LogManager.GetLogger(typeof(TestifyContext));
+
         public TestifyContext(string solutionName)
             : base(new SqlCeConnection(GetConnectionString(solutionName)),
              contextOwnsConnection: true)

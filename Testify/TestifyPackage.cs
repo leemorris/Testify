@@ -71,6 +71,7 @@ namespace Leem.Testify
                 ConfigureLogging(file);
 
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+                _log.DebugFormat("DataDirectory = {0}", AppDomain.CurrentDomain.GetData("DataDirectory"));
                 _timer = new System.Timers.Timer {Interval = 30000, Enabled = true, AutoReset = true};
                 _timer.Elapsed += new ElapsedEventHandler(ProcessTestQueue);
  
@@ -95,7 +96,7 @@ namespace Leem.Testify
                 try
                 {
                     _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-                    File.Copy(initialDatabasePath.ToString(), databasePath);
+                   // File.Copy(initialDatabasePath.ToString(), databasePath);
                 }
                 catch (Exception ex)
                 {

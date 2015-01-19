@@ -9,5 +9,6 @@ namespace Leem.Testify
         public List<string> IndividualTests { get; set; }
         public int TestRunId { get; set; }
         public DateTime TestStartTime { get; set; }
+        public int Priority { get; set; }
     }
 }

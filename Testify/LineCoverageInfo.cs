@@ -35,6 +35,6 @@ namespace Leem.Testify
 
         public string FileName { get; set; }
 
-        public object IsBranch { get; set; }
+        public bool IsBranch { get; set; }
     }
 }

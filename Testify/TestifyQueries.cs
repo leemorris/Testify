@@ -140,7 +140,19 @@ namespace Leem.Testify
                         };
                         using (var context = new TestifyContext(_solutionName))
                         {
-                            context.TestQueue.Add(testQueue);
+                            var unitTests = context.UnitTests.Where (u => u.TestProjectUniqueName == projectInfo.TestProject.UniqueName);
+                            foreach(var test in unitTests)
+                            {
+                                var testQueueItem = new TestQueue
+                                {
+                                    ProjectName = projectName,
+                                    IndividualTest = test.TestMethodName,
+                                    Priority = 1,
+                                    QueuedDateTime = DateTime.Now
+                                };
+                                context.TestQueue.Add(testQueueItem);
+                            }
+                      
                             context.SaveChanges();
 
                         }
@@ -202,38 +214,38 @@ namespace Leem.Testify
 
         public QueuedTest GetIndividualTestQueue(int testRunId) // List<TestQueueItem> 
         {
-            using (var context = new TestifyContext(_solutionName))
+            using (
+                var context = new TestifyContext(_solutionName))
             {
-      
-                QueuedTest nextItem = null;
+
+                List<TestQueue> batchOfTests = new List<TestQueue>();
 
                 if (context.TestQueue.Where(i => i.IndividualTest != null).All(x => x.TestRunId == 0))// there aren't any Individual tests currently running
                 {
+                    // Get the ten highest priority tests from each project
+                    var projectGroups = (from t in context.TestQueue
+                                        group t by new { t.ProjectName } into g
+                                         select new { ProjectName = g.Key, TestQueueItems = g.OrderByDescending(o => o.Priority).Take(20) });
 
-                    var individual = (from queueItem in context.TestQueue
-                                      where queueItem.IndividualTest != null
-                                      group queueItem by queueItem.ProjectName).AsEnumerable().Select(x => new QueuedTest
-                                    {
-                                        ProjectName = x.Key,
-                                        IndividualTests = (from test in context.TestQueue
-                                                           where test.ProjectName.Equals(x.Key)
-                                                           && test.IndividualTest != null
-                                                           select test.IndividualTest).ToList()
-                                    }).OrderBy(o => o.IndividualTests.Count());
+                    if(projectGroups.Count() > 0)
+                    {
+                        // Get the tests from the group which has the highest priority tests by summing the priorities
+                        batchOfTests = projectGroups.OrderByDescending(group => group.TestQueueItems.Sum(i => i.Priority)).FirstOrDefault().TestQueueItems.ToList();
+                    }
 
-                    nextItem = individual.FirstOrDefault();
 
                 }
+                QueuedTest queuedTest = null;
 
-                var testsToMarkInProgress = new List<TestQueue>();
-//Todo is this doing what is intended
-
-                if (nextItem != null)
+                if (batchOfTests != null && batchOfTests.Any())
                 {
-                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
+                    MarkTestAsInProgress(testRunId, context, batchOfTests);
+                    queuedTest = new QueuedTest { IndividualTests = batchOfTests.Select(x=>x.IndividualTest).ToList(),
+                                                  TestRunId=testRunId,
+                                                  ProjectName= batchOfTests.First().ProjectName};
                 }
 
-                return nextItem;
+                return queuedTest;
             }
 
         }
@@ -260,7 +272,7 @@ namespace Leem.Testify
 
                 if (nextItem != null)
                 {
-                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, nextItem, testsToMarkInProgress);
+                    testsToMarkInProgress = MarkTestAsInProgress(testRunId, context, testsToMarkInProgress);
                 }
 
                 return nextItem;
@@ -437,7 +449,10 @@ namespace Leem.Testify
                         {
                             foreach (var test in testQueueItem.IndividualTests)
                             {
-                                var testQueue = new TestQueue { ProjectName = testQueueItem.ProjectName, IndividualTest = test, QueuedDateTime = DateTime.Now };
+                                var testQueue = new TestQueue { ProjectName = testQueueItem.ProjectName,
+                                                                Priority=1000,
+                                                                IndividualTest = test, 
+                                                                QueuedDateTime = DateTime.Now };
 
                                 context.TestQueue.Add(testQueue);
                             }
@@ -717,7 +732,6 @@ namespace Leem.Testify
 
             var unitTests = GetUnitTests(testOutput.testsuite);
 
-
             using (var context = new TestifyContext(_solutionName))
             {
                 //context.Database.Log = L => Log.Debug(L);
@@ -755,7 +769,8 @@ namespace Leem.Testify
                             //test.UnitTestId = existingTest.UnitTestId;
                             //existingTest.FilePath = test.FilePath;
                             existingTest.LastSuccessfulRunDatetime = test.LastSuccessfulRunDatetime;
-
+                            existingTest.IsSuccessful = test.IsSuccessful;
+                            existingTest.TestDuration = test.TestDuration;
                            // context.Entry(existingTest).CurrentValues.SetValues(test);
                         }
 
@@ -834,7 +849,8 @@ namespace Leem.Testify
                 Module_CodeModuleId = line.Module.CodeModuleId,
                 Class_CodeClassId = line.Class.CodeClassId,
                 Method_CodeMethodId = line.Method.CodeMethodId,
-                FileName = line.FileName
+                FileName = line.FileName,
+                IsBranch= line.IsBranch
 
             };
 
@@ -879,10 +895,7 @@ namespace Leem.Testify
             {
                 if (line.Method != null)
                 {
-// Null reference exception, line.lineNumber, line.Method and line.Class all have value,
-                    //maybe line.linenumber doesn't exist
-                    existingLine = existingCoveredLines[line.LineNumber].FirstOrDefault(x => x.Method != null && x.Method.Equals(line.Method)
-                                                && x.Class.Equals(line.Class));
+                    existingLine = existingCoveredLines[line.LineNumber].FirstOrDefault(x => x.Method != null && x.Method.Equals(line.Method));
                 }
             }
             catch (Exception ex)
@@ -903,22 +916,24 @@ namespace Leem.Testify
             return existingCoveredLines;
         }
 
-        private static List<TestQueue> MarkTestAsInProgress(int testRunId, TestifyContext context, QueuedTest nextItem, List<TestQueue> testsToMarkInProgress)
+        private static List<TestQueue> MarkTestAsInProgress(int testRunId, TestifyContext context,  List<TestQueue> testsToRun)
         {
-            nextItem.TestRunId = testRunId;
-
-            // if the queued item has individual tests, we will remove all of these individual tests from queue.
-            if (nextItem.IndividualTests == null)
+            List<TestQueue> testsToMarkInProgress = new List<TestQueue>();
+            foreach (var test in testsToRun)
             {
-                testsToMarkInProgress = context.TestQueue.Where(x => x.ProjectName.Equals(nextItem.ProjectName)).ToList();
-            }
-            else if (nextItem.IndividualTests.Any())
-            {
-                // if we are running all the tests for the project, we can remove all the individual and Project tests 
-                foreach (var testToRun in nextItem.IndividualTests)
+                
+                if (test.IndividualTest == string.Empty)
                 {
-                    testsToMarkInProgress.Add(context.TestQueue.FirstOrDefault(x => x.IndividualTest.Equals(testToRun)));
+                    // if we are running all the tests for the project, we can remove all the individual and Project tests 
+                    testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.ProjectName.Equals(test.ProjectName)).ToList());
                 }
+                else 
+                {
+                    // if the queued item has individual tests, we will remove all of these individual tests from queue.
+                    testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.IndividualTest.Equals(test.IndividualTest)).ToList());
+
+                }
+
             }
 
             foreach (var test in testsToMarkInProgress.ToList())
@@ -928,6 +943,28 @@ namespace Leem.Testify
             }
 
             context.SaveChanges();
+
+            //// if the queued item has individual tests, we will remove all of these individual tests from queue.
+            //if (nextItem.IndividualTests == null)
+            //{
+            //    testsToMarkInProgress = context.TestQueue.Where(x => x.ProjectName.Equals(nextItem.ProjectName)).ToList();
+            //}
+            //else if (nextItem.IndividualTests.Any())
+            //{
+            //    // if we are running all the tests for the project, we can remove all the individual and Project tests 
+            //    foreach (var testToRun in nextItem.IndividualTests)
+            //    {
+            //        testsToMarkInProgress.Add(context.TestQueue.FirstOrDefault(x => x.IndividualTest.Equals(testToRun)));
+            //    }
+            //}
+
+            //foreach (var test in testsToMarkInProgress.ToList())
+            //{
+            //    test.TestRunId = testRunId;
+            //    test.TestStartedDateTime = DateTime.Now;
+            //}
+
+            //context.SaveChanges();
 
             return testsToMarkInProgress;
         }
@@ -1322,7 +1359,6 @@ namespace Leem.Testify
                 {
                     using (var context = new TestifyContext(_solutionName))
                     {
-                        //context.Database.Log = L => Log.Debug(L);
                         var testProjectUniqueName = context.TestProjects.First(x => x.AssemblyName.Equals(testModule.ModuleName)).UniqueName;
 
                         //Create Unit Test objects
@@ -1354,19 +1390,14 @@ namespace Leem.Testify
                                 var methodInfo = coverageService.UpdateMethodLocation(method, matchingUnitTest.FilePath);
                                 matchingUnitTest.LineNumber = methodInfo.Line;
                                 
-                               // UpdateCodeMethodPath(methodInfo);
-                      
-
                             }
                             else
                             {
                                 Log.DebugFormat("ERROR: Could not find Unit test that matched Tracking Method: {0}", trackedMethod.Name);
                             }
-
                         }
 
                         context.SaveChanges();
-
                     }
 
                 }
