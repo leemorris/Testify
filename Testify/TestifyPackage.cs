@@ -72,7 +72,7 @@ namespace Leem.Testify
 
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
                 _log.DebugFormat("DataDirectory = {0}", AppDomain.CurrentDomain.GetData("DataDirectory"));
-                _timer = new System.Timers.Timer {Interval = 30000, Enabled = true, AutoReset = true};
+                _timer = new System.Timers.Timer {Interval = 60000, Enabled = true, AutoReset = true};
                 _timer.Elapsed += new ElapsedEventHandler(ProcessTestQueue);
  
             }
@@ -182,6 +182,7 @@ namespace Leem.Testify
         {
             if (_service != null)
             {
+
                 _service.ProcessTestQueue(++_testRunId);
             }
 

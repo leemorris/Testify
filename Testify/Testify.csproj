@@ -219,6 +219,10 @@
     <Compile Include="Migrations\201501171704331_TestQueueUpdate3.Designer.cs">
       <DependentUpon>201501171704331_TestQueueUpdate3.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201502011414291_UnitTestCoveredLinePoco.cs" />
+    <Compile Include="Migrations\201502011414291_UnitTestCoveredLinePoco.Designer.cs">
+      <DependentUpon>201502011414291_UnitTestCoveredLinePoco.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
     <Compile Include="Model\Class.cs" />
@@ -295,6 +299,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201501171704331_TestQueueUpdate3.resx">
       <DependentUpon>201501171704331_TestQueueUpdate3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201502011414291_UnitTestCoveredLinePoco.resx">
+      <DependentUpon>201502011414291_UnitTestCoveredLinePoco.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

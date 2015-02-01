@@ -15,13 +15,14 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Task = System.Threading.Tasks.Task;
+using log4net;
 
 namespace Leem.Testify
 {
     internal class CoverageMargin : Border, IWpfTextViewMargin
     {
         public const string MarginName = "CoverageMargin";
-
+        private readonly ILog _log = LogManager.GetLogger(typeof(CoverageMargin));
         // this is a pre-defined constant for code view
         // used to tell Visual Studio to specify the type of content the extension should be
         // associated with
@@ -142,11 +143,13 @@ namespace Leem.Testify
 
         private void TextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-
+            
             if (e.Changes.IncludesLineChanges)
             {
                 // Fire and Forget
+                _log.DebugFormat("TextBufferChanged - Includes Line Changes");
               Task.Run(() => { RunTestsThatCoverCursor(); });
+              _log.DebugFormat("TextBufferChanged - Continuing");
             }
         }
 
@@ -155,14 +158,15 @@ namespace Leem.Testify
             TextPoint textPoint = GetCursorTextPoint();
 
             CodeElement codeElement = GetMethodFromTextPoint(textPoint);
-
+            
             ProjectItem projectItem = _dte.ActiveDocument.ProjectItem;
 
             BuildAndRunTests(textPoint, codeElement, projectItem);
         }
 
-        private void BuildAndRunTests(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
+        private async Task BuildAndRunTests(TextPoint textPoint, CodeElement codeElement, ProjectItem projectItem)
         {
+            _log.DebugFormat("BuildAndRunTests - <{0}>", projectItem.ContainingProject.Name);
             if (projectItem != null && codeElement != null)
             {
                 if (projectItem.ContainingProject.Name.Contains(".Test"))
@@ -174,20 +178,30 @@ namespace Leem.Testify
                         IndividualTest = codeElement.FullName,
                         QueuedDateTime = DateTime.Now
                     };
-
-                    _coverageProvider.Queries.AddToTestQueue(testQueue);
-
-                    _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, true);
+                    RunTestsThatCoverElement( textPoint, codeElement, projectItem);
+                    //RunTestsThatCoverCursor(projectItem.Name);
+                  //  _coverageProvider.Queries.AddToTestQueue(testQueue);
+                  //  if (_dte.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress)
+                  //{
+                  //   _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, false);
+                  //}
                 }
                 else
                 {
-                  
-                    _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, true);
-
+                  //  _log.DebugFormat("Build Project - {0} Suppress UI Flag = {1}", projectItem.ContainingProject.FullName,_dte.SuppressUI);
+                  //  if (_dte.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress)
+                  //{
+                  //   _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, false);
+                  //}
+                  //  _log.DebugFormat("Build Project - Continue - {0}", projectItem.ContainingProject.FullName);
+                    _log.DebugFormat("RunTestsThatCoverElement, Project - {0} Code Element {1}", projectItem.ContainingProject.FullName, codeElement.FullName);
                     RunTestsThatCoverElement(textPoint, codeElement, projectItem);
                 }
             }
         }
+
+
+
 
         private void ThrowIfDisposed()
         {
@@ -218,27 +232,45 @@ namespace Leem.Testify
         {
             FileCodeModel fcm = _coverageProvider.GetFileCodeModel(_documentName);
             int apparentLineNumber = 0;
-
+            double accumulatedHeight = 0.0;
+            double minLineHeight = _textViewHost.TextView.TextViewLines.Min(x => x.Height);
+            //if (fcm != null)
+            //{
+            //    var project = fcm.DTE.Solution.FindProjectItem(_documentName).ContainingProject;
+            //    if (project.FullName.EndsWith("Test.csproj"))
+            //    {
+            //        apparentLineNumber++;
+            //    } 
+            //}
             foreach (ITextViewLine textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
                 if (textViewLine.VisibilityState == VisibilityState.FullyVisible && coveredLines.Count > 0)
                 {
                     apparentLineNumber++;
-                    int hj = textViewLine.Start.GetContainingLine().LineNumber;
+                    int lineNumber = textViewLine.Start.GetContainingLine().LineNumber;
 
+                    accumulatedHeight += textViewLine.Height;
                     var coveredLine = new CoveredLinePoco();
 
                     ITextSnapshotLine g =
                         _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(
-                            x => x.LineNumber.Equals(hj));
+                            x => x.LineNumber.Equals(lineNumber));
 
-                    bool isCovered = coveredLines.TryGetValue(hj + 1, out coveredLine);
+                    bool isCovered = coveredLines.TryGetValue(lineNumber + 1, out coveredLine);
+                    var text = g.Extent.GetText();
 
-                    if (g.Extent.IsEmpty == false && isCovered && g.Extent.GetText() != "\t\t#endregion")
+                    if (text.Trim().StartsWith("[Test")) 
                     {
-                        Debug.WriteLine("Text for Line # " + (hj + 1) + " = " + g.Extent.GetText());
+                        //apparentLineNumber--;
+                    }
+                    if (g.Extent.IsEmpty == false && isCovered && text != "\t\t#endregion" )
+                    {
 
-                        double yPos = (_textViewHost.TextView.ZoomLevel / 100) * (apparentLineNumber - 1) * _textViewHost.TextView.LineHeight + (.1 * _textViewHost.TextView.LineHeight); // GetYCoordinateForBookmark(coveredLine);
+                        Debug.WriteLine("Text for Line # " + (lineNumber + 1) + " = " + text);
+
+                        //double yPos = (_textViewHost.TextView.ZoomLevel / 100) * (apparentLineNumber - 1) * _textViewHost.TextView.LineHeight + (.1 * _textViewHost.TextView.LineHeight); // GetYCoordinateForBookmark(coveredLine);
+                        double yPos = (_textViewHost.TextView.ZoomLevel / 100) * ((accumulatedHeight - minLineHeight) + (.1 * _textViewHost.TextView.LineHeight)); // GetYCoordinateForBookmark(coveredLine);
+
 
                         var glyph = CreateCodeMarkGlyph(coveredLine, yPos);
 

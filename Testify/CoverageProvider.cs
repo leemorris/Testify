@@ -71,8 +71,7 @@ namespace Leem.Testify
                 {
                     RecreateCoverage(_textView);
                     RebuildCoverage(_textView.TextBuffer.CurrentSnapshot, _documentName);
-                    var x = new MarginFactory();
-                    _textView.VisualElement.BringIntoView();
+
                 }
             }
         }
@@ -102,13 +101,14 @@ namespace Leem.Testify
                 _log.DebugFormat("RebuildCoverage - Document: {0}", documentName);
                 ITextSnapshot snapshot = snapshotObject;
 
-                if (_dte != null && _dte.ActiveDocument != null && !_dte.ActiveDocument.Path.Contains(".XXXXXtest"))
+                if (_dte != null && _dte.ActiveDocument != null )
                 {
                     FileCodeModel fcm = GetFileCodeModel(documentName);
                     if (fcm == null)
                     {
                         _log.DebugFormat("ERROR File Code Model is null for Project Item:{0}",
                             _dte.ActiveDocument.ProjectItem);
+                        _IsRebuilding = false;
                     }
                     else
                     {
@@ -136,15 +136,18 @@ namespace Leem.Testify
 
         public FileCodeModel GetFileCodeModel(string documentName)
         {
+            FileCodeModel fcm = null;
             var projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject,
                 documentName, true);
 
             if (projectItem == null)
             {
-                _log.DebugFormat("ERROR projectItem is null for Active Document:{0}", _dte.ActiveDocument.FullName);
+                _log.ErrorFormat("ERROR projectItem is null for Active Document:{0}", _dte.ActiveDocument.FullName);
             }
-
-            FileCodeModel fcm = projectItem.FileCodeModel;
+            else 
+            {
+                fcm = projectItem.FileCodeModel;
+            }
 
             return fcm;
         }

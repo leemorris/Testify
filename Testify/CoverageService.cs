@@ -99,7 +99,7 @@ namespace Leem.Testify
             }
         }
 
-        public IList<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage,
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage,
             string projectAssemblyName)
         {
             var coveredLines = new List<LineCoverageInfo>();
@@ -476,7 +476,7 @@ namespace Leem.Testify
 
             List<Module> sessionModules = coverageSession.Modules;
             Module module = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName));
-            Module testModule = sessionModules.FirstOrDefault(x => x.ModuleName != projectAssemblyName);
+            Module testModule = sessionModules.FirstOrDefault(x => x.ModuleName.Equals(projectAssemblyName + ".Test"));
             IEnumerable<TrackedMethod> tests =
                 sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
             var testsRun = tests.Where(x => uniqueIds.Contains((int)x.UniqueId));
@@ -517,10 +517,14 @@ namespace Leem.Testify
                                 }
 
                              
-                                var modelClass = module.Classes.SelectMany(clas => clas.Methods).FirstOrDefault(m => m.Name.Contains(modifiedMethodName));
+
+                                var modelClass = module.Classes.FirstOrDefault(x=>x.Methods.Any(y=>y.Name.Contains(modifiedMethodName)));
+                     
+
+
                                 var codeClass = new CodeClass
                                 {
-                                    Name = modelClass.Name,
+                                    Name = modelClass.FullName,
                                     Summary = new Summary(modelClass.Summary)
                                 };
 
@@ -536,6 +540,7 @@ namespace Leem.Testify
                                             IsCovered = (sequencePoint.VisitCount > 0),
                                             Module = codeModule,
                                             Class = codeClass,
+                                            ClassName = modelClass.FullName,
                                             Method = codeMethod,
                                             FileName = module.Files.FirstOrDefault(x => x.UniqueId == method.FileRef.UniqueId).FullPath,
                                             MethodName = method.Name

@@ -79,7 +79,7 @@ namespace Leem.Testify
         }
         private async Task RunTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
-
+            // BuildProject(_solutionDirectory + testQueueItem.ProjectName);
             Log.DebugFormat("Verify project executing on Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             var coverFilename = fileNameGuid.ToString() + "-cover.xml";
@@ -140,6 +140,50 @@ namespace Leem.Testify
             await ProcessCoverageSessionResults(projectInfo, testQueueItem, resultFilename, fileToRead);
             
         }
+
+
+
+
+
+        private async Task<bool> BuildProject(string projectPath) 
+        {
+            var windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            var msBuildPath = windowsDirectory + @"\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe";
+          
+            var startInfo = new System.Diagnostics.ProcessStartInfo { FileName = msBuildPath,
+                                                                     RedirectStandardOutput = true,
+                                                                      WindowStyle = ProcessWindowStyle.Hidden,
+                                                                      UseShellExecute = false,
+                                                                      WorkingDirectory = System.IO.Path.GetDirectoryName(projectPath),
+                                                                      CreateNoWindow = true };
+
+            Log.DebugFormat("MS Build Path: {0}", msBuildPath);
+
+
+
+            string stdout ;
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                 using (System.Diagnostics.Process exeProcess = System.Diagnostics.Process.Start(startInfo))
+                {
+                    stdout = exeProcess.StandardOutput.ReadToEnd(); 
+
+                    await Task.Run(() => exeProcess.WaitForExit());
+
+                   Log.DebugFormat("Results of MSBuild: {0}", stdout);
+                   return true;
+                }
+            }
+            catch(Exception ex)
+            {
+                // Log error.
+                Log.ErrorFormat("Error while building Project: {0}: Error:{1}", projectPath, ex.Message);
+                return false;
+            }
+        }
+
 
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
@@ -218,7 +262,7 @@ namespace Leem.Testify
         {
             var testParameters = new StringBuilder();
             testParameters.Append(GetTarget());
-            if (individualTests != null && individualTests.Any())
+            if ( individualTests.Any())
             {
                 testParameters.Append("/run:");
                 
@@ -294,38 +338,142 @@ namespace Leem.Testify
 
             if (queuedTest != null)
             {
-                Log.DebugFormat("Ready to run another test from Individual Test queue");
-                //_dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
-                // remove project from TestQueue
-              
                 queuedTest.TestStartTime = DateTime.Now;
 
-                RunAllNunitTestsForProject(queuedTest);
-              
-                
+                if (queuedTest.IndividualTests.Count == 0)
+                {
+                    Log.DebugFormat("Ready to run another test from Project Test queue");
+                    ProcessProjectTestQueueItem(queuedTest);
+                }
+                else 
+                {
+                    Log.DebugFormat("Ready to run another test from Individual Test queue");
+                    RunAllNunitTestsForProject(queuedTest);
+                }
+
             }
-            else 
-            {
-                ProcessProjectTestQueue(testRunId);
-            }
+ 
         }
 
-        public void ProcessProjectTestQueue(int testRunId)
+        public void ProcessProjectTestQueueItem(QueuedTest queuedTest)
         {
 
-            var queuedTest = _queries.GetProjectTestQueue(testRunId);
-
-            if (queuedTest != null)
+            Log.DebugFormat("Ready to run another test from Project Test queue");
+            var projectInfo = _queries.GetProjectInfo(queuedTest.ProjectName);
+            if (projectInfo.TestProject.Path == string.Empty)
             {
-                Log.DebugFormat("Ready to run another test from Project Test queue");
-                _dte.Solution.SolutionBuild.BuildProject("Debug", queuedTest.ProjectName, true);
-                queuedTest.TestStartTime = DateTime.Now;
+               // GetProjectOutputBuildFolder();
+                var projects = (Array)_dte.ActiveSolutionProjects;
+                for (var i = 0; i < projects.Length; i++ )
+                {
+                    var project = (EnvDTE.Project)projects.GetValue(i);
+                    if(project.FullName == _solutionDirectory + projectInfo.TestProject.UniqueName)
+                    {
+                        projectInfo.TestProject.Path = GetProjectOutputBuildFolder(project);
+                    }
+                 
+                }
 
-                RunAllNunitTestsForProject(queuedTest);
 
             }
-        }
+            //Build the Test project, because we don't know that it was built at the same time as the Code Project
+            BuildProject(_solutionDirectory + projectInfo.TestProject.UniqueName);
 
+            RunAllNunitTestsForProject(queuedTest);
+
+        }
+        private string GetProjectOutputBuildFolder(EnvDTE.Project proj)
+        {
+            try
+            {
+                // Get the configuration manager of the project
+                var configManager = proj.ConfigurationManager;
+
+                if (configManager == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    // Get the active project configuration
+                    var activeConfiguration = configManager.ActiveConfiguration;
+                    string assemblyName = GetProjectPropertyByName(proj.Properties, "AssemblyName");
+                    // Get the output folder
+                    string outputPath = activeConfiguration.Properties.Item("OutputPath").Value.ToString();
+
+                    // The output folder can have these patterns:
+                    // 1) "\\server\folder"
+                    // 2) "drive:\folder"
+                    // 3) "..\..\folder"
+                    // 4) "folder"
+
+                    string absoluteOutputPath = null;
+                    if (outputPath.StartsWith((System.IO.Path.DirectorySeparatorChar + System.IO.Path.DirectorySeparatorChar).ToString()))
+                    {
+                        // This is the case 1: "\\server\folder"
+                        absoluteOutputPath = outputPath;
+                    }
+                    else if (outputPath.Length >= 2 && outputPath[1] == System.IO.Path.VolumeSeparatorChar)
+                    {
+                        // This is the case 2: "drive:\folder"
+                        absoluteOutputPath = outputPath;
+                    }
+                    else
+                    {
+                        string projectFolder = null;
+                        if (outputPath.IndexOf("..\\") != -1)
+                        {
+                            // This is the case 3: "..\..\folder"
+                            projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+
+                            while (outputPath.StartsWith("..\\"))
+                            {
+                                outputPath = outputPath.Substring(3);
+                                projectFolder = System.IO.Path.GetDirectoryName(projectFolder);
+                            }
+                            absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                        }
+                        else
+                        {
+                            // This is the case 4: "folder"
+                            projectFolder = System.IO.Path.GetDirectoryName(proj.FullName);
+                            absoluteOutputPath = System.IO.Path.Combine(projectFolder, outputPath);
+                        }
+                    }
+                    return System.IO.Path.Combine(absoluteOutputPath, assemblyName);
+                }
+            }
+            catch (Exception ex)
+            {
+                //.DebugFormat("GetProjectOutputBuildFolder could not determine folder name: {0}", ex.Message);
+                return string.Empty;
+            }
+        }
+        private string GetProjectPropertyByName(EnvDTE.Properties properties, string name)
+        {
+            try
+            {
+                if (properties != null)
+                {
+                    var item = properties.GetEnumerator();
+                    while (item.MoveNext())
+                    {
+                        var property = item.Current as EnvDTE.Property;
+
+                        if (property.Name == name)
+                        {
+                            return property.Value.ToString();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+              //  _log.ErrorFormat("Error in GetAssemblyName: {0}", ex.Message);
+            }
+
+            return string.Empty;
+        }
     }
 }
       

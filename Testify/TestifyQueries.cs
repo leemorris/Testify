@@ -125,7 +125,7 @@ namespace Leem.Testify
         {
             try
             {
-                // make sure this is not a test project
+                // make sure this is not a test project. We will build the Test project when we process the TestQueue containing the Code project
                 if (!projectName.Contains(".Test"))
                 {
                     var projectInfo = GetProjectInfo(projectName);
@@ -141,6 +141,16 @@ namespace Leem.Testify
                         using (var context = new TestifyContext(_solutionName))
                         {
                             var unitTests = context.UnitTests.Where (u => u.TestProjectUniqueName == projectInfo.TestProject.UniqueName);
+                            if (!unitTests.Any())
+                            {
+                                var testQueueItem = new TestQueue
+                                {
+                                    ProjectName = projectName,
+                                    Priority = 1,
+                                    QueuedDateTime = DateTime.Now
+                                };
+                                context.TestQueue.Add(testQueueItem);
+                            }
                             foreach(var test in unitTests)
                             {
                                 var testQueueItem = new TestQueue
@@ -201,7 +211,8 @@ namespace Leem.Testify
                 var sw = Stopwatch.StartNew();
                 coveredLines = context.CoveredLines.Where(line => line.Class.CodeClassId == clas.CodeClassId)
                     .Include(u => u.UnitTests)
-                    .Include(me => me.Method).ToList();
+                    .Include(me => me.Method)
+                    .ToList();
 
                 sw.Stop();
                 Log.DebugFormat("Get CoveredLines with Include {0} ms.", sw.ElapsedMilliseconds);
@@ -220,12 +231,12 @@ namespace Leem.Testify
 
                 List<TestQueue> batchOfTests = new List<TestQueue>();
 
-                if (context.TestQueue.Where(i => i.IndividualTest != null).All(x => x.TestRunId == 0))// there aren't any Individual tests currently running
+                if (context.TestQueue.All(x => x.TestRunId == 0))// there aren't any Individual tests currently running  .Where(i => i.IndividualTest != null)
                 {
                     // Get the ten highest priority tests from each project
                     var projectGroups = (from t in context.TestQueue
                                         group t by new { t.ProjectName } into g
-                                         select new { ProjectName = g.Key, TestQueueItems = g.OrderByDescending(o => o.Priority).Take(20) });
+                                         select new { ProjectName = g.Key, TestQueueItems = g.OrderByDescending(o => o.Priority).Take(10) });
 
                     if(projectGroups.Count() > 0)
                     {
@@ -240,7 +251,9 @@ namespace Leem.Testify
                 if (batchOfTests != null && batchOfTests.Any())
                 {
                     MarkTestAsInProgress(testRunId, context, batchOfTests);
-                    queuedTest = new QueuedTest { IndividualTests = batchOfTests.Select(x=>x.IndividualTest).ToList(),
+                    queuedTest = new QueuedTest
+                    {
+                        IndividualTests = batchOfTests.Where(x => x.IndividualTest != null).Select(s => s.IndividualTest).ToList(),
                                                   TestRunId=testRunId,
                                                   ProjectName= batchOfTests.First().ProjectName};
                 }
@@ -313,7 +326,7 @@ namespace Leem.Testify
             {
                 var result = from project in context.Projects
                              join testProject in context.TestProjects on project.UniqueName equals testProject.ProjectUniqueName
-                             where project.UniqueName == uniqueName
+                             where testProject.UniqueName == uniqueName || project.UniqueName == uniqueName
                              select new ProjectInfo
                              {
                                  ProjectName = project.Name,
@@ -435,8 +448,17 @@ namespace Leem.Testify
             try
             {
                 var unitTestNames = GetUnitTestsThatCoverLines(className.Substring(0, className.IndexOf('.')), methodName, lineNumber);
+                ProjectInfo projectInfo;
+                if (projectName.EndsWith(".Test.csproj"))
+                {
+                    projectInfo = GetProjectInfoFromTestProject(projectName);
+                }
 
-                var projectInfo = GetProjectInfo(projectName);
+                else 
+                {
+                    projectInfo = GetProjectInfo(projectName);
+                }
+                
 
                 if (projectInfo != null && projectInfo.TestProject != null)
                 {
@@ -491,7 +513,7 @@ namespace Leem.Testify
 
             var changedClasses = new List<string>();
 
-            IList<LineCoverageInfo> newCoveredLineInfos = new List<LineCoverageInfo>();
+            List<LineCoverageInfo> newCoveredLineInfos = new List<LineCoverageInfo>();
 
             var sessionModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
             sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
@@ -578,6 +600,7 @@ namespace Leem.Testify
                         if (unitTestIds != null)
                         {
                             newCoveredLineInfos = coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.ProjectAssemblyName, individualTestUniqueIds);
+                            newCoveredLineInfos.AddRange(coverageService.GetRetestedLinesFromCoverageSession(coverageSession, projectInfo.TestProject.AssemblyName, individualTestUniqueIds));
                             changedClasses = newCoveredLineInfos.Select(x => x.Class.Name).Distinct().ToList();
                         }
 
@@ -618,6 +641,15 @@ namespace Leem.Testify
             {
                 await GetModuleClassMethodForLine(context, line, methodLookup, classLookup);
                 line.Module = module;
+                foreach (var trackedMethod in line.TrackedMethods)
+                {
+                    if (!line.UnitTests.Any(x =>x.TestMethodName == trackedMethod.NameInUnitTestFormat))
+                    {
+                        line.UnitTests.Add(unitTestLookup[trackedMethod.NameInUnitTestFormat].FirstOrDefault());
+                    }
+                    
+                }
+
                 CoveredLinePoco existingLine = null;
 
                 existingLine = await GetCoveredLinesByClassAndLine(existingCoveredLines, line);
@@ -668,13 +700,15 @@ namespace Leem.Testify
             if (  existingLine.IsCode != line.IsCode
                || existingLine.IsCovered != line.IsCovered
                || existingLine.IsBranch != line.IsBranch
-               || existingLine.FileName != line.FileName)
+               || existingLine.FileName != line.FileName
+                || existingLine.UnitTests != line.UnitTests)
             {
                 existingLine.IsCode = line.IsCode;
                 existingLine.IsCovered = line.IsCovered;
                 existingLine.IsBranch = line.IsBranch;
                 existingLine.FileName = line.FileName;
                 classThatChanged = existingLine.Class.Name;
+                existingLine.UnitTests = line.UnitTests;
             }
 
              
@@ -850,7 +884,8 @@ namespace Leem.Testify
                 Class_CodeClassId = line.Class.CodeClassId,
                 Method_CodeMethodId = line.Method.CodeMethodId,
                 FileName = line.FileName,
-                IsBranch= line.IsBranch
+                IsBranch= line.IsBranch,
+                UnitTests=line.UnitTests
 
             };
 
@@ -859,7 +894,10 @@ namespace Leem.Testify
 
         private static CoveredLinePoco ConstructCoveredLinePoco(LineCoverageInfo line)
         {
-
+            if (line.Class == null) 
+            {
+                Log.ErrorFormat("Line.Class is null for {0}",line.MethodName);
+            }
             var coveredLine = new CoveredLinePoco
             {
                 Class = line.Class,
@@ -872,7 +910,7 @@ namespace Leem.Testify
                 Method = line.Method,
                 Module = line.Module,
                 TrackedMethods = line.TrackedMethods,
-                //UnitTests=line.UnitTests
+                UnitTests=line.UnitTests
             };
 
             return coveredLine;
@@ -922,7 +960,7 @@ namespace Leem.Testify
             foreach (var test in testsToRun)
             {
                 
-                if (test.IndividualTest == string.Empty)
+                if (string.IsNullOrEmpty(test.IndividualTest))
                 {
                     // if we are running all the tests for the project, we can remove all the individual and Project tests 
                     testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.ProjectName.Equals(test.ProjectName)).ToList());
@@ -1192,7 +1230,10 @@ namespace Leem.Testify
 
             using (var context = new TestifyContext(_solutionName))
             {
-                var coveredLines = context.CoveredLines.Include(x=>x.Class).Include(y=>y.Module).Include(z=>z.Method).Where(w =>w.Module.AssemblyName.Equals(module.ModuleName));
+                var coveredLines = context.CoveredLines.Include(x=>x.Class)
+                                                       .Include(y=>y.Module)
+                                                       .Include(z=>z.Method)
+                                                       .Where(w =>w.Module.AssemblyName.Equals(module.ModuleName));
                 var unitTestLookup = context.UnitTests.ToLookup(x=>x.TestMethodName);
 
                 foreach (var coveredLine in coveredLines)

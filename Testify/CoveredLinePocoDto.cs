@@ -1,4 +1,5 @@
-﻿namespace Leem.Testify
+﻿using System.Collections.Generic;
+namespace Leem.Testify
 {
     internal class CoveredLinePocoDto
     {
@@ -14,5 +15,6 @@
         public int UnitTestId { get; set; }
         public string FileName { get; set; }
         public bool IsBranch { get; set; }
+        public List<Poco.UnitTest> UnitTests { get; set; }
     }
 }

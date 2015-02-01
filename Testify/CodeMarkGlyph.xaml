@@ -18,5 +18,6 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
+       
     </Canvas>
 </UserControl>

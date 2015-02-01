@@ -9,6 +9,7 @@ namespace Leem.Testify
         public LineCoverageInfo()
         {
             TrackedMethods = new List<TrackedMethod>();
+            UnitTests = new List<UnitTest>();
         }
 
         public CodeModule Module { get; set; }
