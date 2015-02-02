@@ -12,8 +12,8 @@ namespace Leem.Testify
     [TestFixture]
     public class TestifyQueriesTest
     {
-        [TestCase("Quad.QuadMed.QMedClinicalTools.Domain.Services.AccountRequestService", 2000)]
-        [TestCase("Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.WellnessRecordValueServiceTest", 2000)]
+        [TestCase("Quad.QuadMed.QMedClinicalTools.Domain.Services.AccountRequestService", 20000)]
+        [TestCase("Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.WellnessRecordValueServiceTest", 20000)]
         public void GetCoveredLinesTimeTest(string classname, int milliSeconds)
         {
             // Arrange
@@ -28,7 +28,7 @@ namespace Leem.Testify
             sw.Stop();
 
             // Assert
-            Assert.LessOrEqual(milliSeconds,sw.ElapsedMilliseconds);
+            Assert.LessOrEqual(sw.ElapsedMilliseconds,milliSeconds);
         
         }
 

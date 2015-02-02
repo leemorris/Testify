@@ -1,74 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!--This file represents the results of running a test suite-->
-<test-results name="C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\TestifyTest.dll" total="13" errors="2" failures="1" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2014-12-30" time="17:48:59">
-  <environment nunit-version="2.6.2.12296" clr-version="2.0.50727.5485" os-version="Microsoft Windows NT 6.1.7601 Service Pack 1" platform="Win32NT" cwd="C:\Program Files (x86)\NUnit 2.6.2\bin" machine-name="RAMPAGE" user="Lee" user-domain="Rampage" />
+<test-results name="C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\TestifyTest.dll" total="12" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2015-02-01" time="14:29:37">
+  <environment nunit-version="2.6.2.12296" clr-version="4.0.30319.34209" os-version="Microsoft Windows NT 6.1.7601 Service Pack 1" platform="Win32NT" cwd="C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug" machine-name="RAMPAGE" user="Lee" user-domain="Rampage" />
   <culture-info current-culture="en-US" current-uiculture="en-US" />
-  <test-suite type="Assembly" name="C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\TestifyTest.dll" executed="True" result="Failure" success="False" time="11.969" asserts="0">
+  <test-suite type="Assembly" name="C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\TestifyTest.dll" executed="True" result="Success" success="True" time="8.890" asserts="0">
     <results>
-      <test-suite type="Namespace" name="Leem" executed="True" result="Failure" success="False" time="11.954" asserts="0">
+      <test-suite type="Namespace" name="Leem" executed="True" result="Success" success="True" time="8.875" asserts="0">
         <results>
-          <test-suite type="Namespace" name="Testify" executed="True" result="Failure" success="False" time="11.938" asserts="0">
+          <test-suite type="Namespace" name="Testify" executed="True" result="Success" success="True" time="8.875" asserts="0">
             <results>
-              <test-suite type="TestFixture" name="CoverageServiceTest" executed="True" result="Failure" success="False" time="0.764" asserts="0">
+              <test-suite type="TestFixture" name="CoverageServiceTest" executed="True" result="Success" success="True" time="0.406" asserts="0">
                 <results>
-                  <test-suite type="ParameterizedTest" name="ParseArguments_HandlesString" executed="True" result="Failure" success="False" time="0.749" asserts="0">
+                  <test-suite type="ParameterizedTest" name="ParseArguments_HandlesString" executed="True" result="Success" success="True" time="0.406" asserts="0">
                     <results>
-                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Domain.Services.SingleSignOnService.CreateSamlAssertion(System.Collections.Generic.Dictionary`2&lt;System.String,System.String&gt;)&quot;,&quot;Dictionary&lt;String,String&gt;&quot;)" executed="True" result="Error" success="False" time="0.000" asserts="0">
-                        <failure>
-                          <message><![CDATA[System.ArgumentOutOfRangeException : Index was out of range. Must be non-negative and less than the size of the collection.
-Parameter name: index]]></message>
-                          <stack-trace><![CDATA[at System.Collections.Generic.List`1.get_Item(Int32 index)
-at Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(String methodName, String expected) in c:\WIP\Testify-FreshCheckout\Testify\TestifyTest\CoverageServiceTest.cs:line 33
-]]></stack-trace>
-                        </failure>
-                      </test-case>
+                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.MessagingService.SendAppointmentConfirmation(System.Collections.Generic.List`1&lt;System.Web.UI.WebControls.ListItem&gt;,System.String)&quot;,&quot;List&lt;ListItem&gt;&quot;)" executed="True" result="Success" success="True" time="0.374" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;QMedPidDataWebservice.QMED_Pid.SrchByLastNameFirstAsync(System.Object)&quot;,&quot;Object&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.QMedSchedulingImpersonation.ExecuteAction(System.Action)&quot;,&quot;Action&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.QMedSchedulingImpersonation.ExecuteAction(System.Func`1&lt;T&gt;)&quot;,&quot;Func&lt;T&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.DecryptionUtil.Decrypt(System.Byte[])&quot;,&quot;Byte[]&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.OnlineAppointmentService.GetNextAvailableAppointments(System.Collections.Generic.IEnumerable`1&lt;Quad.QuadMed.WebPortal.Scheduling.Objects.Provider&gt;)&quot;,&quot;IEnumerable&lt;Provider&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.ListExtension.AddRange(System.Collections.Generic.IList`1&lt;T&gt;)&quot;,&quot;IList&lt;T&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
-                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.WellnessParticipantService.GetCurrentEnrolledPrograms(System.Collections.Generic.IList`1&lt;Quad.QuadMed.WebPortal.Domain.Objects.Interfaces.IQMedService&gt;)&quot;,&quot;IList&lt;IQMedService&gt;&quot;)" executed="True" result="Success" success="True" time="0.016" asserts="1" />
+                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.WellnessParticipantService.GetCurrentEnrolledPrograms(System.Collections.Generic.IList`1&lt;Quad.QuadMed.WebPortal.Domain.Objects.Interfaces.IQMedService&gt;)&quot;,&quot;IList&lt;IQMedService&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                       <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.WellnessParticipantService.GetProgramsEligibleToEnrollIn(System.Collections.Generic.IList`1&lt;System.Int32&gt;)&quot;,&quot;IList&lt;int&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
-                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.ListExtension.AddRange(System.Collections.Generic.IList`1&lt;T&gt;,System.Collections.Generic.IEnumerable`1&lt;T&gt;)&quot;,&quot;IList&lt;T&gt;&quot;)" executed="True" result="Success" success="True" time="0.016" asserts="1" />
-                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.MessagingService.SendAppointmentConfirmation(System.Collections.Generic.List`1&lt;System.Web.UI.WebControls.ListItem&gt;,System.String)&quot;,&quot;List&lt;ListItem&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
-                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Quad.QuadMed.WebPortal.Domain.Services.SurveyService.GenerateSurveyPDF(System.Nullable`1&lt;System.Int32&gt;)&quot;,&quot;Nullable&lt;int&gt;&quot;)" executed="True" result="Failure" success="False" time="0.016" asserts="1">
-                        <failure>
-                          <message><![CDATA[  Expected string length 13 but was 22. Strings differ at index 0.
-  Expected: "Nullable<int>"
-  But was:  "System.Nullable[[int]]"
-  -----------^
-]]></message>
-                          <stack-trace><![CDATA[at Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(String methodName, String expected) in c:\WIP\Testify-FreshCheckout\Testify\TestifyTest\CoverageServiceTest.cs:line 33
-]]></stack-trace>
-                        </failure>
-                      </test-case>
+                      <test-case name="Leem.Testify.CoverageServiceTest.ParseArguments_HandlesString(&quot;Services.Util.ListExtension.AddRange(System.Collections.Generic.IList`1&lt;T&gt;,System.Collections.Generic.IEnumerable`1&lt;T&gt;)&quot;,&quot;IList&lt;T&gt;&quot;)" executed="True" result="Success" success="True" time="0.000" asserts="1" />
                     </results>
                   </test-suite>
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="TestifyQueriesTest" executed="True" result="Failure" success="False" time="10.986" asserts="0">
+              <test-suite type="TestFixture" name="TestifyQueriesTest" executed="True" result="Success" success="True" time="8.469" asserts="0">
                 <results>
-                  <test-suite type="ParameterizedTest" name="GetCoveredLinesTimeTest" executed="True" result="Failure" success="False" time="10.986" asserts="0">
+                  <test-suite type="ParameterizedTest" name="GetCoveredLinesTimeTest" executed="True" result="Success" success="True" time="8.469" asserts="0">
                     <results>
-                      <test-case name="Leem.Testify.TestifyQueriesTest.GetCoveredLinesTimeTest(&quot;Quad.QuadMed.QMedClinicalTools.Domain.Services.AccountRequestService&quot;,2000)" executed="True" result="Error" success="False" time="10.971" asserts="0">
-                        <failure>
-                          <message><![CDATA[System.InvalidOperationException : The model backing the 'TestifyContext' context has changed since the database was created. Consider using Code First Migrations to update the database (http://go.microsoft.com/fwlink/?LinkId=238269).]]></message>
-                          <stack-trace><![CDATA[at System.Data.Entity.CreateDatabaseIfNotExists`1.InitializeDatabase(TContext context)
-at System.Data.Entity.Internal.InternalContext.PerformInitializationAction(Action action)
-at System.Data.Entity.Internal.InternalContext.PerformDatabaseInitialization()
-at System.Data.Entity.Internal.RetryAction`1.PerformAction(TInput input)
-at System.Data.Entity.Internal.LazyInternalContext.InitializeDatabaseAction(Action`1 action)
-at System.Data.Entity.Internal.InternalContext.GetEntitySetAndBaseTypeForType(Type entityType)
-at System.Data.Entity.Internal.Linq.InternalSet`1.Initialize()
-at System.Data.Entity.Internal.Linq.InternalSet`1.get_InternalContext()
-at System.Data.Entity.Infrastructure.DbQuery`1.System.Linq.IQueryable.get_Provider()
-at System.Linq.Queryable.FirstOrDefault[TSource](IQueryable`1 source, Expression`1 predicate)
-at Leem.Testify.TestifyQueries.GetCoveredLines(TestifyContext context, String className) in c:\WIP\Testify-FreshCheckout\Testify\Testify\TestifyQueries.cs:line 183
-at Leem.Testify.TestifyQueriesTest.GetCoveredLinesTimeTest(String classname, Int32 milliSeconds) in c:\WIP\Testify-FreshCheckout\Testify\TestifyTest\TestifyQueriesTest.cs:line 25
-]]></stack-trace>
-                        </failure>
-                      </test-case>
+                      <test-case name="Leem.Testify.TestifyQueriesTest.GetCoveredLinesTimeTest(&quot;Quad.QuadMed.QMedClinicalTools.Domain.Test.Services.WellnessRecordValueServiceTest&quot;,20000)" executed="True" result="Success" success="True" time="7.780" asserts="1" />
+                      <test-case name="Leem.Testify.TestifyQueriesTest.GetCoveredLinesTimeTest(&quot;Quad.QuadMed.QMedClinicalTools.Domain.Services.AccountRequestService&quot;,20000)" executed="True" result="Success" success="True" time="0.689" asserts="1" />
                     </results>
                   </test-suite>
                 </results>

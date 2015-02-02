@@ -233,7 +233,11 @@ namespace Leem.Testify
             {
                 projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
             }
-            
+
+            if (item.Priority > 1)
+            {
+                BuildProject(_solutionDirectory + projectInfo.UniqueName);
+            }
 
             if(projectInfo.TestProject != null)
             {

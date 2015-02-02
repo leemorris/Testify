@@ -20,4 +20,3 @@ C:\WIP\Testify\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Settings.xml
 C:\WIP\Testify\Testify\TestifyTest\obj\Debug\TestifyTest.csprojResolveAssemblyReference.cache
 C:\WIP\Testify\Testify\TestifyTest\obj\Debug\TestifyTest.dll
 C:\WIP\Testify\Testify\TestifyTest\obj\Debug\TestifyTest.pdb
-C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\obj\Debug\TestifyTest.csprojResolveAssemblyReference.cache

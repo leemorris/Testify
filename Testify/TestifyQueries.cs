@@ -255,7 +255,8 @@ namespace Leem.Testify
                     {
                         IndividualTests = batchOfTests.Where(x => x.IndividualTest != null).Select(s => s.IndividualTest).ToList(),
                                                   TestRunId=testRunId,
-                                                  ProjectName= batchOfTests.First().ProjectName};
+                                                  ProjectName= batchOfTests.First().ProjectName,
+                                                    Priority = batchOfTests.Max(p=>p.Priority)};
                 }
 
                 return queuedTest;
@@ -331,7 +332,8 @@ namespace Leem.Testify
                              {
                                  ProjectName = project.Name,
                                  ProjectAssemblyName = project.AssemblyName,
-                                 TestProject = testProject
+                                 TestProject = testProject,
+                                 UniqueName = project.UniqueName
                              };
 
                 return result.FirstOrDefault();
@@ -459,7 +461,7 @@ namespace Leem.Testify
                     projectInfo = GetProjectInfo(projectName);
                 }
                 
-
+                
                 if (projectInfo != null && projectInfo.TestProject != null)
                 {
                     var testQueueItem = new QueuedTest { ProjectName = projectName, IndividualTests = unitTestNames };

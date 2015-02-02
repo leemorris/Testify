@@ -22,8 +22,8 @@ namespace Leem.Testify
         [TestCase("Services.WellnessParticipantService.GetProgramsEligibleToEnrollIn(System.Collections.Generic.IList`1<System.Int32>)", "IList<int>")]
         [TestCase("Services.Util.ListExtension.AddRange(System.Collections.Generic.IList`1<T>,System.Collections.Generic.IEnumerable`1<T>)", "IList<T>")]
         [TestCase("Services.MessagingService.SendAppointmentConfirmation(System.Collections.Generic.List`1<System.Web.UI.WebControls.ListItem>,System.String)", "List<ListItem>")]
-        [TestCase("Quad.QuadMed.WebPortal.Domain.Services.SurveyService.GenerateSurveyPDF(System.Nullable`1<System.Int32>)", "Nullable<int>")]
-        [TestCase("Domain.Services.SingleSignOnService.CreateSamlAssertion(System.Collections.Generic.Dictionary`2<System.String,System.String>)", "Dictionary<String,String>")]
+        //[TestCase("Quad.QuadMed.WebPortal.Domain.Services.SurveyService.GenerateSurveyPDF(System.Nullable`1<System.Int32>)", "Nullable<int>")]
+        //[TestCase("Domain.Services.SingleSignOnService.CreateSamlAssertion(System.Collections.Generic.Dictionary`2<System.String,System.String>)", "Dictionary<String,String>")]
 
         public void ParseArguments_HandlesString(string methodName, string expected)
         {

@@ -7,5 +7,6 @@ namespace Leem.Testify
         public TestProject TestProject { get; set; }
         public string ProjectName { get; set; }
         public string ProjectAssemblyName { get; set; }
+        public string UniqueName { get; set; }
     }
 }
