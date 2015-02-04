@@ -565,9 +565,11 @@ namespace Leem.Testify
                         }
 
                         DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
+                        //DoBulkCopy("UnitTest", newCoveredLineList, context);
  
                         try
                         {
+                           
                             context.SaveChanges();
                         }
 

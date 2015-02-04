@@ -13,7 +13,7 @@ GO
 
 DELETE FROM [Project]
 GO
-DELETE FROM [CoveredLineUnitTest]
+DELETE FROM [UnitTestCoveredLinePoco]
 GO
 DELETE FROM [CoveredLinePoco]
 GO
