@@ -541,6 +541,8 @@ namespace Leem.Testify
 
                     using (var context = new TestifyContext(_solutionName))
                     {
+                        context.Configuration.AutoDetectChangesEnabled = false;
+                        context.Configuration.ValidateOnSaveEnabled = false;
                         try
                         {
                              var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
@@ -550,27 +552,36 @@ namespace Leem.Testify
                             // and use NRefactory to get Line number of the Method
 
                             var modifiedLines=await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module);
- 
+                            var coveredLinePocos = new List<CoveredLinePoco>();
                             foreach (var item in modifiedLines)
 	                        {
-                                var newCoverage = ConstructCoveredLinePocoDto(item);
-                                newCoveredLineList.Add(newCoverage);
+                                //var newCoverage = ConstructCoveredLinePocoDto(item);
+                                coveredLinePocos.Add(ConstructCoveredLinePoco(item));
+                                //newCoveredLineList.Add(newCoverage);
                                 changedClasses.Add(item.ClassName);
 	                        }
-
+                           context.CoveredLines.AddRange(coveredLinePocos);
+                            //newCoveredLineList = new List<CoveredLinePocoDto>();
+                            //foreach (var item in modifiedLines)
+                            //{
+                            //    var newCoverage = ConstructCoveredLinePocoDto(item);
+                            //    newCoveredLineList.Add(newCoverage);
+                            //    changedClasses.Add(item.ClassName);
+                            //}
                         }
                         catch (Exception ex)
                         {
                             Log.ErrorFormat("Error in SaveCoverageSessionResults Inner Exception: {0} Message: {1} StackTrace {2}", ex.InnerException, ex.Message, ex.StackTrace);
                         }
 
-                        DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
+                        //DoBulkCopy("CoveredLinePoco", newCoveredLineList, context);
                         //DoBulkCopy("UnitTest", newCoveredLineList, context);
  
                         try
                         {
-                           
+                            var sw = Stopwatch.StartNew();
                             context.SaveChanges();
+                            Log.DebugFormat("context.SaveChanges() for project: (0) Elapsed Time:{1}", projectInfo.UniqueName,sw.ElapsedMilliseconds);
                         }
 
                         catch (Exception ex)

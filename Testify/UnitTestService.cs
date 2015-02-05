@@ -126,7 +126,8 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                  // Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   Log.DebugFormat("Run Tests Completed:");
                 }
             }
             catch(Exception ex)
@@ -172,7 +173,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                   Log.DebugFormat("Results of MSBuild: {0}", stdout);
+                    Log.DebugFormat("Results of MSBuild for Project: {0}: {1}", projectPath, stdout);
                    return true;
                 }
             }

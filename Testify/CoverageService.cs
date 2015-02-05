@@ -352,28 +352,36 @@ namespace Leem.Testify
                 string[] arguments = argumentString.Split(',');
                 foreach (string argument in arguments)
                 {
-                    string name = RemoveNamespaces(argument);
+                    string name = string.Empty;
+                    try
+                    {
+                         name = RemoveNamespaces(argument);
 
+                        name = name.Replace(Xmlnode, SystemXmlXmlnode)
+                            .Replace(Int32, Integer)
+                            .Replace(Dataset, SystemDataDataset)
+                            .Replace(Exception, SystemException)
+                            .Replace(SystemCollectionsGenericList, List)
+                            .Replace(SystemCollectionsGenericIlist, Ilist)
+                            .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
+                            .Replace(SystemFunc1, Func)
+                            .Replace(SystemFunc, Func)
+                            .Replace(SystemNullable, Nullable)
+                            .Replace(SystemString, Stringy)
+                            .Replace(SystemGuid, Guid)
+                            .Replace(SystemObject, Objecty)
+                            .Replace(NullableBoolean, SystemNullableBool)
+                            .Replace(NullableInt, SystemNullableInt)
+                            .Replace(NullableDouble, SystemNullableDouble)
+                            ;
 
-                    name = name.Replace(Xmlnode, SystemXmlXmlnode)
-                        .Replace(Int32, Integer)
-                        .Replace(Dataset, SystemDataDataset)
-                        .Replace(Exception, SystemException)
-                        .Replace(SystemCollectionsGenericList, List)
-                        .Replace(SystemCollectionsGenericIlist, Ilist)
-                        .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
-                        .Replace(SystemFunc1, Func)
-                        .Replace(SystemFunc, Func)
-                        .Replace(SystemNullable, Nullable)
-                        .Replace(SystemString, Stringy)
-                        .Replace(SystemGuid, Guid)
-                        .Replace(SystemObject, Objecty)
-                        .Replace(NullableBoolean, SystemNullableBool)
-                        .Replace(NullableInt, SystemNullableInt)
-                        .Replace(NullableDouble, SystemNullableDouble)
-                        ;
-
-                    result.Add(name);
+                        result.Add(name);
+                    }
+                    catch
+                    {
+                        _log.ErrorFormat("Error in RemoveNamespaces for: {0}", argument);
+                        name = argument;
+                    }
                 }
 
                 string parsedMethodName = modifiedMethodName.Substring(0, locationOfParen) + string.Join(",", result) +
