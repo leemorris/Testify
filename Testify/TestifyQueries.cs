@@ -820,6 +820,7 @@ namespace Leem.Testify
                             existingTest.LastSuccessfulRunDatetime = test.LastSuccessfulRunDatetime;
                             existingTest.IsSuccessful = test.IsSuccessful;
                             existingTest.TestDuration = test.TestDuration;
+                            existingTest.Result = test.Result;
                            // context.Entry(existingTest).CurrentValues.SetValues(test);
                         }
 

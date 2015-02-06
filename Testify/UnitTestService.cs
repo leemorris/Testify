@@ -126,7 +126,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                  // Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                    Log.DebugFormat("Run Tests Completed:");
                 }
             }
@@ -152,7 +152,8 @@ namespace Leem.Testify
             var msBuildPath = windowsDirectory + @"\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe";
           
             var startInfo = new System.Diagnostics.ProcessStartInfo { FileName = msBuildPath,
-                                                                     RedirectStandardOutput = true,
+                                                                      Arguments="/t:Clean;Build",
+                                                                      RedirectStandardOutput = true,
                                                                       WindowStyle = ProcessWindowStyle.Hidden,
                                                                       UseShellExecute = false,
                                                                       WorkingDirectory = System.IO.Path.GetDirectoryName(projectPath),
