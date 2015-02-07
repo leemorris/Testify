@@ -144,21 +144,29 @@ namespace Leem.Testify
 
 
 
+        private async Task<bool> BuildProject(ProjectInfo projectInfo)
+        {
+            bool isSuccessful;
+            isSuccessful = await BuildProject(projectInfo.UniqueName, projectInfo.TestProject.Path);
+            isSuccessful = isSuccessful || await BuildProject(projectInfo.TestProject.UniqueName, projectInfo.TestProject.Path);
+            return isSuccessful;
+        }
 
-
-        private async Task<bool> BuildProject(string projectPath) 
+        private async Task<bool> BuildProject(string projectPath, string outputPath) 
         {
             var windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             var msBuildPath = windowsDirectory + @"\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe";
-          
+            var outputDirectory = System.IO.Path.GetDirectoryName(outputPath);
+            var workingDirectory = System.IO.Path.GetDirectoryName(_solutionDirectory + projectPath);
+
             var startInfo = new System.Diagnostics.ProcessStartInfo { FileName = msBuildPath,
-                                                                      Arguments="/t:Clean;Build",
+                                                                      Arguments = " /p:OutputPath=" + outputDirectory,
                                                                       RedirectStandardOutput = true,
                                                                       WindowStyle = ProcessWindowStyle.Hidden,
                                                                       UseShellExecute = false,
-                                                                      WorkingDirectory = System.IO.Path.GetDirectoryName(projectPath),
+                                                                      WorkingDirectory = workingDirectory,
                                                                       CreateNoWindow = true };
-
+            ///Arguments = "/t:Clean;Build /p:OutputPath=" + outputDirectory,
             Log.DebugFormat("MS Build Path: {0}", msBuildPath);
 
 
@@ -238,7 +246,7 @@ namespace Leem.Testify
 
             if (item.Priority > 1)
             {
-                BuildProject(_solutionDirectory + projectInfo.UniqueName);
+                BuildProject( projectInfo);
             }
 
             if(projectInfo.TestProject != null)
@@ -383,7 +391,7 @@ namespace Leem.Testify
 
             }
             //Build the Test project, because we don't know that it was built at the same time as the Code Project
-            BuildProject(_solutionDirectory + projectInfo.TestProject.UniqueName);
+            BuildProject( projectInfo);
 
             RunAllNunitTestsForProject(queuedTest);
 

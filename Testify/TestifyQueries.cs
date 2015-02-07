@@ -333,7 +333,8 @@ namespace Leem.Testify
                                  ProjectName = project.Name,
                                  ProjectAssemblyName = project.AssemblyName,
                                  TestProject = testProject,
-                                 UniqueName = project.UniqueName
+                                 UniqueName = project.UniqueName,
+                                 Path = project.Path
                              };
 
                 return result.FirstOrDefault();

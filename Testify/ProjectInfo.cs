@@ -8,5 +8,6 @@ namespace Leem.Testify
         public string ProjectName { get; set; }
         public string ProjectAssemblyName { get; set; }
         public string UniqueName { get; set; }
+        public string Path { get; set; }
     }
 }

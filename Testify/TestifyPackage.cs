@@ -119,6 +119,7 @@ namespace Leem.Testify
 
                 if (configManager == null)
                 {
+                    _log.DebugFormat("GetProjectOutputBuildFolder - ConfigurationManager is null for Project: {0}", proj.Name);
                     return string.Empty;
                 }
                 else
@@ -218,7 +219,6 @@ namespace Leem.Testify
 
                     _documentEvents = _dte.Events.DocumentEvents;
                     _documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
-                    //_documentEvents.DocumentOpened += new _dispDocumentEvents_DocumentOpeningEventHandler(this.DocumentOpened);
                     var outputPath = GetProjectOutputBuildFolder(project);
                     var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
 
@@ -226,13 +226,20 @@ namespace Leem.Testify
                     _log.DebugFormat("  outputPath: {0}", outputPath);
                     _log.DebugFormat("  Assembly name: {0}", assemblyName);
 
-                    pocoProjects.Add(new Poco.Project
+                    var newProject = new Poco.Project
                     {
                         Name = project.Name,
                         AssemblyName = assemblyName,
                         UniqueName = project.UniqueName,
-                        Path = outputPath
-                    });
+                    };
+
+
+                    if (!string.IsNullOrWhiteSpace(outputPath)) 
+                    {
+                        // don't overwrite Path with Empty string
+                        newProject.Path = outputPath;
+                    }
+                    pocoProjects.Add(newProject);
 
                 }
             }
