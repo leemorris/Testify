@@ -904,11 +904,11 @@ namespace Leem.Testify
             var unitTestsToBeDeleted = context.UnitTests.Where(x => !extractedMethodNames.Contains(x.TestMethodName)).ToList();
             foreach (var test in unitTestsToBeDeleted)
             {
-                var linesInUnitTestToBeDeleted = context.CoveredLines.Where(x => x.UnitTests.Contains(test));
-                foreach(var line in linesInUnitTestToBeDeleted)
-                {
-                    context.CoveredLines.Remove(line);
-                }
+                //var linesInUnitTestToBeDeleted = context.CoveredLines.Where(x => x.UnitTests.Contains(test));
+                //foreach(var line in linesInUnitTestToBeDeleted)
+                //{
+                //    context.CoveredLines.Remove(line);
+                //}
                 context.UnitTests.Remove(test);
             }
         }
