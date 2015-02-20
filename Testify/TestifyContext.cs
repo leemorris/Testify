@@ -67,7 +67,7 @@ namespace Leem.Testify
                 .HasKey(x => x.CodeClassId);
 
             modelBuilder.Entity<CodeMethod>()
-                .HasKey(x => x.CodeMethodId); 
+                .HasKey(x => x.CodeMethodId);  
 
             modelBuilder.Entity<UnitTest>()
                 .HasKey(x => x.UnitTestId)
@@ -75,9 +75,9 @@ namespace Leem.Testify
 
             modelBuilder.Entity<TrackedMethod>()
                 .HasKey(x => x.UnitTestId);
-       
+
             modelBuilder.Entity<TrackedMethod>()
-                .Ignore(t => t.MetadataToken);
+               .Ignore(t => t.MetadataToken);
 
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
@@ -86,7 +86,11 @@ namespace Leem.Testify
                 .HasKey(x => x.UniqueName);
 
             modelBuilder.Entity<CoveredLinePoco>()
-                .HasKey(y => y.CoveredLineId);
+                .HasKey(y => y.CoveredLineId)
+                .HasRequired(m=>m.Method)
+                .WithMany()
+                .WillCascadeOnDelete(true);
+
                 //.HasMany(c => c.UnitTests)
                 //.WithMany(u => u.CoveredLines)
                 //.Map(mc =>

@@ -499,7 +499,7 @@ namespace Leem.Testify
         private void OnDocumentSaved(Document document)
         {
             var project = document.ProjectItem;
-            _queries.AddToTestQueue(project.ContainingProject.UniqueName);
+            _queries.AddTestsCoveringFileToTestQueue(document.FullName, project.ContainingProject);
 
         }
         private void OnDocumentOpening(string documentPath,bool isReadOnly)

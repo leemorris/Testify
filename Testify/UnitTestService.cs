@@ -116,7 +116,7 @@ namespace Leem.Testify
                     //AffinityMask = 0x0002; // use only the second processor, despite availability
                     //exeProcess.ProcessorAffinity = (IntPtr)AffinityMask;
 
-                    if (testQueueItem.IndividualTests == null)
+                    if (!testQueueItem.IndividualTests.Any() )
                     {
                         // lower the priority if running all tests for a project.
                         exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
@@ -126,7 +126,7 @@ namespace Leem.Testify
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   //Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                    Log.DebugFormat("Run Tests Completed:");
                 }
             }
@@ -148,7 +148,7 @@ namespace Leem.Testify
         {
             bool isSuccessful;
             isSuccessful = await BuildProject(projectInfo.UniqueName, projectInfo.TestProject.Path);
-            isSuccessful = isSuccessful || await BuildProject(projectInfo.TestProject.UniqueName, projectInfo.TestProject.Path);
+            isSuccessful = isSuccessful && await BuildProject(projectInfo.TestProject.UniqueName, projectInfo.TestProject.Path);
             return isSuccessful;
         }
 
@@ -198,7 +198,7 @@ namespace Leem.Testify
         private async Task ProcessCoverageSessionResults(ProjectInfo projectInfo, QueuedTest testQueueItem, string resultFilename, string fileToRead)
         {
             var sw = Stopwatch.StartNew();
-            _queries.RemoveFromQueue(testQueueItem);
+
             var coverageSession = new CoverageSession();
             var testOutput = new resultType();
 
@@ -223,7 +223,7 @@ namespace Leem.Testify
             Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
 
                 testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0: testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
-
+            _queries.RemoveFromQueue(testQueueItem);
             System.IO.File.Delete(fileToRead);
         }
 
@@ -235,14 +235,14 @@ namespace Leem.Testify
 
             ProjectInfo projectInfo;
 
-            if (item.IndividualTests == null || !item.IndividualTests.Any())
-            {
-                projectInfo = _queries.GetProjectInfo(item.ProjectName);
-            }
-            else 
-            {
+            //if (item.IndividualTests == null || !item.IndividualTests.Any())
+            //{
+            //    projectInfo = _queries.GetProjectInfo(item.ProjectName);
+            //}
+            //else 
+            //{
                 projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
-            }
+            //}
 
             if (item.Priority > 1)
             {
@@ -373,7 +373,7 @@ namespace Leem.Testify
         {
 
             Log.DebugFormat("Ready to run another test from Project Test queue");
-            var projectInfo = _queries.GetProjectInfo(queuedTest.ProjectName);
+            var projectInfo = _queries.GetProjectInfoFromTestProject(queuedTest.ProjectName);
             if (projectInfo.TestProject.Path == string.Empty)
             {
                // GetProjectOutputBuildFolder();
@@ -391,8 +391,9 @@ namespace Leem.Testify
 
             }
             //Build the Test project, because we don't know that it was built at the same time as the Code Project
-            BuildProject( projectInfo);
+            
 
+           
             RunAllNunitTestsForProject(queuedTest);
 
         }

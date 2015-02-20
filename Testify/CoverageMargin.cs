@@ -131,6 +131,7 @@ namespace Leem.Testify
 
         private void TextViewGotAggregateFocus(object sender, EventArgs e)
         {
+            _log.DebugFormat("TextViewGotAggregateFocus - FIRED");
             _coverageProvider.RecreateCoverage((IWpfTextView) sender);
 
             UpdateCodeMarks();
@@ -143,14 +144,17 @@ namespace Leem.Testify
 
         private void TextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            
-            if (e.Changes.IncludesLineChanges)
-            {
-                // Fire and Forget
-                _log.DebugFormat("TextBufferChanged - Includes Line Changes");
-              Task.Run(() => { RunTestsThatCoverCursor(); });
-              _log.DebugFormat("TextBufferChanged - Continuing");
-            }
+            // Only add to Queue when the File is SAVED, not when the 
+           // TextBuffer changes. Otherwise, I have to SAVE the file and I'm not sure this is the right thing to do.
+            // If the TextBuffer isn't saved, the Build and Test won't actually test the changes the user just made.
+
+            //if (e.Changes.IncludesLineChanges)
+            //{
+            //    // Fire and Forget
+            //    _log.DebugFormat("TextBufferChanged - Includes Line Changes");
+            //  Task.Run(() => { RunTestsThatCoverCursor(); });
+            //  _log.DebugFormat("TextBufferChanged - Continuing");
+            //}
         }
 
         private void RunTestsThatCoverCursor()
@@ -179,21 +183,9 @@ namespace Leem.Testify
                         QueuedDateTime = DateTime.Now
                     };
                     RunTestsThatCoverElement( textPoint, codeElement, projectItem);
-                    //RunTestsThatCoverCursor(projectItem.Name);
-                  //  _coverageProvider.Queries.AddToTestQueue(testQueue);
-                  //  if (_dte.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress)
-                  //{
-                  //   _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.UniqueName, false);
-                  //}
                 }
                 else
                 {
-                  //  _log.DebugFormat("Build Project - {0} Suppress UI Flag = {1}", projectItem.ContainingProject.FullName,_dte.SuppressUI);
-                  //  if (_dte.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress)
-                  //{
-                  //   _dte.Solution.SolutionBuild.BuildProject("Debug", projectItem.ContainingProject.FullName, false);
-                  //}
-                  //  _log.DebugFormat("Build Project - Continue - {0}", projectItem.ContainingProject.FullName);
                     _log.DebugFormat("RunTestsThatCoverElement, Project - {0} Code Element {1}", projectItem.ContainingProject.FullName, codeElement.FullName);
                     RunTestsThatCoverElement(textPoint, codeElement, projectItem);
                 }
@@ -234,14 +226,7 @@ namespace Leem.Testify
             int apparentLineNumber = 0;
             double accumulatedHeight = 0.0;
             double minLineHeight = _textViewHost.TextView.TextViewLines.Min(x => x.Height);
-            //if (fcm != null)
-            //{
-            //    var project = fcm.DTE.Solution.FindProjectItem(_documentName).ContainingProject;
-            //    if (project.FullName.EndsWith("Test.csproj"))
-            //    {
-            //        apparentLineNumber++;
-            //    } 
-            //}
+
             foreach (ITextViewLine textViewLine in _textViewHost.TextView.TextViewLines.ToList())
             {
                 if (textViewLine.VisibilityState == VisibilityState.FullyVisible && coveredLines.Count > 0)

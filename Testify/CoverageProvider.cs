@@ -17,13 +17,13 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Leem.Testify
 {
-    public class CoverageProvider 
+    public class CoverageProvider
     {
 
-        private readonly ILog _log = LogManager.GetLogger(typeof (CoverageProvider));
+        private readonly ILog _log = LogManager.GetLogger(typeof(CoverageProvider));
         private readonly ConcurrentDictionary<int, CoveredLinePoco> _coveredLines;
         private readonly DTE _dte;
- 
+
         private readonly Solution _dteSolution;
         private readonly IWpfTextView _textView;
 
@@ -79,7 +79,7 @@ namespace Leem.Testify
         public static string GetFileName(ITextBuffer buffer)
         {
             IVsTextBuffer bufferAdapter;
-            buffer.Properties.TryGetProperty(typeof (IVsTextBuffer), out bufferAdapter);
+            buffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out bufferAdapter);
             if (bufferAdapter != null)
             {
                 var persistFileFormat = bufferAdapter as IPersistFileFormat;
@@ -101,7 +101,7 @@ namespace Leem.Testify
                 _log.DebugFormat("RebuildCoverage - Document: {0}", documentName);
                 ITextSnapshot snapshot = snapshotObject;
 
-                if (_dte != null && _dte.ActiveDocument != null )
+                if (_dte != null && _dte.ActiveDocument != null)
                 {
                     FileCodeModel fcm = GetFileCodeModel(documentName);
                     if (fcm == null)
@@ -112,7 +112,7 @@ namespace Leem.Testify
                     }
                     else
                     {
-                        if(_HasCoveredLinesBeenInitialized)
+                        if (_HasCoveredLinesBeenInitialized)
                         {
                             Task.Run(() => GetCoveredLinesFromCodeModel(fcm));
                         }
@@ -120,7 +120,7 @@ namespace Leem.Testify
                         {
                             GetCoveredLinesFromCodeModel(fcm);
                         }
-                        
+
                     }
 
                     _currentVersion = snapshot.Version.VersionNumber;
@@ -144,7 +144,7 @@ namespace Leem.Testify
             {
                 _log.ErrorFormat("ERROR projectItem is null for Active Document:{0}", _dte.ActiveDocument.FullName);
             }
-            else 
+            else
             {
                 fcm = projectItem.FileCodeModel;
             }
@@ -164,28 +164,26 @@ namespace Leem.Testify
             var coveredLines = new List<CoveredLinePoco>();
 
             IEnumerable<CoveredLinePoco> lines;
-
-            using (var context = new TestifyContext(fcm.DTE.Solution.FullName))
+            var solutionName = fcm.DTE.Solution.FullName;
+            using (var context = new TestifyContext(solutionName))
             {
                 if (classes.Count > 0)
                 {
                     lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
                 }
-                else 
+                else
                 {
                     // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
                     // just return an empty list because we are essentially terminated.
                     lines = new List<CoveredLinePoco>();
                 }
-                
+
             }
 
             _log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
 
             var addRangeSw = Stopwatch.StartNew();
             coveredLines.AddRange(lines);
-            _log.DebugFormat("coveredLines.AddRange Elapsed Time {0}", addRangeSw.ElapsedMilliseconds);
-
 
             sw.Stop();
 
@@ -268,9 +266,10 @@ namespace Leem.Testify
 
         internal ConcurrentDictionary<int, CoveredLinePoco> GetCoveredLines(IWpfTextView view)
         {
-            if (view.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion 
+            if (view.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion
                 || (_HasCoveredLinesBeenInitialized == false && _IsRebuilding == false)
-                || WasClosed)
+                || WasClosed
+                || WasUpdated)
             {
                 RecreateCoverage(view);
                 WasClosed = false;
@@ -281,8 +280,8 @@ namespace Leem.Testify
 
         internal void RecreateCoverage(IWpfTextView view)
         {
-            if (!_IsRebuilding) 
-            { 
+            if (!_IsRebuilding)
+            {
                 string documentName = GetFileName(view.TextBuffer);
 
                 RebuildCoverage(view.TextBuffer.CurrentSnapshot, documentName);
@@ -290,5 +289,6 @@ namespace Leem.Testify
         }
 
         public bool WasClosed { get; set; }
+        public bool WasUpdated { get; set; }
     }
 }
