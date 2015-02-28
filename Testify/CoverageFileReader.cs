@@ -33,7 +33,7 @@ namespace Leem.Testify
             catch (Exception ex)
             {
                 _log.ErrorFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
-                throw;
+                return null;
             }
 
             file.Close();

@@ -38,7 +38,11 @@ namespace Leem.Testify
 
         void UpdateCodeMethodPath(CodeMethodInfo methodInfo);
 
-        void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName);
+        string ConvertUnitTestFormatToFormatTrackedMethod(string testMethodName);
+
+        void RemoveMissingClasses(Module moduleModule, List<string> currentClassNames);
+
+        void RemoveMissingMethods(Module moduleModule, List<string> currentMethodNames);
 
         CodeMethod GetMethod(string clickedMethodName);
 

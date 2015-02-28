@@ -34,10 +34,8 @@ C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\System.Data.SqlServer
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Testify.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ICSharpCode.NRefactory.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ICSharpCode.NRefactory.CSharp.dll
-C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\ErikEJ.SqlCe40.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Settings.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Mono.Cecil.dll
-C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Salient.Data.dll
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\Testify.pdb
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.xml
 C:\WIP\Testify-FreshCheckout\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServer.xml

@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ICSharpCode.NRefactory.CSharp;
+using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Leem.Testify
 {
@@ -215,17 +217,180 @@ namespace Leem.Testify
             sw.Reset();
 
 
-            Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
-            sw.Reset();
-            await _queries.SaveCoverageSessionResults(coverageSession, testOutput,projectInfo, testQueueItem.IndividualTests);
-            Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
+            if (testOutput != null && coverageSession.Modules.Count == 2)
+            {
+                Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
+                sw.Reset();
 
-            Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
+                UpdateMethodsAndClassesFromCodeFile(coverageSession.Modules);
 
-                testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0: testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime);
+                await _queries.SaveCoverageSessionResults(coverageSession, testOutput, projectInfo, testQueueItem.IndividualTests);
+                Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
+
+                Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
+
+                    testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0 : testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime); 
+            }
             _queries.RemoveFromQueue(testQueueItem);
             System.IO.File.Delete(fileToRead);
         }
+
+        public void UpdateMethodsAndClassesFromCodeFile( List<Module> modules)
+        {
+            IProjectContent project = new CSharpProjectContent();
+            var classNames = new List<string>();
+            var methodNames = new List<string>();
+
+            foreach (var module in modules)
+            {
+                var fileNames = module.Files.Select(x => x.FullPath);
+                foreach (var file in module.Files)
+                {
+                    project.SetAssemblyName(file.FullPath);
+                    project = AddFileToProject(project, file.FullPath);
+                    var classes = new List<string>();
+                }
+                    var typeDefinitions = project.TopLevelTypeDefinitions;
+
+                    foreach (var typeDef in typeDefinitions)
+                    {
+
+                        if (typeDef.Kind == TypeKind.Class)
+                        {
+                            classNames.Add(typeDef.ReflectionName);
+                            var methods = typeDef.Methods;
+                            UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName);
+                            methodNames.AddRange(methods.Select(x => x.ReflectionName));
+                        }
+
+
+
+                    }
+
+                   
+                    _queries.RemoveMissingClasses(module, classNames);
+                    _queries.RemoveMissingMethods(module, methodNames);
+
+                
+            }
+
+
+        }
+
+
+        public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
+        {
+            var methodsToDelete = new List<string>();
+
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var codeClasses = from clas in context.CodeClass
+                                  join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                  where clas.Name.Equals(fileClass.ReflectionName)
+                                  select clas;
+                foreach (var codeClass in codeClasses)
+                {
+                    if (codeClass.FileName != fileName
+                        || codeClass.Line != fileClass.BodyRegion.BeginLine
+                        || codeClass.Column != fileClass.BodyRegion.BeginColumn)
+                    {
+                        codeClass.FileName = fileName;
+                        codeClass.Line = fileClass.BodyRegion.BeginLine;
+                        codeClass.Column = fileClass.BodyRegion.BeginColumn;
+                    }
+
+                }
+
+                string modifiedMethodName;
+                foreach (var fileMethod in methods)
+                {
+                    var rawMethodName = fileMethod.ReflectionName;
+                    if (fileMethod.IsConstructor)
+                    {
+                        rawMethodName = rawMethodName.Replace("..", ".");
+                        modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                        modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
+                    }
+                    else
+                    {
+                        modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                    }
+
+                    // remove closing paren
+                    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+
+                    var codeMethods = from clas in codeClasses
+                                      join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                      where method.Name.Contains(modifiedMethodName)
+                                      select method;
+                    foreach (var method in codeMethods)
+                    {
+                        if (method.FileName != fileName
+                           || method.Line != fileMethod.BodyRegion.BeginLine
+                           || method.Column != fileMethod.BodyRegion.BeginColumn)
+                        {
+                            method.FileName = fileName;
+                            method.Line = fileMethod.BodyRegion.BeginLine;
+                            method.Column = fileMethod.BodyRegion.BeginColumn;
+                        }
+
+                    }
+
+
+                }
+                context.SaveChanges();
+            }
+        }
+
+
+        private IProjectContent AddFileToProject(IProjectContent project, string fileName)
+        {
+            var code = string.Empty;
+            try
+            {
+                code = System.IO.File.ReadAllText(fileName);
+            }
+            catch (Exception)
+            {
+                Log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
+            }
+
+            var syntaxTree = new CSharpParser().Parse(code, fileName);
+            var unresolvedFile = syntaxTree.ToTypeSystem();
+
+            if (syntaxTree.Errors.Count == 0)
+            {
+                project = project.AddOrUpdateFiles(unresolvedFile);
+            }
+            return project;
+        }
+
+        //Lazy<IList<IUnresolvedAssembly>> builtInLibs = new Lazy<IList<IUnresolvedAssembly>>(
+        //    delegate
+        //    {
+        //        Assembly[] assemblies = {
+        ////			        typeof(object).Assembly, // mscorlib
+        ////			        typeof(Uri).Assembly, // System.dll
+        ////			        typeof(System.Linq.Enumerable).Assembly, // System.Core.dll
+        ////					typeof(System.Xml.XmlDocument).Assembly, // System.Xml.dll
+        ////					typeof(System.Drawing.Bitmap).Assembly, // System.Drawing.dll
+        ////					typeof(Form).Assembly, // System.Windows.Forms.dll
+        ////			        typeof(ICSharpCode.NRefactory.TypeSystem.IProjectContent).Assembly,
+        //                };
+        //        var projectContents = new IUnresolvedAssembly[assemblies.Length];
+        //        Stopwatch total = Stopwatch.StartNew();
+        //        Parallel.For(
+        //            0, assemblies.Length,
+        //            delegate(int i)
+        //            {
+        //                Stopwatch w = Stopwatch.StartNew();
+        //                var loader = new CecilLoader();
+        //                projectContents[i] = loader.LoadAssemblyFile(assemblies[i].Location);
+        //                Debug.WriteLine(Path.GetFileName(assemblies[i].Location) + ": " + w.Elapsed);
+        //            });
+        //        Debug.WriteLine("Total: " + total.Elapsed);
+        //        return projectContents;
+        //    });
 
 
         private async Task RunAllNunitTestsForProject(QueuedTest item)

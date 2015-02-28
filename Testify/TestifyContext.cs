@@ -91,14 +91,7 @@ namespace Leem.Testify
                 .WithMany()
                 .WillCascadeOnDelete(true);
 
-                //.HasMany(c => c.UnitTests)
-                //.WithMany(u => u.CoveredLines)
-                //.Map(mc =>
-                //{
-                //    mc.MapLeftKey("CoveredLineId");
-                //    mc.MapRightKey("UnitTestId");
-                //    mc.ToTable("CoveredLineUnitTest");
-                //});
+
 
         }
 

@@ -1,6 +1,5 @@
 ﻿using EnvDTE;
 using EnvDTE80;
-using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.TypeSystem;
 using Leem.Testify.SummaryView;
 using log4net;
@@ -96,7 +95,7 @@ namespace Leem.Testify
                 try
                 {
                     _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-                   // File.Copy(initialDatabasePath.ToString(), databasePath);
+                    File.Copy(initialDatabasePath.ToString(), databasePath);
                 }
                 catch (Exception ex)
                 {
@@ -249,79 +248,10 @@ namespace Leem.Testify
             _queries.MaintainProjects(pocoProjects);
         }
 
-        public void UpdateMethodsAndClassesFromCodeFile(string filename)
-        {
-            IProjectContent project = new CSharpProjectContent();
-
-            project.SetAssemblyName(filename);
-            project = AddFileToProject(project, filename);
-
-            var classes = new List<string>();
-
-            var typeDefinitions = project.TopLevelTypeDefinitions;
-
-            foreach (var typeDef in typeDefinitions)
-            {
-                classes.Add(typeDef.ReflectionName);
-                if (typeDef.Kind == TypeKind.Class)
-                {
-                    var methods = typeDef.Methods;
-                    _queries.UpdateMethods(typeDef, methods, filename);
-                }
-
-            }
-
-        }
 
 
-        private IProjectContent AddFileToProject(IProjectContent project, string fileName)
-        {
-            var code = string.Empty;
-            try
-            {
-                code = File.ReadAllText(fileName);
-            }
-            catch (Exception)
-            {
-                _log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
-            }
 
-            var syntaxTree = new CSharpParser().Parse(code, fileName);
-            var unresolvedFile = syntaxTree.ToTypeSystem();
 
-            if (syntaxTree.Errors.Count == 0)
-            {
-                project = project.AddOrUpdateFiles(unresolvedFile);
-            }
-            return project;
-        }
-
-        Lazy<IList<IUnresolvedAssembly>> builtInLibs = new Lazy<IList<IUnresolvedAssembly>>(
-            delegate
-            {
-                Assembly[] assemblies = {
-		//			        typeof(object).Assembly, // mscorlib
-		//			        typeof(Uri).Assembly, // System.dll
-		//			        typeof(System.Linq.Enumerable).Assembly, // System.Core.dll
-        //					typeof(System.Xml.XmlDocument).Assembly, // System.Xml.dll
-        //					typeof(System.Drawing.Bitmap).Assembly, // System.Drawing.dll
-        //					typeof(Form).Assembly, // System.Windows.Forms.dll
-		//			        typeof(ICSharpCode.NRefactory.TypeSystem.IProjectContent).Assembly,
-				        };
-                var projectContents = new IUnresolvedAssembly[assemblies.Length];
-                Stopwatch total = Stopwatch.StartNew();
-                Parallel.For(
-                    0, assemblies.Length,
-                    delegate(int i)
-                    {
-                        Stopwatch w = Stopwatch.StartNew();
-                        var loader = new CecilLoader();
-                        projectContents[i] = loader.LoadAssemblyFile(assemblies[i].Location);
-                        Debug.WriteLine(Path.GetFileName(assemblies[i].Location) + ": " + w.Elapsed);
-                    });
-                Debug.WriteLine("Total: " + total.Elapsed);
-                return projectContents;
-            });
 
 
 
