@@ -16,6 +16,7 @@ using CodeClass = Leem.Testify.Poco.CodeClass;
 using File = Leem.Testify.Model.File;
 using Summary = Leem.Testify.Poco.Summary;
 using TrackedMethod = Leem.Testify.Model.TrackedMethod;
+using NUnit.Framework;
 
 namespace Leem.Testify
 {
@@ -229,7 +230,7 @@ namespace Leem.Testify
                         coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
                             UniqueId = (int) trackedMethod.UniqueId,
-                            UnitTestId = trackedMethod.UnitTestId,
+                            //UnitTestId = trackedMethod.UnitTestId,
                             Strategy = trackedMethod.Strategy,
                             Name = trackedMethod.Name,
                             MetadataToken = trackedMethod.MetadataToken
@@ -245,7 +246,7 @@ namespace Leem.Testify
         {
             var modifiedMethodName = string.Empty;
             var rawMethodName = codeMethod.Name;
-          
+
             modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(rawMethodName);
 
             if (codeMethod.IsConstructor)
@@ -260,14 +261,21 @@ namespace Leem.Testify
             }
 
             modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.LastIndexOf('('));
-            IProjectContent project = new CSharpProjectContent();
+            
+            //IProjectContent project = new CSharpProjectContent();
 
-            project.SetAssemblyName(fileName);
-            project = AddFileToProject(project, fileName);
+            //project.SetAssemblyName(fileName);
+            //var syntaxTree = GetSyntaxTree(fileName);
+            //project = AddFileToProject(project, syntaxTree);
+            ////var pctx = new CSharpProjectContent();
+            //project.AddOrUpdateFiles(syntaxTree.ToTypeSystem());
+            //var compilation = project.CreateCompilation();
 
+            var typeDefinitions = GetTypeDefinitionsFromRefactory(fileName);
+
+            //var context = new CSharpTypeResolveContext(compilation.MainAssembly);
+           
             var classes = new List<string>();
-
-            var typeDefinitions = project.TopLevelTypeDefinitions;
 
             foreach (var typeDef in typeDefinitions)
             {
@@ -281,6 +289,15 @@ namespace Leem.Testify
                         foreach(var method in methods)
                         {
                             System.Diagnostics.Debug.WriteLine("Method : " + method.Name );
+                            //if(method.Attributes.Any())
+                            //{
+                            //    var yy = method.Attributes;
+                            //    var yyyy = yy[1];
+                                
+                            //    var yyy = yy[1].CreateResolvedAttribute(context);
+                            //    var yyyyy = (TestCaseAttribute)yyyy;
+                            //}
+
                             if (method.Parameters.Count == parameters.Count)
                             {
                                 bool parametersMatch = true;
@@ -331,6 +348,18 @@ namespace Leem.Testify
             return null;
         }
 
+        private IEnumerable<IUnresolvedTypeDefinition> GetTypeDefinitionsFromRefactory(string fileName)
+        {
+            IProjectContent project = new CSharpProjectContent();
+
+            project.SetAssemblyName(fileName);
+            var syntaxTree = GetSyntaxTree(fileName);
+            project = AddFileToProject(project, syntaxTree);
+
+            var typeDefinitions = project.TopLevelTypeDefinitions;
+            return typeDefinitions;
+        }
+
         internal List<string> ParseArguments(string modifiedMethodName)
         {
             var result = new List<string>();
@@ -338,7 +367,7 @@ namespace Leem.Testify
             {
                 int locationOfParen = modifiedMethodName.IndexOf('(') + 1;
                 string argumentString;
-                if (locationOfParen > -1)
+                if (locationOfParen > 0)
                 {
                     argumentString = modifiedMethodName.Substring(locationOfParen,
                         modifiedMethodName.Length - locationOfParen - 1);
@@ -360,7 +389,7 @@ namespace Leem.Testify
                         name = name.Replace(Xmlnode, SystemXmlXmlnode)
                             .Replace(Int32, Integer)
                             .Replace(Dataset, SystemDataDataset)
-                            .Replace(Exception, SystemException)
+                            //.Replace(Exception, SystemException)
                             .Replace(SystemCollectionsGenericList, List)
                             .Replace(SystemCollectionsGenericIlist, Ilist)
                             .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
@@ -450,7 +479,33 @@ namespace Leem.Testify
             return name;
         }
 
-        private IProjectContent AddFileToProject(IProjectContent project, string fileName)
+        private IProjectContent AddFileToProject(IProjectContent project, SyntaxTree syntaxTree)
+        {
+            CecilLoader loader = new CecilLoader();
+            System.Reflection.Assembly[] assembliesToLoad = {
+               
+                typeof(TestCaseAttribute).Assembly
+               };
+
+            IUnresolvedAssembly[] projectAssemblies = new IUnresolvedAssembly[assembliesToLoad.Length];
+            for(int i = 0; i < assembliesToLoad.Length; i++)
+            {
+                projectAssemblies[i] = loader.LoadAssemblyFile(assembliesToLoad[i].Location);
+            }
+
+      
+            project = project.AddAssemblyReferences(projectAssemblies);
+
+            CSharpUnresolvedFile unresolvedFile = syntaxTree.ToTypeSystem();
+
+            if (syntaxTree.Errors.Count == 0)
+            {
+                project = project.AddOrUpdateFiles(unresolvedFile);
+            }
+            return project;
+        }
+
+        private SyntaxTree GetSyntaxTree(string fileName)
         {
             string code = string.Empty;
             try
@@ -459,17 +514,11 @@ namespace Leem.Testify
             }
             catch (Exception)
             {
-                _log.ErrorFormat("Could not find file to AddFileToProject, Name: {0}", fileName);
+                _log.ErrorFormat("Could not find file to GetSyntaxTree, Name: {0}", fileName);
             }
 
             SyntaxTree syntaxTree = new CSharpParser().Parse(code, fileName);
-            CSharpUnresolvedFile unresolvedFile = syntaxTree.ToTypeSystem();
-
-            if (syntaxTree.Errors.Count == 0)
-            {
-                project = project.AddOrUpdateFiles(unresolvedFile);
-            }
-            return project;
+            return syntaxTree;
         }
 
         public List<LineCoverageInfo> GetRetestedLinesFromCoverageSession(CoverageSession coverageSession,

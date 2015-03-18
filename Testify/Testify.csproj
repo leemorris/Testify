@@ -285,6 +285,7 @@
     <Compile Include="UnitTestAdornment\UnitTestAdornmentFactory.cs" />
     <Compile Include="UnitTestAdornment\UnitTestAdornmentManager.cs" />
     <Compile Include="UnitTestAdornment\UnitTestSelector.cs" />
+    <Compile Include="UnitTestCases.cs" />
     <Compile Include="UnitTestSelector.xaml.cs">
       <DependentUpon>UnitTestSelector.xaml</DependentUpon>
     </Compile>

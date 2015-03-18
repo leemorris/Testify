@@ -223,7 +223,6 @@ namespace Leem.Testify
                 sw.Reset();
 
                 UpdateMethodsAndClassesFromCodeFile(coverageSession.Modules);
-
                 await _queries.SaveCoverageSessionResults(coverageSession, testOutput, projectInfo, testQueueItem.IndividualTests);
                 Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
 
