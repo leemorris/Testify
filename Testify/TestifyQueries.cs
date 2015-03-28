@@ -118,7 +118,7 @@ namespace Leem.Testify
 
                 testMethodName = testMethodName.Insert(locationOfLastDot, "::");
 
-                testMethodName = testMethodName + "()";
+               // testMethodName = testMethodName + "()";
 
                 return testMethodName;
             }
@@ -573,7 +573,20 @@ namespace Leem.Testify
             var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
             testModule.AssemblyName = projectInfo.TestProject.AssemblyName;
 
-            SaveUnitTestResults(testOutput, testModule);
+            var trackedMethodUnitTestMapper = new List<UnitTestCases>();
+            foreach (var clas in testModule.Classes)
+            {
+
+                IProjectContent project = new CSharpProjectContent();
+
+                string filePath = testModule.Files.FirstOrDefault(x => x.UniqueId == clas.Methods.First().FileRef.UniqueId).FullPath;
+
+                var syntaxTree = GetSyntaxTree(filePath);
+                trackedMethodUnitTestMapper.AddRange(GetTestCaseMethods(syntaxTree));
+
+            }
+
+            var changedUnitTestClasses = SaveUnitTestResults(testOutput, testModule, trackedMethodUnitTestMapper);
 
             try
             {
@@ -601,7 +614,7 @@ namespace Leem.Testify
                             // The module has a list of file names and each method has a file uid. Need to use this to set the file name of the method 
                             // and use NRefactory to get Line number of the Method
 
-                            var modifiedLines=await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module);
+                            var modifiedLines = await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module, trackedMethodUnitTestMapper);
                             var coveredLinePocos = new List<CoveredLinePoco>();
                             foreach (var item in modifiedLines)
                             {
@@ -669,7 +682,7 @@ namespace Leem.Testify
 
                         var module = context.CodeModule.FirstOrDefault(x => x.Name.Equals(sessionModule.ModuleName));
                         var existingCoveredLines = GetCoveredLinesForModule(sessionModule.ModuleName, context);
-                        var modifiedLines = await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module);
+                        var modifiedLines = await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module, trackedMethodUnitTestMapper);
 
                         foreach (var item in modifiedLines)
                         {
@@ -693,7 +706,7 @@ namespace Leem.Testify
             }
         }
 
-        private async CSharp.Task<List<LineCoverageInfo>> AddOrUpdateCoveredLine(IList<string> changedClasses, IList<LineCoverageInfo> newCoveredLineList, TestifyContext context, ILookup<int, CoveredLinePoco> existingCoveredLines, CodeModule module)
+        private async CSharp.Task<List<LineCoverageInfo>> AddOrUpdateCoveredLine(IList<string> changedClasses, IList<LineCoverageInfo> newCoveredLineList, TestifyContext context, ILookup<int, CoveredLinePoco> existingCoveredLines, CodeModule module, List<UnitTestCases> trackedMethodUnitTestMapper)
         {
             var modifiedLineCoverageInfos = new List<LineCoverageInfo>();
             ILookup<string, CodeMethod> methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m);
@@ -706,9 +719,19 @@ namespace Leem.Testify
                 line.Module = module;
                 foreach (var trackedMethod in line.TrackedMethods)
                 {
-                    if (!line.UnitTests.Any(x =>x.TestMethodName == trackedMethod.NameInUnitTestFormat))
+                    var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x=>x.TrackedMethodName == trackedMethod.Name);
+                    if (!line.UnitTests.Any(x => trackedMethodUnitTestMap.UnitTestMethodNames.Contains(x.TestMethodName)))
                     {
-                        line.UnitTests.Add(unitTestLookup[trackedMethod.NameInUnitTestFormat].FirstOrDefault());
+                        foreach(var unitTestName in trackedMethodUnitTestMap.UnitTestMethodNames)
+                        {
+                            var unitTest = unitTestLookup[unitTestName].FirstOrDefault();
+                            if(unitTest != null)
+                            {
+                                line.UnitTests.Add(unitTest);
+                            }
+                            
+                        }
+                       
                     }
                     
                 }
@@ -719,7 +742,7 @@ namespace Leem.Testify
 
                 if (existingLine != null)
                 {
-                    var changedClass = await ProcessExistingLine(unitTestLookup, line, existingLine);
+                    var changedClass = await ProcessExistingLine(unitTestLookup, line, existingLine, trackedMethodUnitTestMapper);
                     if(changedClass != string.Empty)
                         changedClasses.Add(changedClass);
                 }
@@ -771,7 +794,7 @@ namespace Leem.Testify
 
         }
 
-        private async CSharp.Task<string> ProcessExistingLine(ILookup<string, UnitTest> unitTestLookup, LineCoverageInfo line, Poco.CoveredLinePoco existingLine)
+        private async CSharp.Task<string> ProcessExistingLine(ILookup<string, UnitTest> unitTestLookup, LineCoverageInfo line, Poco.CoveredLinePoco existingLine, List<UnitTestCases> trackedMethodUnitTestMapper)
         {
             var classThatChanged = string.Empty;
 
@@ -793,15 +816,20 @@ namespace Leem.Testify
             // Todo Profile and refactor to improve performance
             foreach (var trackedMethod in line.TrackedMethods)
             {
-                var matchingUnitTest = unitTestLookup[trackedMethod.NameInUnitTestFormat].FirstOrDefault();
-                if (matchingUnitTest != null)
+                var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.TrackedMethodName == trackedMethod.Name);
+                foreach(var unitTestName in trackedMethodUnitTestMap.UnitTestMethodNames)
                 {
-                    if (!existingLine.UnitTests.Any(x => x.UnitTestId == matchingUnitTest.UnitTestId))
+                    var matchingUnitTest = unitTestLookup[unitTestName].FirstOrDefault();
+                    if (matchingUnitTest != null)
                     {
-                        existingLine.UnitTests.Add(matchingUnitTest);
-                        classThatChanged = existingLine.Class.Name;
+                        if (!existingLine.UnitTests.Any(x => x.UnitTestId == matchingUnitTest.UnitTestId))
+                        {
+                            existingLine.UnitTests.Add(matchingUnitTest);
+                            classThatChanged = existingLine.Class.Name;
+                        }
                     }
                 }
+
 
 
             }
@@ -820,9 +848,9 @@ namespace Leem.Testify
             }
         }
 
-        public void SaveUnitTestResults(resultType testOutput, Leem.Testify.Model.Module testModule)
+        public List<string> SaveUnitTestResults(resultType testOutput, Leem.Testify.Model.Module testModule, List<UnitTestCases> trackedMethodUnitTestMapper)
         {
-            
+            var changedUnitTestClasses = new List<string>();
 
 
             string runDate = testOutput.date;
@@ -840,12 +868,21 @@ namespace Leem.Testify
 
             var unitTests = GetUnitTests(testOutput.testsuite);
 
+
+
+
             using (var context = new TestifyContext(_solutionName))
             {
                 try
                 {
                     foreach (var test in unitTests)
                     {
+                        var unitTestTrackedMethodMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.UnitTestMethodNames.Contains(test.TestMethodName));
+                        var unitTestNameInTrackedMethodFormat = ConvertUnitTestFormatToFormatTrackedMethod(test.TestMethodName);
+                        var modelTrackedMethod = trackedMethods.FirstOrDefault(x => x.Name.EndsWith(unitTestNameInTrackedMethodFormat));
+                        var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(y => y.UnitTestMethodNames.Contains(test.TestMethodName));
+                        test.TrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name == trackedMethodUnitTestMap.TrackedMethodName);
+
                         var existingTest = context.UnitTests.FirstOrDefault(y => y.TestMethodName.Equals(test.TestMethodName));
                         test.LastRunDatetime = runDate + " " + runTime;
 
@@ -855,6 +892,8 @@ namespace Leem.Testify
                         {
                             test.LastSuccessfulRunDatetime = DateTime.Parse(test.LastRunDatetime);
                         }
+
+                        var className = test.TestMethodName.Substring(0, test.TestMethodName.LastIndexOf("."));
 
                         if (existingTest == null)
                         {
@@ -867,19 +906,25 @@ namespace Leem.Testify
                             test.FilePath = filePath;
 
                             context.UnitTests.Add(test);
-
+                            changedUnitTestClasses.Add(className);
                         }
                         else
                         {
                             existingTest.LastSuccessfulRunDatetime = test.LastSuccessfulRunDatetime;
-                            existingTest.IsSuccessful = test.IsSuccessful;
                             existingTest.TestDuration = test.TestDuration;
-                            existingTest.Result = test.Result;
+                            if (existingTest.IsSuccessful != test.IsSuccessful || existingTest.Result != test.Result)
+                            {
+                                existingTest.IsSuccessful = test.IsSuccessful;
+                                existingTest.Result = test.Result;
+                                changedUnitTestClasses.Add(className);
+                            }
+
                         }
 
                     }
 
-                    //RemoveDeletedUnitTests(extractedMethods, context);
+                    var classesWithRemovedTests = RemoveDeletedUnitTests(trackedMethodUnitTestMapper, context);
+                    changedUnitTestClasses.AddRange(classesWithRemovedTests);
                     context.SaveChanges();
 
                 }
@@ -887,6 +932,8 @@ namespace Leem.Testify
                 {
                     Log.ErrorFormat("Error in SaveUnitTestResults Message: {0}, InnerException {1}", ex.Message, ex.InnerException);
                 }
+
+                return changedUnitTestClasses;
             }
         }
 
@@ -930,33 +977,42 @@ namespace Leem.Testify
         //    }
         //    return project;
         //}
-        private static void RemoveDeletedUnitTests(IEnumerable<Method> extractedMethods, TestifyContext context)
+        private static List<string> RemoveDeletedUnitTests(IList<UnitTestCases> trackedMethodUnitTestMapper, TestifyContext context)
         {
-            var methodsInCoverageResult = extractedMethods.Select(m => m.Name);
-            var extractedMethodNames = new List<string>();
-            foreach (var method in extractedMethods)
-            {
-                var methodName = method.Name.Substring(method.Name.IndexOf(" ") + 1);
-                methodName = methodName.Replace("()", string.Empty);
-                methodName = methodName.Replace("::", ".");
-                extractedMethodNames.Add(methodName);
-            }
+            var changedUnitTestClasses = new List<string>();
+            var methodsInCoverageResult = trackedMethodUnitTestMapper.SelectMany(m => m.UnitTestMethodNames).ToList();
+            //var extractedMethodNames = new List<string>();
+            //foreach (var method in extractedMethods)
+            //{
+            //    var methodName = method.Name.Substring(method.Name.IndexOf(" ") + 1);
+            //    methodName = methodName.Replace("()", string.Empty);
+            //    methodName = methodName.Replace("::", ".");
+            //    extractedMethodNames.Add(methodName);
+            //}
             // = extractedMethods.Select(y => y.Name.Substring(y.Name.IndexOf(" ") + 1)).ToList();
-            var unitTestsToBeDeleted = context.UnitTests.Where(x => !extractedMethodNames.Contains(x.TestMethodName)).ToList();
+            var unitTestsToBeDeleted = context.UnitTests.Where(x => !methodsInCoverageResult.Contains(x.TestMethodName)).ToList();
             foreach (var test in unitTestsToBeDeleted)
             {
                  var linesInUnitTestToBeDeleted = context.CoveredLines.SelectMany(x => x.UnitTests)
                                              .Where(x => x.TestMethodName == test.TestMethodName && x.FilePath == test.FilePath);
 
-                var coveredLines = linesInUnitTestToBeDeleted.SelectMany(x=>x.CoveredLines);
+                var coveredLines = linesInUnitTestToBeDeleted.SelectMany(x=>x.CoveredLines).Include(y=>y.Class).Distinct().ToList();
 
 
                 foreach (var line in coveredLines)
                 {
+                    if (line.Class != null)
+                    {
+                        changedUnitTestClasses.Add(line.Class.Name);
+                    }
+                    changedUnitTestClasses.Add(line.Class.Name);
                     context.CoveredLines.Remove(line);
                 }
                 context.UnitTests.Remove(test);
+                var className = test.TestMethodName.Substring(0, test.TestMethodName.LastIndexOf("."));
+                changedUnitTestClasses.Add(className);
             }
+            return changedUnitTestClasses;
         }
 
         public void SetAllQueuedTestsToNotRunning()
@@ -1167,7 +1223,7 @@ namespace Leem.Testify
                 NumberOfAsserts = Convert.ToInt32(testcase.asserts),
                 IsSuccessful = testcase.success == bool.TrueString
             };
-
+          
             if (testcase.success != null && testcase.success.Equals(Boolean.TrueString))
             {
                 unitTest.LastSuccessfulRunDatetime = DateTime.Now;
@@ -1217,7 +1273,7 @@ namespace Leem.Testify
 
                     var unitTest = ConstructUnitTest(testcase);
 
-                    unitTest.TestMethodName = testcase.name;
+                    //unitTest.TestMethodName = testcase.name;
 
                     unitTests.Add(unitTest);
                 }
@@ -1256,7 +1312,7 @@ namespace Leem.Testify
             {
                 var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
 
-                UpdateUnitTests(testModule);
+                UpdateUnitTests(testModule, distinctTrackedMethods);
 
                 UpdateTrackedMethods(distinctTrackedMethods);
                 var sw = new Stopwatch();
@@ -1587,11 +1643,11 @@ namespace Leem.Testify
 
 
 
-        private void UpdateUnitTests(Leem.Testify.Model.Module testModule)
+        private void UpdateUnitTests(Leem.Testify.Model.Module testModule,List<Poco.TrackedMethod> trackedMethods)
         {
             _sw.Restart();
             var coverageService = CoverageService.Instance;
-            var distinctTrackedMethods = testModule.TrackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
+            //var distinctTrackedMethods = testModule.TrackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
             var testCaseMethodsList = new List<UnitTestCases>();
 
             // loop through testModule.Classes
@@ -1627,7 +1683,7 @@ namespace Leem.Testify
 
                         //Create Unit Test objects
                         var unitTests = new List<UnitTest>();
-                        foreach (var trackedMethod in distinctTrackedMethods)
+                        foreach (var trackedMethod in trackedMethods)
                         {
                             string filePath;
                             filePathDictionary.TryGetValue((int)trackedMethod.MetadataToken, out filePath);
@@ -1636,17 +1692,21 @@ namespace Leem.Testify
                             var methodInfo = coverageService.UpdateMethodLocation(method, filePath);
 
                             List<UnitTest> matchingUnitTests = new List<UnitTest>();
-                            if (trackedMethod.Name.Contains("()"))
-                            {
+                            //if (trackedMethod.Name.Contains("()"))
+                            //{
+                            //   var matchingTest = context.UnitTests.FirstOrDefault(x => x.TrackedMethod.TrackedMethodId.Equals(trackedMethod.TrackedMethodId));
+                            //   if (matchingTest != null)
+                            //   {
+                            //       matchingUnitTests.Add(matchingTest);
+                            //   }
                                
-                                matchingUnitTests.Add(context.UnitTests.FirstOrDefault(x => x.TrackedMethods.Any(y => y.Name.Equals(trackedMethod.Name))));
-                            }
-                            else
-                            {
+                            //}
+                            //else
+                            //{
 
                                 var testCaseMethod = testCaseMethodsList.FirstOrDefault(x => (x.TrackedMethodName) == trackedMethod.Name);
                                 matchingUnitTests.AddRange(context.UnitTests.Where(x => testCaseMethod.UnitTestMethodNames.Contains(x.TestMethodName))); 
-                             }
+                             //}
 
                             foreach (var matchingUnitTest in matchingUnitTests)
                             {
@@ -1761,9 +1821,9 @@ namespace Leem.Testify
                     }
                     parameters = parameters + ((ICSharpCode.NRefactory.TypeSystem.Implementation.UnknownType)(parameter.Type)).ReflectionName;
                 }
-                parameters = parameters + ")";
+                
             }
-
+            parameters = parameters + ")";
             var modifiedMemberDefinitionName = memberDefinition.ReflectionName.ReplaceAt(memberDefinition.ReflectionName.LastIndexOf("."), "::");
             var unitTestCases = new UnitTestCases
             {
@@ -1777,10 +1837,10 @@ namespace Leem.Testify
                 if (element.GetType() == typeof(ICSharpCode.NRefactory.CSharp.AttributeSection) && element.HasChildren)
                 {
                     arguments = GetArgumentsFromTestCaseAttribute((AttributeSection)element);
-                }
+                //}
 
-                if (arguments.Any())
-                {
+                //if (arguments.Any())
+                //{
                     unitTestCases.UnitTestMethodNames.Add(memberDefinition.ReflectionName + arguments.Replace(" ",string.Empty));
                    
                 }

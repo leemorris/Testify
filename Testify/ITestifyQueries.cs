@@ -27,7 +27,7 @@ namespace Leem.Testify
         Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo,
             List<string> individualTest);
 
-        void SaveUnitTestResults(resultType testOutput, Module testModule);
+        List<string> SaveUnitTestResults(resultType testOutput, Module testModule, List<UnitTestCases> trackedMethodUnitTestMap);
 
         void SetAllQueuedTestsToNotRunning();
 

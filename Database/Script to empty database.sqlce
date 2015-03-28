@@ -1,5 +1,4 @@
-DELETE FROM [UnitTestTrackedMethod]
-GO
+
 DELETE FROM [UnitTest]
 GO
 DELETE FROM [TrackedMethodCoveredLinePoco]

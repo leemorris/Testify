@@ -7,13 +7,13 @@ namespace Leem.Testify.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.1-30610")]
-    public sealed partial class Initial : IMigrationMetadata
+    public sealed partial class TrackedMethod : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(Initial));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(TrackedMethod));
         
         string IMigrationMetadata.Id
         {
-            get { return "201412151429429_Initial"; }
+            get { return "201503181056562_TrackedMethod"; }
         }
         
         string IMigrationMetadata.Source

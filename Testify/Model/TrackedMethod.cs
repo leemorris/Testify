@@ -32,7 +32,7 @@ namespace Leem.Testify.Model
         [XmlAttribute("strategy")]
         public string Strategy { get; set; }
 
-        public int UnitTestId { get; set; }
+        public int TrackedMethodId { get; set; }
 
         public int FileId { get; set; }
     }
