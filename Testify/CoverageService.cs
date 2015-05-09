@@ -100,8 +100,7 @@ namespace Leem.Testify
             }
         }
 
-        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage,
-            string projectAssemblyName)
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, List<TrackedMethodMap> methodMapper)
         {
             var coveredLines = new List<LineCoverageInfo>();
 
@@ -147,19 +146,32 @@ namespace Leem.Testify
                                 {
                                     fileName = fileNames.FirstOrDefault().FullPath;
 
+                                    var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
+                                    if (methodNameWithoutNamespaces.Contains("`1"))
+                                    {
+                                        var returnType = methodNameWithoutNamespaces.Substring(0, methodNameWithoutNamespaces.IndexOf(" "));
+                                        var modifiedReturnType = CoverageService.Instance.RemoveNamespaceFromType(returnType, isReturnType: true);
+                                        methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
+                                    }
 
-                                    // remove closing paren
-                                    // modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
-                                    // Raw: System.Void Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions::.ctor()
-                                    // modified:        Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
-                                    //Needed:           Quad.QuadMed.WebPortal.Domain.App_LocalResources.AssessmentQuestions..ctor
+                                    var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodName));
+                                    if (trackedMethodUnitTestMap != null)
+                                    {
+                                        trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
+                                    }
 
+                                    if (trackedMethodUnitTestMap == null && methodNameWithoutNamespaces.Contains(".ctor") == false && methodNameWithoutNamespaces.Contains(".cctor") == false)
+                                    {
+                                        _log.ErrorFormat("Did not find Map object for: <{0}>", methodNameWithoutNamespaces);
+                                    }
+                                    CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
 
-                                    CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName);
+                                        Queries.UpdateCodeMethodPath(methodInfo);
 
-                                    Queries.UpdateCodeMethodPath(methodInfo);
+                                        ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName);
+                                    //}
 
-                                    ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName);
+                                    
                                 }
                             }
 
@@ -170,6 +182,125 @@ namespace Leem.Testify
             }
             return coveredLines;
         }
+
+        public void UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
+        {
+
+
+            foreach (var module in modules)
+            {
+                IProjectContent project = new CSharpProjectContent();
+                var classNames = new List<string>();
+                var methodNames = new List<string>();
+
+                var fileNames = module.Files.Select(x => x.FullPath);
+                foreach (var file in module.Files)
+                {
+                    project.SetAssemblyName(file.FullPath);
+                    var syntaxTree= GetSyntaxTree(file.FullPath);
+                    project = AddFileToProject(project, syntaxTree);
+                    var classes = new List<string>();
+                }
+                var typeDefinitions = project.TopLevelTypeDefinitions;
+
+
+                    foreach (var typeDef in typeDefinitions)
+                    {
+                        try
+                        {
+                            if (typeDef.Kind == TypeKind.Class)
+                            {
+                                classNames.Add(typeDef.ReflectionName);
+                                var methods = typeDef.Methods;
+                                UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper);
+                                methodNames.AddRange(methods.Select(x => x.ReflectionName));
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.ErrorFormat("Error in UpdateMethodsAndClassesFromCodeFile Class Name : {0} Error: {1}", typeDef.Name, ex);
+                        }
+
+                    }
+
+
+
+                    Queries.RemoveMissingClasses(module, classNames, trackedMethodUnitTestMapper);
+                    Queries.RemoveMissingMethods(module, methodNames, trackedMethodUnitTestMapper);
+
+
+            }
+
+
+        }
+
+        public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName, List<TrackedMethodMap>  trackedMethodUnitTestMapper)
+        {
+            //todo remove trackedmethodmapper from arguments 
+            var methodsToDelete = new List<string>();
+
+            using (var context = new TestifyContext(_solutionName))
+            {
+                var codeClasses = from clas in context.CodeClass
+                                  join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                  where clas.Name.Equals(fileClass.ReflectionName)
+                                  select clas;
+                foreach (var codeClass in codeClasses)
+                {
+                    if (codeClass.FileName != fileName
+                        || codeClass.Line != fileClass.BodyRegion.BeginLine
+                        || codeClass.Column != fileClass.BodyRegion.BeginColumn)
+                    {
+                        codeClass.FileName = fileName;
+                        codeClass.Line = fileClass.BodyRegion.BeginLine;
+                        codeClass.Column = fileClass.BodyRegion.BeginColumn;
+                    }
+
+                }
+
+                string modifiedMethodName;
+                foreach (var fileMethod in methods)
+                {
+                    var rawMethodName = fileMethod.ReflectionName;
+                    if (fileMethod.IsConstructor)
+                    {
+                        rawMethodName = rawMethodName.Replace("..", ".");
+                        modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                        modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
+                    }
+                    else
+                    {
+                        modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                       // trackedMethodUnitTestMapper.FirstOrDefault(x=>x.TrackedMethodName);
+                    }
+
+                    // remove closing paren
+                    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+
+                    var codeMethods = from clas in codeClasses
+                                      join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                      where method.Name.Contains(modifiedMethodName)
+                                      select method;
+                    foreach (var method in codeMethods)
+                    {
+                        if (method.FileName != fileName
+                           || method.Line != fileMethod.BodyRegion.BeginLine
+                           || method.Column != fileMethod.BodyRegion.BeginColumn)
+                        {
+                            method.FileName = fileName;
+                            method.Line = fileMethod.BodyRegion.BeginLine;
+                            method.Column = fileMethod.BodyRegion.BeginColumn;
+                        }
+
+                    }
+
+
+                }
+                context.SaveChanges();
+            }
+        }
+
 
 
         private static string ConvertTrackedMethodFormatToUnitTestFormat(string trackedMethodName)
@@ -189,10 +320,10 @@ namespace Leem.Testify
 
             var testMethodName = trackedMethodName.Substring(locationOfSpace);
 
-                testMethodName = testMethodName.Replace("::", ".");
+            testMethodName = testMethodName.Replace("::", ".");
 
-                return testMethodName;
-            }
+            return testMethodName;
+        }
 
         private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module,
             IEnumerable<TrackedMethod> tests, Class modelClass, Method method, string fileName)
@@ -242,108 +373,77 @@ namespace Leem.Testify
             }
         }
 
-        public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName)
+        public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName, TrackedMethodMap methodMapper)
         {
-            var modifiedMethodName = string.Empty;
-            var rawMethodName = codeMethod.Name;
 
-            modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(rawMethodName);
+          
+            //var modifiedMethodName = string.Empty;
+            //var rawMethodName = codeMethod.Name;
 
-            if (codeMethod.IsConstructor)
+            //modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(rawMethodName);
+
+            //if (codeMethod.IsConstructor)
+            //{
+            //    modifiedMethodName = modifiedMethodName.Replace(".cctor", ".ctor");
+            //}
+            //var parameters = new List<string>();
+            //if (!modifiedMethodName.EndsWith("()"))
+            //{
+            //    parameters = ParseArguments(modifiedMethodName);
+
+            //}
+
+            //modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.LastIndexOf('('));
+
+
+
+            try
             {
-                modifiedMethodName = modifiedMethodName.Replace(".cctor", ".ctor");
-            }
-            var parameters = new List<string>();
-            if (!modifiedMethodName.EndsWith("()"))
-            {
-                parameters = ParseArguments(modifiedMethodName);
+                var typeDefinitions = GetTypeDefinitionsFromRefactory(fileName);
 
-            }
 
-            modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.LastIndexOf('('));
-            
-            //IProjectContent project = new CSharpProjectContent();
 
-            //project.SetAssemblyName(fileName);
-            //var syntaxTree = GetSyntaxTree(fileName);
-            //project = AddFileToProject(project, syntaxTree);
-            ////var pctx = new CSharpProjectContent();
-            //project.AddOrUpdateFiles(syntaxTree.ToTypeSystem());
-            //var compilation = project.CreateCompilation();
+                var classes = new List<string>();
 
-            var typeDefinitions = GetTypeDefinitionsFromRefactory(fileName);
-
-            //var context = new CSharpTypeResolveContext(compilation.MainAssembly);
-           
-            var classes = new List<string>();
-
-            foreach (var typeDef in typeDefinitions)
-            {
-                classes.Add(typeDef.ReflectionName);
-                if (typeDef.Kind == TypeKind.Class)
+                foreach (var typeDef in typeDefinitions)
                 {
-
-                    var methods = typeDef.Methods.Where(x => x.ReflectionName == modifiedMethodName);
-                    if(methods.ToList().Count > 1)
+                    classes.Add(typeDef.ReflectionName);
+                    if (typeDef.Kind == TypeKind.Class)
                     {
-                        foreach(var method in methods)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Method : " + method.Name );
-                            //if(method.Attributes.Any())
-                            //{
-                            //    var yy = method.Attributes;
-                            //    var yyyy = yy[1];
-                                
-                            //    var yyy = yy[1].CreateResolvedAttribute(context);
-                            //    var yyyyy = (TestCaseAttribute)yyyy;
-                            //}
 
-                            if (method.Parameters.Count == parameters.Count)
-                            {
-                                bool parametersMatch = true;
-                                for (int i = 0; i < method.Parameters.Count; i++ )
-                                {
-                                    var methodParameterType = method.Parameters[i].Type;
-                                    string typeName = methodParameterType.ToString();
-                                    typeName = typeName.Replace("bool", "Boolean")
-                                                       .Replace("System.Nullable[[Boolean]]", "System.Nullable[[bool]]")
-                                                       .Replace("System.Guid","Guid");
-                                    if (typeName.Equals(parameters[i],StringComparison.OrdinalIgnoreCase) && parametersMatch)
-                                    {
-                                        parametersMatch = true;
-                                    }
-                                    else 
-                                    {
-                                        parametersMatch = false;
-                                        break;
-                                    }
- 
-                                }
-                                if (parametersMatch)
-                                {
-                                    return new CodeMethodInfo
-                                    {
-                                        RawMethodName = rawMethodName,
-                                        FileName = fileName,
-                                        Line = method.BodyRegion.BeginLine,
-                                        Column = method.BodyRegion.BeginColumn
-                                    };
-                                }
-                            }
-                        }
-                    }
-                    else if (methods.Count() == 1)
-                    {
-                        return new CodeMethodInfo
+                        var codeMethodInfo = new CodeMethodInfo
                         {
-                            RawMethodName = rawMethodName,
-                            FileName = fileName,
-                            Line = methods.First().BodyRegion.BeginLine,
-                            Column = methods.First().BodyRegion.BeginColumn
+                            RawMethodName = codeMethod.Name,
+                            FileName = fileName
                         };
 
+                        if (methodMapper != null)
+                        {
+                            // Test Module
+                            var method = typeDef.Methods.FirstOrDefault(x => methodMapper.MethodInfos.Any(u => u.MethodName.Contains(x.ReflectionName)));
+
+                            if (method != null)
+                            {
+                                codeMethodInfo.Line = method.BodyRegion.BeginLine;
+                                codeMethodInfo.Column = method.BodyRegion.BeginColumn;
+                            }
+                        }
+                        else 
+                        {
+                            // Code Module
+                            var modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(codeMethod.Name);
+                            var methodRegular = typeDef.Methods.FirstOrDefault(x => x.Name == modifiedMethodName);
+                        }
+
+
+                        return codeMethodInfo;
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _log.ErrorFormat("Error in UpdateMethodLocation FileName : {0}, MethodName: {1} Error: {2}", fileName, codeMethod.Name, ex);
+                throw;
             }
             return null;
         }
@@ -418,53 +518,102 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                _log.DebugFormat("Error Parsing Arguments:{0}", ex);
+                _log.ErrorFormat("Error Parsing Arguments:{0}", ex);
             }
 
             return result;
         }
 
+        //System.Collections.Generic.IList`1<Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest> Quad.QuadMed.QMedClinicalTools.DataAccess.AccountRequestDao::GetAccountRequestsByRequestCriteria(Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest)
 
-        private string RemoveNamespaces(string argument)
+        public string RemoveNamespaces(string methodNameWithArgsAndReturnType)
         {
-            int positionOfFirstOpeningAngle = argument.IndexOf("<");
-            int positionOfLastOpeningAngle = argument.LastIndexOf("<");
-
-            int positionOfFirstClosingAngle = argument.LastIndexOf(">");
-            int positionOfLastClosingAngle = argument.LastIndexOf(">");
-
-            int positionOfFirstOpeningParen = argument.IndexOf("(");
-
-            if (positionOfFirstOpeningAngle == -1)
+            var baseMethodName = methodNameWithArgsAndReturnType;
+            string returnTypeWithoutNamespace = string.Empty;
+            string returnType = string.Empty;
+            string argumentStringWithoutNamespaces = string.Empty;
+            //Get return Type
+            // substring up to first space
+            try
             {
-                argument = RemoveNamespaceFromMethod(argument);
-            }
-            else if (positionOfFirstOpeningAngle == positionOfLastOpeningAngle)
-            {
-                // Single
+                returnType = methodNameWithArgsAndReturnType.Substring(0, methodNameWithArgsAndReturnType.IndexOf(" "));
+                baseMethodName = methodNameWithArgsAndReturnType.Substring( methodNameWithArgsAndReturnType.IndexOf(" ")).TrimStart();
 
-                // object
+                //returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType,isReturnType:true);
 
-
-                string classPlusNamespace = argument.Substring(positionOfFirstOpeningAngle + 1,
-                    positionOfFirstClosingAngle - positionOfFirstOpeningAngle);
-                string classOnly = RemoveNamespaceFromMethod(classPlusNamespace);
-                argument = argument.Replace(classPlusNamespace, classOnly);
-
-                // method
-                if (positionOfFirstOpeningParen > -1)
+                var locationOfOpenParen = methodNameWithArgsAndReturnType.IndexOf("(");
+                var locationOfCloseParen = methodNameWithArgsAndReturnType.IndexOf(")");
+                
+                if (locationOfCloseParen - locationOfOpenParen > 1)
                 {
-                    string methodName = argument.Substring(0, positionOfFirstOpeningParen);
-                    string methodMinusNamespace = RemoveNamespaceFromMethod(methodName);
-                    argument = argument.Replace(methodName, methodMinusNamespace);
+                    var argumentString = methodNameWithArgsAndReturnType.Substring(methodNameWithArgsAndReturnType.IndexOf("(") + 1, methodNameWithArgsAndReturnType.IndexOf(")") - 1 - methodNameWithArgsAndReturnType.IndexOf("("));
+                    baseMethodName = baseMethodName.Replace(argumentString, string.Empty);
+                    baseMethodName = baseMethodName.Replace("()", string.Empty);
+                    // todo need to parse arguments to see if the argument contains a Lync expression like "System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>"
+                    // failing Method = System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>> Quad.QuadMed.QMedClinicalTools.Domain.Services.Util.PredicateBuilder::Or(System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>,System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>)
+
+                    var arguments = argumentString.Split(',');
+                    string[] argumentsWithoutNamespaces = new string[arguments.Length];
+
+                    for (int i = 0; i < arguments.Length; i++)
+                    {
+                        argumentsWithoutNamespaces[i] = RemoveNamespaceFromType(arguments[i], isReturnType: false);
+                    }
+
+                    argumentStringWithoutNamespaces = "(" + string.Join(",", argumentsWithoutNamespaces) + ")";
+
                 }
+                //else
+                //{
+                //    argumentStringWithoutNamespaces = "()";
+                //}
             }
-            else if (positionOfFirstOpeningAngle > positionOfLastOpeningAngle &&
-                     positionOfLastOpeningAngle > positionOfFirstClosingAngle)
+            catch (Exception ex)
             {
-                // Nested
+                _log.ErrorFormat("Error in RemoveNamespaces, methodName: {0} , Error: {1}", methodNameWithArgsAndReturnType,ex);
             }
-            return argument;
+           // baseMethodName = baseMethodName.Replace("::.ctor()", "::()");
+
+            return returnType + " " + baseMethodName + argumentStringWithoutNamespaces;
+        }
+
+        public string RemoveNamespaceFromType(string returnType, bool isReturnType)
+        {
+            if (returnType.Contains("`1"))
+            {
+                var positionOfApostropheOne = returnType.IndexOf("`1<") + 3;
+                var collectionTypeWithNamespace = returnType.Substring(0, positionOfApostropheOne-3);
+                var collectionTypeWithoutNamespace = collectionTypeWithNamespace.Substring(collectionTypeWithNamespace.LastIndexOf(".")+1);
+                var positionOfGreaterThan = returnType.LastIndexOf(">");        //System.Collections.Generic.IList`1<Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest>
+                var collectedType = returnType.Substring(positionOfApostropheOne, positionOfGreaterThan-positionOfApostropheOne);
+                var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType,  false);
+
+                return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
+            }
+            else if (returnType.Contains("<") && returnType.Contains(">"))
+            {
+                var positionOfOpenBracket = returnType.IndexOf("<") + 1;
+                var collectionTypeWithNamespace = returnType.Substring(0, positionOfOpenBracket - 1);
+                var collectionTypeWithoutNamespace = collectionTypeWithNamespace.Substring(collectionTypeWithNamespace.LastIndexOf(".") + 1);
+                var positionOfCloseBracket = returnType.LastIndexOf(">");
+                var collectedType = returnType.Substring(positionOfOpenBracket, positionOfCloseBracket - positionOfOpenBracket);
+                var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType, false);
+
+                return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
+            }
+            else 
+            {
+                var typeWithoutNamespace = returnType.Substring(returnType.LastIndexOf(".") + 1);
+                if (isReturnType)
+                {
+                    typeWithoutNamespace = typeWithoutNamespace//.Replace("Void", "void")
+                                                                .Replace("Boolean", "bool")
+                                                                .Replace("Int32", "int");
+
+                }
+                return typeWithoutNamespace;
+            }
+            return null;
         }
 
         private string RemoveNamespaceFromMethod(string argumentPart)

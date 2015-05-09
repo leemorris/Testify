@@ -30,7 +30,7 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                Log.DebugFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
+                Log.ErrorFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
                 throw;
             }
             

@@ -78,7 +78,7 @@
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Testify\Testify - 2013\Testify\OpenCover\log4net.dll</HintPath>
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
@@ -118,6 +118,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="OpenCover.Console, Version=4.5.3906.2, Culture=neutral, PublicKeyToken=15437a081a3798d7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Testify\Testify - 2013\Testify\OpenCover\OpenCover.Console.exe</HintPath>
+    </Reference>
     <Reference Include="OpenCover.Extensions, Version=4.5.1604.1, Culture=neutral, PublicKeyToken=151da2c1c93a95e3, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Rebuild\Testify\Testify\OpenCover\OpenCover.Extensions.dll</HintPath>
@@ -143,6 +147,7 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
@@ -205,6 +210,7 @@
     <Compile Include="CoverageProvider.cs" />
     <Compile Include="CoverageProviderBroker.cs" />
     <Compile Include="CoverageService.cs" />
+    <Compile Include="CoverageSessionPersistance.cs" />
     <Compile Include="CoveredLinePocoDto.cs" />
     <Compile Include="ICoverageProviderBroker.cs" />
     <Compile Include="ICoverageService.cs" />
@@ -231,6 +237,7 @@
     <Compile Include="Model\Summary.cs" />
     <Compile Include="Model\TrackedMethod.cs" />
     <Compile Include="Model\TrackedMethodRef.cs" />
+    <Compile Include="OpenCoverLauncher.cs" />
     <Compile Include="Poco\Config.cs" />
     <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\CoverageViewModel.cs" />
@@ -278,6 +285,7 @@
     <Compile Include="UnitTestAdornment\UnitTestAdornmentManager.cs" />
     <Compile Include="UnitTestAdornment\UnitTestSelector.cs" />
     <Compile Include="UnitTestCases.cs" />
+    <Compile Include="UnitTestMethodInfo.cs" />
     <Compile Include="UnitTestSelector.xaml.cs">
       <DependentUpon>UnitTestSelector.xaml</DependentUpon>
     </Compile>

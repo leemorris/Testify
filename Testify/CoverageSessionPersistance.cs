@@ -31,10 +31,10 @@ namespace Leem.Testify
         ///// Initialise the file persistence
         ///// </summary>
         ///// <param name="fileName">The filename to save to</param>
-        //public void Initialise(string fileName)
-        //{
-        //    _fileName = fileName;
-        //}
+        public void Initialise(string fileName)
+        {
+           // _fileName = fileName;
+        }
 
         public void Commit()
         {

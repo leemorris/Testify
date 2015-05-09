@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace Leem.Testify
 {
-    public class UnitTestCases
+    public class TrackedMethodMap
     {
         public string TrackedMethodName { get; set; }
-        public List<string> UnitTestMethodNames { get; set; }
+        public string CoverageSessionName { get; set; }
+        public List<MethodInfo> MethodInfos { get; set; }
         
         
     }

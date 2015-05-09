@@ -27,7 +27,7 @@ namespace Leem.Testify
         Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo,
             List<string> individualTest);
 
-        List<string> SaveUnitTestResults(resultType testOutput, Module testModule, List<UnitTestCases> trackedMethodUnitTestMap);
+        List<string> SaveUnitTestResults(resultType testOutput, Module testModule, List<TrackedMethodMap> trackedMethodUnitTestMap);
 
         void SetAllQueuedTestsToNotRunning();
 
@@ -41,9 +41,9 @@ namespace Leem.Testify
 
         string ConvertUnitTestFormatToFormatTrackedMethod(string testMethodName);
 
-        void RemoveMissingClasses(Module moduleModule, List<string> currentClassNames);
+        void RemoveMissingClasses(Module moduleModule, List<string> currentClassNames, List<TrackedMethodMap> trackedMethodUnitTestMapper);
 
-        void RemoveMissingMethods(Module moduleModule, List<string> currentMethodNames);
+        void RemoveMissingMethods(Module moduleModule, List<string> currentMethodNames, List<TrackedMethodMap> trackedMethodUnitTestMapper);
 
         CodeMethod GetMethod(string clickedMethodName);
 

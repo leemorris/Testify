@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.TypeSystem;
+using OpenCover.Framework.Manager;
 
 namespace Leem.Testify
 {
@@ -105,6 +106,7 @@ namespace Leem.Testify
                                      @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
                                      @"-register:user"  };
             //var launcher = new OpenCoverLauncher(args);
+
 
 
             string stdout ;
@@ -222,7 +224,7 @@ namespace Leem.Testify
                 Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
                 sw.Reset();
 
-                UpdateMethodsAndClassesFromCodeFile(coverageSession.Modules);
+              
                 await _queries.SaveCoverageSessionResults(coverageSession, testOutput, projectInfo, testQueueItem.IndividualTests);
                 Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
 
@@ -234,112 +236,112 @@ namespace Leem.Testify
             System.IO.File.Delete(fileToRead);
         }
 
-        public void UpdateMethodsAndClassesFromCodeFile( List<Module> modules)
-        {
-            IProjectContent project = new CSharpProjectContent();
-            var classNames = new List<string>();
-            var methodNames = new List<string>();
+        //public void UpdateMethodsAndClassesFromCodeFile( List<Module> modules)
+        //{
+        //    IProjectContent project = new CSharpProjectContent();
+        //    var classNames = new List<string>();
+        //    var methodNames = new List<string>();
 
-            foreach (var module in modules)
-            {
-                var fileNames = module.Files.Select(x => x.FullPath);
-                foreach (var file in module.Files)
-                {
-                    project.SetAssemblyName(file.FullPath);
-                    project = AddFileToProject(project, file.FullPath);
-                    var classes = new List<string>();
-                }
-                    var typeDefinitions = project.TopLevelTypeDefinitions;
+        //    foreach (var module in modules)
+        //    {
+        //        var fileNames = module.Files.Select(x => x.FullPath);
+        //        foreach (var file in module.Files)
+        //        {
+        //            project.SetAssemblyName(file.FullPath);
+        //            project = AddFileToProject(project, file.FullPath);
+        //            var classes = new List<string>();
+        //        }
+        //            var typeDefinitions = project.TopLevelTypeDefinitions;
 
-                    foreach (var typeDef in typeDefinitions)
-                    {
+        //            foreach (var typeDef in typeDefinitions)
+        //            {
 
-                        if (typeDef.Kind == TypeKind.Class)
-                        {
-                            classNames.Add(typeDef.ReflectionName);
-                            var methods = typeDef.Methods;
-                            UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName);
-                            methodNames.AddRange(methods.Select(x => x.ReflectionName));
-                        }
+        //                if (typeDef.Kind == TypeKind.Class)
+        //                {
+        //                    classNames.Add(typeDef.ReflectionName);
+        //                    var methods = typeDef.Methods;
+        //                    UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName);
+        //                    methodNames.AddRange(methods.Select(x => x.ReflectionName));
+        //                }
 
 
 
-                    }
+        //            }
 
                    
-                    _queries.RemoveMissingClasses(module, classNames);
-                    _queries.RemoveMissingMethods(module, methodNames);
+        //            _queries.RemoveMissingClasses(module, classNames);
+        //            _queries.RemoveMissingMethods(module, methodNames);
 
                 
-            }
+        //    }
 
 
-        }
+        //}
 
 
-        public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
-        {
-            var methodsToDelete = new List<string>();
+        //public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
+        //{
+        //    var methodsToDelete = new List<string>();
 
-            using (var context = new TestifyContext(_solutionName))
-            {
-                var codeClasses = from clas in context.CodeClass
-                                  join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-                                  where clas.Name.Equals(fileClass.ReflectionName)
-                                  select clas;
-                foreach (var codeClass in codeClasses)
-                {
-                    if (codeClass.FileName != fileName
-                        || codeClass.Line != fileClass.BodyRegion.BeginLine
-                        || codeClass.Column != fileClass.BodyRegion.BeginColumn)
-                    {
-                        codeClass.FileName = fileName;
-                        codeClass.Line = fileClass.BodyRegion.BeginLine;
-                        codeClass.Column = fileClass.BodyRegion.BeginColumn;
-                    }
+        //    using (var context = new TestifyContext(_solutionName))
+        //    {
+        //        var codeClasses = from clas in context.CodeClass
+        //                          join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+        //                          where clas.Name.Equals(fileClass.ReflectionName)
+        //                          select clas;
+        //        foreach (var codeClass in codeClasses)
+        //        {
+        //            if (codeClass.FileName != fileName
+        //                || codeClass.Line != fileClass.BodyRegion.BeginLine
+        //                || codeClass.Column != fileClass.BodyRegion.BeginColumn)
+        //            {
+        //                codeClass.FileName = fileName;
+        //                codeClass.Line = fileClass.BodyRegion.BeginLine;
+        //                codeClass.Column = fileClass.BodyRegion.BeginColumn;
+        //            }
 
-                }
+        //        }
 
-                string modifiedMethodName;
-                foreach (var fileMethod in methods)
-                {
-                    var rawMethodName = fileMethod.ReflectionName;
-                    if (fileMethod.IsConstructor)
-                    {
-                        rawMethodName = rawMethodName.Replace("..", ".");
-                        modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-                        modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
-                    }
-                    else
-                    {
-                        modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-                    }
+        //        string modifiedMethodName;
+        //        foreach (var fileMethod in methods)
+        //        {
+        //            var rawMethodName = fileMethod.ReflectionName;
+        //            if (fileMethod.IsConstructor)
+        //            {
+        //                rawMethodName = rawMethodName.Replace("..", ".");
+        //                modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+        //                modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
+        //            }
+        //            else
+        //            {
+        //                modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+        //            }
 
-                    // remove closing paren
-                    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+        //            // remove closing paren
+        //            modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
 
-                    var codeMethods = from clas in codeClasses
-                                      join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-                                      where method.Name.Contains(modifiedMethodName)
-                                      select method;
-                    foreach (var method in codeMethods)
-                    {
-                        if (method.FileName != fileName
-                           || method.Line != fileMethod.BodyRegion.BeginLine
-                           || method.Column != fileMethod.BodyRegion.BeginColumn)
-                        {
-                            method.FileName = fileName;
-                            method.Line = fileMethod.BodyRegion.BeginLine;
-                            method.Column = fileMethod.BodyRegion.BeginColumn;
-                        }
+        //            var codeMethods = from clas in codeClasses
+        //                              join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+        //                              where method.Name.Contains(modifiedMethodName)
+        //                              select method;
+        //            foreach (var method in codeMethods)
+        //            {
+        //                if (method.FileName != fileName
+        //                   || method.Line != fileMethod.BodyRegion.BeginLine
+        //                   || method.Column != fileMethod.BodyRegion.BeginColumn)
+        //                {
+        //                    method.FileName = fileName;
+        //                    method.Line = fileMethod.BodyRegion.BeginLine;
+        //                    method.Column = fileMethod.BodyRegion.BeginColumn;
+        //                }
 
-                    }
+        //            }
 
 
-                }
-                context.SaveChanges();
-            }
-        }
+        //        }
+        //        context.SaveChanges();
+        //    }
+        //}
 
 
         private IProjectContent AddFileToProject(IProjectContent project, string fileName)
