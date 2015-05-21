@@ -154,7 +154,8 @@ namespace Leem.Testify
                                         methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
                                     }
 
-                                    var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodName));
+                                    var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(RemoveNamespaces(x.TrackedMethodName)));
+
                                     if (trackedMethodUnitTestMap != null)
                                     {
                                         trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
@@ -167,8 +168,8 @@ namespace Leem.Testify
                                     CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
 
                                         Queries.UpdateCodeMethodPath(methodInfo);
-
-                                        ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName);
+                                       
+                                        ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
                                     //}
 
                                     
@@ -326,13 +327,15 @@ namespace Leem.Testify
         }
 
         private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module,
-            IEnumerable<TrackedMethod> tests, Class modelClass, Method method, string fileName)
+            IEnumerable<TrackedMethod> tests, Class modelClass, Method method, string fileName,TrackedMethodMap trackedMethodMap)
         {
             List<SequencePoint> sequencePoints = method.SequencePoints;
             List<BranchPoint> branchPoints = method.BranchPoints;
             foreach (SequencePoint sequencePoint in sequencePoints)
             {
                 var branchPoint = branchPoints.FirstOrDefault(x => x.StartLine == sequencePoint.StartLine);
+
+               
                 var coveredLine = new LineCoverageInfo
                 {
                     IsCode = true,
@@ -357,11 +360,10 @@ namespace Leem.Testify
 
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
                         coveredLine.FileName = fileName;
-
+                        
                         coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
                         {
                             UniqueId = (int) trackedMethod.UniqueId,
-                            //UnitTestId = trackedMethod.UnitTestId,
                             Strategy = trackedMethod.Strategy,
                             Name = trackedMethod.Name,
                             MetadataToken = trackedMethod.MetadataToken
@@ -547,8 +549,8 @@ namespace Leem.Testify
                 if (locationOfCloseParen - locationOfOpenParen > 1)
                 {
                     var argumentString = methodNameWithArgsAndReturnType.Substring(methodNameWithArgsAndReturnType.IndexOf("(") + 1, methodNameWithArgsAndReturnType.IndexOf(")") - 1 - methodNameWithArgsAndReturnType.IndexOf("("));
-                    baseMethodName = baseMethodName.Replace(argumentString, string.Empty);
-                    baseMethodName = baseMethodName.Replace("()", string.Empty);
+                    baseMethodName = baseMethodName.Substring(0, baseMethodName.IndexOf("("));
+
                     // todo need to parse arguments to see if the argument contains a Lync expression like "System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>"
                     // failing Method = System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>> Quad.QuadMed.QMedClinicalTools.Domain.Services.Util.PredicateBuilder::Or(System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>,System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>)
 
@@ -563,18 +565,14 @@ namespace Leem.Testify
                     argumentStringWithoutNamespaces = "(" + string.Join(",", argumentsWithoutNamespaces) + ")";
 
                 }
-                //else
-                //{
-                //    argumentStringWithoutNamespaces = "()";
-                //}
+
             }
             catch (Exception ex)
             {
                 _log.ErrorFormat("Error in RemoveNamespaces, methodName: {0} , Error: {1}", methodNameWithArgsAndReturnType,ex);
             }
-           // baseMethodName = baseMethodName.Replace("::.ctor()", "::()");
-
-            return returnType + " " + baseMethodName + argumentStringWithoutNamespaces;
+            returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType, isReturnType: true);
+            return returnTypeWithoutNamespace + " " + baseMethodName + argumentStringWithoutNamespaces;
         }
 
         public string RemoveNamespaceFromType(string returnType, bool isReturnType)
@@ -613,6 +611,7 @@ namespace Leem.Testify
                 }
                 return typeWithoutNamespace;
             }
+
             return null;
         }
 
@@ -627,6 +626,8 @@ namespace Leem.Testify
             }
             return name;
         }
+
+
 
         private IProjectContent AddFileToProject(IProjectContent project, SyntaxTree syntaxTree)
         {

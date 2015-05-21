@@ -29,7 +29,7 @@ namespace Leem.Testify
         
         public UnitTestService(DTE dte, string solutionDirectory, string solutionName)
         {
-            Log.DebugFormat("Inside 3 argument Constructor");
+
             _dte = dte;
             _queries = TestifyQueries.Instance;
 
@@ -96,7 +96,7 @@ namespace Leem.Testify
                                                                       UseShellExecute = false,
                                                                       CreateNoWindow = true
             };
-
+            Log.DebugFormat("*Start Process for Process For Project: {0}", testQueueItem.ProjectName);
             Log.DebugFormat("ProcessStartInfo.Arguments: {0}", startInfo.Arguments.ToString());
             Log.DebugFormat("ProcessStartInfo.FileName: {0}", startInfo.FileName.ToString());
             var args = new string[] {@"-target:C:\USERS\LEE\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\11.0EXP\EXTENSIONS\LEEM\TESTIFY\1.0\NUnit.Runners.2.6.2\nunit-console.exe ",

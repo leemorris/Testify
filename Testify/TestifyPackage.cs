@@ -188,13 +188,7 @@ namespace Leem.Testify
 
         }
 
-        //private void ProcessProjectLevelQueue(object source, ElapsedEventArgs e)
-        //{
-        //    if (_service != null)
-        //    {
-        //        _service.ProcessProjectTestQueue(++_testRunId);
-        //    }
-        //}
+
 
         private async void VerifyProjects(IVsSolution solution, string projectName)
         {
