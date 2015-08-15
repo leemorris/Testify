@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Task = System.Threading.Tasks.Task;
 using log4net;
+using System.Threading.Tasks;
 
 namespace Leem.Testify
 {
@@ -29,12 +30,12 @@ namespace Leem.Testify
         //public const string vsViewKindCode = "{7651A701-06E5-11D1-8EBD-00A0C90F26EA}";
 
         private const double Left = 1.0;
-        private readonly CodeMarkManager _codeMarkManager;
-        private readonly CoverageProvider _coverageProvider;
-        private readonly string _documentName;
+        private CodeMarkManager _codeMarkManager;
+        private CoverageProvider _coverageProvider;
+        private string _documentName;
         private readonly DTE _dte;
         private readonly IWpfTextViewHost _textViewHost;
-        private readonly Canvas _marginCanvas; // canvas object which is added to the margin to hold glyphs
+        private Canvas _marginCanvas; // canvas object which is added to the margin to hold glyphs
         private List<CodeMark> _codeMarks;
         private bool _isDisposed;
         private const int _marginWidth = 18;
@@ -46,8 +47,17 @@ namespace Leem.Testify
             ITextDocument document;
             _textViewHost = textViewHost;
 
-            _dte = (DTE) serviceProvider.GetService(typeof (DTE));
+            //create a canvas to hold the margin UI and set its properties
+            _marginCanvas = new Canvas();
 
+            _dte = (DTE) serviceProvider.GetService(typeof (DTE));
+            Task.Run(() => CreateCoverageMargin(serviceProvider, coverageProviderBroker));
+
+
+        }
+
+        private void CreateCoverageMargin(SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
+        {
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
 
             _codeMarkManager = new CodeMarkManager();
@@ -65,26 +75,26 @@ namespace Leem.Testify
             _textViewHost.TextView.TextBuffer.Changed += TextBufferChanged;
             _textViewHost.TextView.Closed += TextViewClosed;
 
-            //create a canvas to hold the margin UI and set its properties
-            _marginCanvas = new Canvas();
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+                _marginCanvas.Background = Brushes.Transparent;
 
-            _marginCanvas.Background = Brushes.Transparent;
+                ClipToBounds = true;
+                Background = Brushes.Transparent;
+                BorderBrush = Brushes.Transparent;
 
-            ClipToBounds = true;
-            Background = Brushes.Transparent;
-            BorderBrush = Brushes.Transparent;
+                Width = (_textViewHost.TextView.ZoomLevel / 100) * _marginWidth;
 
-            Width = (_textViewHost.TextView.ZoomLevel / 100) * _marginWidth;
+                BorderThickness = new Thickness(0.5);
 
-            BorderThickness = new Thickness(0.5);
+                // add margin canvas to the children list
+                Child = _marginCanvas;
 
-            // add margin canvas to the children list
-            Child = _marginCanvas;
+                UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
 
-            UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
+            }));
 
         }
-
         private void TextViewClosed(object sender, EventArgs e)
         {
             _coverageProvider.WasClosed = true;

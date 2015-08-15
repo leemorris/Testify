@@ -104,7 +104,7 @@ namespace Leem.Testify
                                      @"-coverbytest:*.Test.dll",
                                      @"-hideskipped: Domain",
                                      @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
-                                     @"-register:user"  };
+                                     @"-register:Path64"  };
             //var launcher = new OpenCoverLauncher(args);
 
 
@@ -120,17 +120,17 @@ namespace Leem.Testify
                     //AffinityMask = 0x0002; // use only the second processor, despite availability
                     //exeProcess.ProcessorAffinity = (IntPtr)AffinityMask;
 
-                    if (!testQueueItem.IndividualTests.Any() )
-                    {
-                        // lower the priority if running all tests for a project.
-                        exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-                    }
+                    //if (!testQueueItem.IndividualTests.Any() )
+                    //{
+                    //    // lower the priority if running all tests for a project.
+                    //    exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+                    //}
 
                     stdout = exeProcess.StandardOutput.ReadToEnd(); 
 
                     await Task.Run(() => exeProcess.WaitForExit());
 
-                   //Log.DebugFormat("Results of Unit Test run: {0}", stdout);
+                   Log.DebugFormat("Results of Unit Test run: {0}", stdout);
                    Log.DebugFormat("Run Tests Completed:");
                 }
             }
@@ -465,7 +465,7 @@ namespace Leem.Testify
             
             testParameters.Append(" -filter:\"+[" + projectInfo.ProjectAssemblyName + "]* +[" + projectInfo.TestProject.AssemblyName + "]* \"");
             testParameters.Append(" -targetdir:" + Path.GetDirectoryName(projectInfo.TestProject.Path));
-            testParameters.Append(" -register:user -output:");
+            testParameters.Append(" -register:Path64 -output:");
             testParameters.Append(_outputFolder);
             
             return testParameters;

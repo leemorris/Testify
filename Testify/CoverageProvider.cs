@@ -136,19 +136,23 @@ namespace Leem.Testify
 
         public FileCodeModel GetFileCodeModel(string documentName)
         {
+            
             FileCodeModel fcm = null;
-            var projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject,
-                documentName, true);
-
-            if (projectItem == null)
+            if (_dte.ActiveDocument != null && _dte.ActiveDocument.ProjectItem != null)
             {
-                _log.ErrorFormat("ERROR projectItem is null for Active Document:{0}", _dte.ActiveDocument.FullName);
-            }
-            else
-            {
-                fcm = projectItem.FileCodeModel;
-            }
 
+                var projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject,
+                    documentName, true);
+
+                if (projectItem == null)
+                {
+                    _log.ErrorFormat("ERROR projectItem is null for Active Document:{0}", _dte.ActiveDocument.FullName);
+                }
+                else
+                {
+                    fcm = projectItem.FileCodeModel;
+                }
+            }
             return fcm;
         }
 

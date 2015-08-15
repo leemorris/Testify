@@ -14,7 +14,9 @@ namespace Leem.Testify.SummaryView.ViewModel
                  select new ModuleViewModel(module))
                 .ToList());
         }
-
+        public bool IsExpanded { get; set; }
+        public bool IsSelected { get; set; }
+        public int Level { get; set; }
         public ReadOnlyCollection<ModuleViewModel> Modules
         {
             get { return _modules; }
