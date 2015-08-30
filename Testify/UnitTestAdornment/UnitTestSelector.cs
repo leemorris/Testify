@@ -217,8 +217,9 @@ namespace Leem.Testify.UnitTestAdornment
         {
             window.Activate();
             var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
-
-            selection.MoveToLineAndOffset(line - 1, column, true);
+            var adjustedLineNumber = line - 1;
+            adjustedLineNumber = adjustedLineNumber < 1 ? 1: adjustedLineNumber;
+            selection.MoveToLineAndOffset(adjustedLineNumber, column, true);
 
             selection.SelectLine();
         }

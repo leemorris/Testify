@@ -116,15 +116,9 @@ namespace Leem.Testify
                 // Call WaitForExit and then the using statement will close.
                  using (System.Diagnostics.Process exeProcess = System.Diagnostics.Process.Start(startInfo))
                 {
-                    //long AffinityMask = (long)exeProcess.ProcessorAffinity;
-                    //AffinityMask = 0x0002; // use only the second processor, despite availability
-                    //exeProcess.ProcessorAffinity = (IntPtr)AffinityMask;
 
-                    //if (!testQueueItem.IndividualTests.Any() )
-                    //{
-                    //    // lower the priority if running all tests for a project.
-                    //    exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-                    //}
+                    exeProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+
 
                     stdout = exeProcess.StandardOutput.ReadToEnd(); 
 
@@ -156,7 +150,7 @@ namespace Leem.Testify
             return isSuccessful;
         }
 
-        private async Task<bool> BuildProject(string projectPath, string outputPath) 
+        public async Task<bool> BuildProject(string projectPath, string outputPath) 
         {
             var windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             var msBuildPath = windowsDirectory + @"\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe";
@@ -410,7 +404,7 @@ namespace Leem.Testify
                 projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
             //}
 
-            if (item.Priority > 1)
+            if (projectInfo.TestProject.Path == null)
             {
                 BuildProject( projectInfo);
             }
@@ -540,7 +534,7 @@ namespace Leem.Testify
 
             Log.DebugFormat("Ready to run another test from Project Test queue");
             var projectInfo = _queries.GetProjectInfoFromTestProject(queuedTest.ProjectName);
-            if (projectInfo.TestProject.Path == string.Empty)
+            if (projectInfo != null && projectInfo.TestProject.Path == string.Empty)
             {
                // GetProjectOutputBuildFolder();
                 var projects = (Array)_dte.ActiveSolutionProjects;

@@ -13,6 +13,7 @@ namespace Leem.Testify.SummaryView
     {
         private ITestifyQueries _queries;
         private TestifyCoverageWindow _parent;
+        private bool wasCalledForMethod;
         //private readonly ILog Log = LogManager.GetLogger(typeof(SummaryViewControl));
 
         public SummaryViewControl(TestifyCoverageWindow parent)
@@ -44,11 +45,15 @@ namespace Leem.Testify.SummaryView
         {
             Poco.CodeModule[] modules =  _queries.GetModules();
             var coverageViewModel = new CoverageViewModel(modules);
+
+
             return coverageViewModel;
         }
 
         void ItemDoubleClicked(object sender, RoutedEventArgs e)
         {
+            // This event is raised multiple times, if the user double -clicks on a Method, this is fired for Method, Class and Module
+            // if the user double-clicks on a Class, this is fired for the Class and Module
             _queries = TestifyQueries.Instance;
             string filePath = string.Empty;
             int line = 0;
@@ -60,21 +65,32 @@ namespace Leem.Testify.SummaryView
 
             var dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
 
-            //IList<CodeElement> classes;
-            //IList<CodeElement> methods;
+
             if (dte.ActiveDocument != null)
             {
 
-                //CodeModelService.GetCodeBlocks(dte.ActiveDocument.ProjectItem.FileCodeModel, out classes, out methods);
-
                 if (type == "Leem.Testify.SummaryView.ViewModel.MethodViewModel")
                 {
+                    wasCalledForMethod = true; // set flag so we know this event fired for a Method
                     clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
-                   // var method = _queries.GetMethod(clickedMethodName);
-                    filePath = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FileName;
-                    line = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Line;
-                    column = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Column;
+                    filePath = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    line = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line -1;
+                    column = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Column;
+                }
+                if (type == "Leem.Testify.SummaryView.ViewModel.ClassViewModel" && wasCalledForMethod == false)
+                {
+                    // If event wasn't fired for a Method, then we can navigate to the class
+                    clickedMethodName = ((ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name;
+
+                    filePath = ((ClassViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    line = ((ClassViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line -1;
+                    column = 1;
+                }
+                if (type == "Leem.Testify.SummaryView.ViewModel.ModuleViewModel")
+                {
+                    // This event is fired for the Module as the last step. Re-set the Method flag and do nothing else.
+                    wasCalledForMethod = false;
                 }
             }
 

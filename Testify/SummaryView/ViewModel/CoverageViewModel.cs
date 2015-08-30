@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
-    public class CoverageViewModel
+    public class CoverageViewModel :TreeViewItemViewModel
     {
         readonly ReadOnlyCollection<ModuleViewModel> _modules;
 
@@ -14,8 +14,10 @@ namespace Leem.Testify.SummaryView.ViewModel
                  select new ModuleViewModel(module))
                 .ToList());
         }
-        public bool IsExpanded { get; set; }
-        public bool IsSelected { get; set; }
+        // The Name property is needed by the SummaryViewControl.XAML, do not remove.
+        public string Name { get; set; }
+
+
         public int Level { get; set; }
         public ReadOnlyCollection<ModuleViewModel> Modules
         {

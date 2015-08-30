@@ -34,9 +34,11 @@
                               Grid.Row="0">
                         <StackPanel>
                             <RadioButton x:Name="currentSelectionBtn"
-                                         Content="CurrentSelection" />
+                                         Content="CurrentSelection" 
+                                          Click="PopupClicked"/>
                             <RadioButton x:Name="singleFileBtn"
-                                         Content="As Single File" />
+                                         Content="As Single File" 
+                                          Click="PopupClicked"/>
                         </StackPanel>
                     </GroupBox>
                     <Button x:Name="generateAsBtn" Content="Generate"

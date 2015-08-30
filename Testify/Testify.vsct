@@ -99,7 +99,7 @@
           <ButtonText>My Tool Window</ButtonText>
         </Strings>
       </Button>-->
-      <Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0000" type="Button">
+      <Button guid="guidTestifyCmdSet" id="cmdidMyTool" priority="0x0000" type="Button" >
         <Parent guid="guidTestifyCmdSet" id="SubMenuGroup" />
         <Icon guid="guidImages" id="bmpPic2" />
         <Strings>

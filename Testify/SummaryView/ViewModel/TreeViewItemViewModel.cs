@@ -161,5 +161,6 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         #endregion // INotifyPropertyChanged Members
+
     }
 }

@@ -122,55 +122,62 @@ namespace Leem.Testify
 
                 if (sessionModule != null)
                 {
-                    List<Class> classes = sessionModule.Classes;
+                    List<Class> classes = sessionModule.Classes.ToList();
 
                     _log.DebugFormat("First Module Name: {0}", sessionModule.ModuleName);
                     _log.DebugFormat("Number of Classes: {0}", classes.Count());
 
+                    var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
                     foreach (var codeClass in classes)
                     {
+                        _log.DebugFormat("Class Name: {0}", codeClass.FullName);
                         List<Method> methods = codeClass.Methods;
 
                         foreach (var method in methods)
                         {
-                            if (!method.Name.ToString().Contains("__") && !method.IsGetter && !method.IsSetter)
+                            if ( !method.IsGetter && !method.IsSetter)
                             {
-                                var fileNames = new List<File>();
+                                //var fileNames = new List<File>();
+                                string fileName = string.Empty;
                                 if (method.FileRef != null)
                                 {
-                                    fileNames = sessionModule.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
+                                    fileName = fileDictionary[method.FileRef.UniqueId].FullPath;//.sessionModule.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
                                 }
 
-                                string fileName;
-                                if (fileNames.Any())
+                               
+                                if (fileName != string.Empty)
                                 {
-                                    fileName = fileNames.FirstOrDefault().FullPath;
+                                    //fileName = fileNames.FirstOrDefault().FullPath;
 
-                                    var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
-                                    if (methodNameWithoutNamespaces.Contains("`1"))
+                                    if (fileName.Contains(@"\WebServices\") == false
+                                        && fileName.Contains(@"\Web References\") == false)
                                     {
-                                        var returnType = methodNameWithoutNamespaces.Substring(0, methodNameWithoutNamespaces.IndexOf(" "));
-                                        var modifiedReturnType = CoverageService.Instance.RemoveNamespaceFromType(returnType, isReturnType: true);
-                                        methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
-                                    }
+                                        var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
+                                        if (methodNameWithoutNamespaces.Contains("`1"))
+                                        {
+                                            var returnType = methodNameWithoutNamespaces.Substring(0, methodNameWithoutNamespaces.IndexOf(" "));
+                                            var modifiedReturnType = CoverageService.Instance.RemoveNamespaceFromType(returnType, isReturnType: true);
+                                            methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
+                                        }
 
-                                    var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(RemoveNamespaces(x.TrackedMethodName)));
+                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(RemoveNamespaces(x.TrackedMethodName)));
 
-                                    if (trackedMethodUnitTestMap != null)
-                                    {
-                                        trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
-                                    }
+                                        if (trackedMethodUnitTestMap != null)
+                                        {
+                                            trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
+                                        }
 
-                                    if (trackedMethodUnitTestMap == null && methodNameWithoutNamespaces.Contains(".ctor") == false && methodNameWithoutNamespaces.Contains(".cctor") == false)
-                                    {
-                                        _log.ErrorFormat("Did not find Map object for: <{0}>", methodNameWithoutNamespaces);
-                                    }
-                                    CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
+                                        if (trackedMethodUnitTestMap == null && methodNameWithoutNamespaces.Contains(".ctor") == false && methodNameWithoutNamespaces.Contains(".cctor") == false)
+                                        {
+                                            _log.ErrorFormat("Did not find Map object for: <{0}>", methodNameWithoutNamespaces);
+                                        }
+                                        CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
 
                                         Queries.UpdateCodeMethodPath(methodInfo);
-                                       
+
                                         ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
-                                    //}
+
+                                    }
 
                                     
                                 }
@@ -227,8 +234,8 @@ namespace Leem.Testify
 
 
 
-                    Queries.RemoveMissingClasses(module, classNames, trackedMethodUnitTestMapper);
-                    Queries.RemoveMissingMethods(module, methodNames, trackedMethodUnitTestMapper);
+                    //Queries.RemoveMissingClasses(module, classNames, trackedMethodUnitTestMapper);
+                    //Queries.RemoveMissingMethods(module, methodNames, trackedMethodUnitTestMapper);
 
 
             }
