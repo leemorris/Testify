@@ -130,6 +130,7 @@ namespace Leem.Testify
                     var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
                     foreach (var codeClass in classes)
                     {
+                        //codeClass.Methods.RemoveAll(x=>x.Name.Contains("__"));
                         _log.DebugFormat("Class Name: {0}", codeClass.FullName);
                         List<Method> methods = codeClass.Methods;
 
@@ -545,18 +546,33 @@ namespace Leem.Testify
             // substring up to first space
             try
             {
-                returnType = methodNameWithArgsAndReturnType.Substring(0, methodNameWithArgsAndReturnType.IndexOf(" "));
-                baseMethodName = methodNameWithArgsAndReturnType.Substring( methodNameWithArgsAndReturnType.IndexOf(" ")).TrimStart();
+                var locationOfOpenParen = methodNameWithArgsAndReturnType.IndexOf("(");
+                var locationOfCloseParen = methodNameWithArgsAndReturnType.IndexOf(")");
+                var locationOfFirstSpace = methodNameWithArgsAndReturnType.IndexOf(" ");
+                if (locationOfOpenParen > 0)
+                {
+                    returnType = methodNameWithArgsAndReturnType.Substring(0, methodNameWithArgsAndReturnType.IndexOf(" "));
+                    baseMethodName = methodNameWithArgsAndReturnType.Substring(methodNameWithArgsAndReturnType.IndexOf(" ")).TrimStart();
+                }
+                else
+                {
+                    baseMethodName = string.Empty;
+                }
+               
+               
 
                 //returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType,isReturnType:true);
 
-                var locationOfOpenParen = methodNameWithArgsAndReturnType.IndexOf("(");
-                var locationOfCloseParen = methodNameWithArgsAndReturnType.IndexOf(")");
+
                 
                 if (locationOfCloseParen - locationOfOpenParen > 1)
                 {
                     var argumentString = methodNameWithArgsAndReturnType.Substring(methodNameWithArgsAndReturnType.IndexOf("(") + 1, methodNameWithArgsAndReturnType.IndexOf(")") - 1 - methodNameWithArgsAndReturnType.IndexOf("("));
-                    baseMethodName = baseMethodName.Substring(0, baseMethodName.IndexOf("("));
+                    if (locationOfOpenParen > 0)
+                    {
+                        baseMethodName = baseMethodName.Substring(0, baseMethodName.IndexOf("("));
+                    }
+
 
                     // todo need to parse arguments to see if the argument contains a Lync expression like "System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>"
                     // failing Method = System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>> Quad.QuadMed.QMedClinicalTools.Domain.Services.Util.PredicateBuilder::Or(System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>,System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>)
@@ -578,8 +594,14 @@ namespace Leem.Testify
             {
                 _log.ErrorFormat("Error in RemoveNamespaces, methodName: {0} , Error: {1}", methodNameWithArgsAndReturnType,ex);
             }
-            returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType, isReturnType: true);
-            return returnTypeWithoutNamespace + " " + baseMethodName + argumentStringWithoutNamespaces;
+            if(returnType!= string.Empty)
+            {
+                returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType, isReturnType: true);
+            }
+            
+
+            return string.Concat(returnTypeWithoutNamespace, " ", baseMethodName, argumentStringWithoutNamespaces).Trim();
+            //return returnTypeWithoutNamespace + " " + baseMethodName + argumentStringWithoutNamespaces;
         }
 
         public string RemoveNamespaceFromType(string returnType, bool isReturnType)
@@ -593,7 +615,9 @@ namespace Leem.Testify
                 var collectedType = returnType.Substring(positionOfApostropheOne, positionOfGreaterThan-positionOfApostropheOne);
                 var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType,  false);
 
-                return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
+                return string.Concat(collectionTypeWithoutNamespace, "<", collectedTypeWithoutNamespace, ">");
+
+                //return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
             }
             else if (returnType.Contains("<") && returnType.Contains(">"))
             {
@@ -604,7 +628,8 @@ namespace Leem.Testify
                 var collectedType = returnType.Substring(positionOfOpenBracket, positionOfCloseBracket - positionOfOpenBracket);
                 var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType, false);
 
-                return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
+                return string.Concat(collectionTypeWithoutNamespace, "<", collectedTypeWithoutNamespace, ">");
+               // return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
             }
             else 
             {

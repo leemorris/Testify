@@ -221,14 +221,14 @@ namespace Leem.Testify
             {
                 var sw = Stopwatch.StartNew();
                 module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
-                context.Database.Log = L => Log.Debug(L);
+               // context.Database.Log = L => Log.Debug(L);
                 coveredLines = (context.CoveredLines
                     .Where(line => line.Class.CodeClassId == clas.CodeClassId)
                     .Include(u => u.UnitTests))
                     .ToList();
                    
                 coveredLines.Select(x => { x.Module = module; return x; });
-                Log.DebugFormat("Get CoveredLines from database Elapsed Time : {0}", sw.ElapsedMilliseconds);
+                //Log.DebugFormat("Get CoveredLines from database Elapsed Time : {0}", sw.ElapsedMilliseconds);
             }
             
             return coveredLines;
@@ -527,8 +527,20 @@ namespace Leem.Testify
 
             }
 
-            coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("<>") );
+            coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("<>"));
+            coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("__"));
+
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("<>"));
+            coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("__"));
+            //foreach (var module in coverageSession.Modules)
+            //foreach(var c in module.Classes)
+            //{
+            //    c.Methods.RemoveAll((m => m.FileRef == null || m.Name.Contains("__")));
+                
+            //}
+
+           // coverageSession.Modules[1].Classes.SelectMany(c => c.Methods).Except(m => m.FileRef == null);
+
             var sessionModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
             sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
             var testModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName));
@@ -590,7 +602,7 @@ namespace Leem.Testify
                         {
                             var sw = Stopwatch.StartNew();
                             context.SaveChanges();
-                            Log.DebugFormat("context.SaveChanges() for project: (0) Elapsed Time:{1}", projectInfo.UniqueName,sw.ElapsedMilliseconds);
+                            Log.DebugFormat("context.SaveChanges() for project: {0} Elapsed Time:{1}", projectInfo.UniqueName,sw.ElapsedMilliseconds);
                         }
 
                         catch (Exception ex)
@@ -676,7 +688,8 @@ namespace Leem.Testify
                         {
                             var uniqueId = clas.Methods.FirstOrDefault(x => x.FileRef != null).FileRef.UniqueId;
                             string filePath = module.Files.FirstOrDefault(x => x.UniqueId == uniqueId).FullPath;
-                            if (filePath.Contains(@"\Web References\") == false)
+                            if (filePath.Contains(@"\Web References\") == false
+                                && filePath.Contains(@"\Service References\") == false)
                             {
                                 var syntaxTree = GetSyntaxTree(filePath);
                                 methodMapper.AddRange(GetTestCaseMethods(syntaxTree)); 
@@ -746,15 +759,7 @@ namespace Leem.Testify
                 }
                 else
                 {
-                    var methodName = line.MethodName.ToString();
-                    var isNotAnonOrGetterSetter = !methodName.Contains("__")
-                                                    && !methodName.Contains("::get_")
-                                                    && !methodName.Contains("::set_");
-                    if (isNotAnonOrGetterSetter)
-                    {
-                        modifiedLineCoverageInfos.Add(line);
-                    }
-
+                     modifiedLineCoverageInfos.Add(line);
                 }
 
                   ///todo remove  deleted Unit Tests
@@ -874,6 +879,16 @@ namespace Leem.Testify
 
                 using (var context = new TestifyContext(_solutionName))
                 {
+                    var trackedMethodLookup = new Dictionary<string, TrackedMethod>();
+                    TrackedMethod dummy;
+                    foreach (var trackedMethod in context.TrackedMethods)
+                    {
+
+                        var isInDictionary = trackedMethodLookup.TryGetValue(trackedMethod.Name, out dummy);
+                        if (!isInDictionary) { trackedMethodLookup.Add(trackedMethod.Name, trackedMethod); }
+                     }
+                   
+          
 
                     foreach (var test in unitTests)
                     {
@@ -893,11 +908,13 @@ namespace Leem.Testify
                            
                             if (isTrackedMethodInDictionary == false)
                             {
-                                var existingTrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
+                                TrackedMethod existingTrackedMethod = null;
+                                    trackedMethodLookup.TryGetValue(trackedMethodUnitTestMap.TrackedMethodName,out existingTrackedMethod);// context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
 
                                 if (existingTrackedMethod == null)
                                 {
                                     var trackedMethodToAdd = trackedMethods.FirstOrDefault(x => x.Name == trackedMethodUnitTestMap.TrackedMethodName);
+                                    var trackedMethodToAddWithoutNamespaces = CoverageService.Instance.RemoveNamespaces(trackedMethodToAdd.Name);
                                     if (trackedMethodToAdd != null)
                                     {
                                         var pocoTrackedMethod = new Poco.TrackedMethod
@@ -905,14 +922,14 @@ namespace Leem.Testify
                                             UniqueId = (int)trackedMethodToAdd.UniqueId,
                                             //UnitTestId = trackedMethod.UnitTestId,
                                             Strategy = trackedMethodToAdd.Strategy,
-                                            Name = CoverageService.Instance.RemoveNamespaces(trackedMethodToAdd.Name),
+                                            Name = trackedMethodToAddWithoutNamespaces,
                                             MetadataToken = trackedMethodToAdd.MetadataToken
                                         };
 
                                         pocoTrackedMethod.UnitTests.Add(test);
                                         context.TrackedMethods.Add(pocoTrackedMethod);
                                         context.SaveChanges();
-                                        trackedMethodJustAdded = context.TrackedMethods.Local.FirstOrDefault(x => x.Name.Equals(CoverageService.Instance.RemoveNamespaces(trackedMethodToAdd.Name)));
+                                        trackedMethodJustAdded = context.TrackedMethods.Local.FirstOrDefault(x => x.Name.Equals(trackedMethodToAddWithoutNamespaces));
                                         trackedMethodDictionary.TryAdd(trackedMethodJustAdded.Name, trackedMethodJustAdded);
                                     }
 
@@ -988,7 +1005,7 @@ namespace Leem.Testify
                         }
                         catch (Exception ex)
                         {
-                            Log.ErrorFormat("Error in SaveUnitTestResults UnitTestName: {0}, InnerException {1}", test.TestMethodName, ex);
+                             Log.ErrorFormat("Error in SaveUnitTestResults UnitTestName: {0}, InnerException {1}", test.TestMethodName, ex);
                         }
                     }
 
@@ -1227,11 +1244,17 @@ namespace Leem.Testify
             List<TestQueue> testsToMarkInProgress = new List<TestQueue>();
             foreach (var test in testsToRun)
             {
-                
+                var projectInfo = Instance.GetProjectInfo(testsToRun.FirstOrDefault().ProjectName);
+                if (projectInfo == null)
+                {
+                    projectInfo = Instance.GetProjectInfoFromTestProject(testsToRun.FirstOrDefault().ProjectName);
+                }
                 if (string.IsNullOrEmpty(test.IndividualTest))
                 {
                     // if we are running all the tests for the project, we can remove all the individual and Project tests 
-                    testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.ProjectName.Equals(test.ProjectName)).ToList());
+                    testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.ProjectName.Equals(projectInfo.UniqueName)).ToList());
+
+                    testsToMarkInProgress.AddRange(context.TestQueue.Where(x => x.ProjectName.Equals(projectInfo.TestProject.UniqueName)).ToList());
                 }
                 else 
                 {
@@ -1859,8 +1882,8 @@ namespace Leem.Testify
                             || parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
                         {
                             var typeArguments = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).TypeArguments.FirstOrDefault();
-
-                            if (((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).Identifier == "List"
+                            var identifier = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).Identifier;
+                            if ((identifier == "List" || identifier == "IDictionary")
                                 && typeArguments != null
                                 && typeArguments.GetType() == typeof(ICSharpCode.NRefactory.TypeSystem.KnownTypeReference))
                             {
@@ -1964,12 +1987,16 @@ namespace Leem.Testify
                             Log.ErrorFormat("Error Can't handle parameter of type: {0} ", parameter.Type.GetType().ToString());
                         }
                         extractedParameter = extractedParameter.Replace("System.Nullable[[int]]", "Nullable<Int32>");
+                        extractedParameter = extractedParameter.Replace("List<int>", "List<Int32>");
+
                         if (extractedParameter.Contains("System.Nullable[[") && extractedParameter.Contains("]]"))
                         {
                             extractedParameter = extractedParameter.Replace("System.Nullable[[", "Nullable<");
                             extractedParameter = extractedParameter.Replace("]]", ">");
                             extractedParameter = extractedParameter.Replace("bool", "Boolean");
                         }
+                        
+                        extractedParameter = extractedParameter.Replace("IEnumerable<string>", "IEnumerable<String>");
                         extractedParameter = extractedParameter.Replace("[[DateTime]]", "Nullable<DateTime>");
                         extractedParameter = extractedParameter.Replace("[[Double]]", "Nullable<Double>");
                         extractedParameter = extractedParameter.Replace("Nullable<double>", "Nullable<Double>");
@@ -1986,35 +2013,40 @@ namespace Leem.Testify
             var modifiedMemberDefinitionName = memberDefinition.ReflectionName.ReplaceAt(memberDefinition.ReflectionName.LastIndexOf("."), "::");
 
             string returnType;
+            var returnTypeBuilder = new System.Text.StringBuilder(memberDefinition.UnresolvedMember.ReturnType.ToString());
 
-            returnType = memberDefinition.UnresolvedMember.ReturnType.ToString();
+            //returnType = memberDefinition.UnresolvedMember.ReturnType.ToString();
 
 
-            returnType = returnType.Replace("string","String");
-            returnType = returnType.Replace("Void", "System.Void");
-            returnType = returnType.Replace("void", "System.Void");
-            returnType = returnType.Replace("bool", "System.Boolean");
-            returnType = returnType.Replace("double", "System.Double");
-            returnType = returnType.Replace("object", "Object");
-                
-            returnType = returnType.Replace("short", "Int16");
+            returnTypeBuilder.Replace("string","String");
+            returnTypeBuilder.Replace("Void", "System.Void");
+            returnTypeBuilder.Replace("void", "System.Void");
+            returnTypeBuilder.Replace("bool", "System.Boolean");
+            returnTypeBuilder.Replace("double", "System.Double");
+            returnTypeBuilder.Replace("object", "Object");
+            returnTypeBuilder.Replace("char", "Char");
+
+            returnTypeBuilder.Replace("short", "Int16");
             //returnType = returnType.Replace("int", "System.Int32"); // causes the name Appointment to become AppoSystem.Int32mentDto
-            returnType = returnType.Replace("System.Nullable[[int]]", "Nullable<Int32>");
+            returnTypeBuilder.Replace("System.Nullable[[int]]", "Nullable<Int32>");
+            returnTypeBuilder.Replace("IEnumerable<int>", "IEnumerable<Int32>");
+            returnTypeBuilder.Replace("[[DateTime]]", "Nullable<DateTime>");
+            returnTypeBuilder.Replace("[[Double]]", "Nullable<Double>");
+            returnType = returnTypeBuilder.ToString();
+
             if (returnType.Contains("System.Nullable[[") && returnType.Contains("]]"))
             {
-                returnType = returnType.Replace("System.Nullable[[", "Nullable<");
-                returnType = returnType.Replace("]]", ">");
+                returnTypeBuilder.Replace("System.Nullable[[", "Nullable<");
+                returnTypeBuilder.Replace("]]", ">");
             }
-            returnType = returnType.Replace("[[DateTime]]", "Nullable<DateTime>");
-            returnType = returnType.Replace("[[Double]]", "Nullable<Double>");
-                
-            if(returnType == "IList<int>")
+
+            if (returnType == "IList<int>")
             {
                 var returnTypeArgument = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(memberDefinition.UnresolvedMember.ReturnType)).TypeArguments[0];
                 returnType = "IList<" + ((ICSharpCode.NRefactory.TypeSystem.KnownTypeReference)(returnTypeArgument)).Name + ">";
             }
 
-            var unresolvedMemberReturnType = memberDefinition.UnresolvedMember.ReturnType.Resolve(compilation);
+            //var unresolvedMemberReturnType = memberDefinition.UnresolvedMember.ReturnType.Resolve(compilation);
             
 
             var unitTestCases = new TrackedMethodMap
@@ -2059,17 +2091,30 @@ namespace Leem.Testify
 
         private string GetArgumentsFromTestCaseAttribute(AttributeSection attributeSection)
         {
-            var arguments = string.Empty;
+            var arguments = new System.Text.StringBuilder();
             foreach(var attribute in attributeSection.Attributes)
             {
                 if (attribute.Type.ToString() == "TestCase") 
                 {
-                    arguments = "(" + string.Join(",", attribute.Arguments) + ")";
-                    arguments = arguments.Replace("true","True").Replace("false","False");
+                    var attributeArguments = string.Join(",", attribute.Arguments);
+                    var indexOfResultKeyword = attributeArguments.IndexOf(",Result");
+                    if (indexOfResultKeyword>0)
+                    {
+                        attributeArguments = attributeArguments.Remove(indexOfResultKeyword);
+                    }
+                   
+                    arguments.Append("(");
+                    arguments.Append(attributeArguments);
+                    arguments.Append(")");
+
+                    arguments.Replace("true", "True");
+                   // arguments.Replace(" ", string.Empty);
+                    arguments.Replace("false","False");
                 }
                 
             }
-            return arguments;
+            var args = CoverageService.Instance.RemoveNamespaces(arguments.ToString());
+            return args;
         }
 
         public CodeModule[] GetModules()
@@ -2170,6 +2215,7 @@ namespace Leem.Testify
                     //var modifiedMethodName = rawMethodNameString.ReplaceAt(rawMethodNameString.LastIndexOf("."), "::")
                     //.Replace(".::ctor", "::.ctor");
 
+                    // VERY SLOW 
                     var matchingMethod = context.CodeMethod.FirstOrDefault(x => x.Name.Contains(methodInfo.RawMethodName));
                     var matchingMethodByEquals = context.CodeMethod.FirstOrDefault(x => x.Name.Equals(methodInfo.RawMethodName));
                     if (matchingMethod != null)
