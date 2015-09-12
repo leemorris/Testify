@@ -532,14 +532,13 @@ namespace Leem.Testify
 
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("<>"));
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("__"));
-            //foreach (var module in coverageSession.Modules)
-            //foreach(var c in module.Classes)
-            //{
-            //    c.Methods.RemoveAll((m => m.FileRef == null || m.Name.Contains("__")));
-                
-            //}
+            foreach (var module in coverageSession.Modules)
+                foreach (var c in module.TrackedMethods)
+                {
+                    c.Name = c.Name.Replace("System.String","String").Replace("System.Int32","Int32").Replace("System.Boolean", "Boolean");
+                }
 
-           // coverageSession.Modules[1].Classes.SelectMany(c => c.Methods).Except(m => m.FileRef == null);
+            // coverageSession.Modules[1].Classes.SelectMany(c => c.Methods).Except(m => m.FileRef == null);
 
             var sessionModule = coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.ProjectAssemblyName));
             sessionModule.AssemblyName = projectInfo.ProjectAssemblyName;
@@ -1988,6 +1987,7 @@ namespace Leem.Testify
                         }
                         extractedParameter = extractedParameter.Replace("System.Nullable[[int]]", "Nullable<Int32>");
                         extractedParameter = extractedParameter.Replace("List<int>", "List<Int32>");
+                        //extractedParameter = extractedParameter.Replace("Boolean", "System.Boolean");
 
                         if (extractedParameter.Contains("System.Nullable[[") && extractedParameter.Contains("]]"))
                         {
