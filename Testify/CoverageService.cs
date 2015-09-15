@@ -102,6 +102,7 @@ namespace Leem.Testify
 
         public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, List<TrackedMethodMap> methodMapper)
         {
+            //4.42%
             var coveredLines = new List<LineCoverageInfo>();
 
             List<Module> sessionModules = codeCoverage.Modules;

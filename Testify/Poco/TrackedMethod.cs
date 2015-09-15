@@ -17,6 +17,7 @@ namespace Leem.Testify.Poco
         public string Strategy { get; set; }
 
         public string FileName { get; set; }
+        public string AssemblyName { get; set; }
 
         public virtual ICollection<CoveredLinePoco> CoveredLines { get; set; }
         public virtual ICollection<UnitTest> UnitTests { get; set; }
