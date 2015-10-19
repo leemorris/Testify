@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using Leem.Testify.Poco;
+using System.Linq;
 
 namespace Leem.Testify
 {
@@ -37,5 +38,16 @@ namespace Leem.Testify
         public string FileName { get; set; }
 
         public bool IsBranch { get; set; }
+
+
+    }
+    public static class LineCoverageInfoExtensions
+    {
+        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> items,
+                                    int numOfParts)
+        {
+            int i = 0;
+            return items.GroupBy(x => i++ % numOfParts);
+        }
     }
 }

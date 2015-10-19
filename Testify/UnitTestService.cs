@@ -222,9 +222,9 @@ namespace Leem.Testify
                 await _queries.SaveCoverageSessionResults(coverageSession, testOutput, projectInfo, testQueueItem.IndividualTests);
                 Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
 
-                Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2}",
+                Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2} minutes, {3} seconds",
 
-                    testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0 : testQueueItem.IndividualTests.Count(), DateTime.Now - testQueueItem.TestStartTime); 
+                    testQueueItem.ProjectName, testQueueItem.IndividualTests == null ? 0 : testQueueItem.IndividualTests.Count(), (DateTime.Now - testQueueItem.TestStartTime).Minutes, (DateTime.Now - testQueueItem.TestStartTime).Seconds); 
             }
             _queries.RemoveFromQueue(testQueueItem);
             System.IO.File.Delete(fileToRead);

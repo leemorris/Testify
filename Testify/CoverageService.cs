@@ -100,7 +100,7 @@ namespace Leem.Testify
             }
         }
 
-        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, List<TrackedMethodMap> methodMapper)
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, List<TrackedMethodMap> methodMapper,TestifyContext context)
         {
             //4.42%
             var coveredLines = new List<LineCoverageInfo>();
@@ -129,9 +129,11 @@ namespace Leem.Testify
                     _log.DebugFormat("Number of Classes: {0}", classes.Count());
 
                     var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
+                    var codeMethodDictionary = context.CodeMethod.ToDictionary(item => item.Name);
+ 
                     foreach (var codeClass in classes)
                     {
-                        //codeClass.Methods.RemoveAll(x=>x.Name.Contains("__"));
+                       // codeClass.Methods.RemoveAll(x=>x.Name.Contains("__"));
                         _log.DebugFormat("Class Name: {0}", codeClass.FullName);
                         List<Method> methods = codeClass.Methods;
 
@@ -152,7 +154,8 @@ namespace Leem.Testify
                                     //fileName = fileNames.FirstOrDefault().FullPath;
 
                                     if (fileName.Contains(@"\WebServices\") == false
-                                        && fileName.Contains(@"\Web References\") == false)
+                                        && fileName.Contains(@"\Web References\") == false
+                                        && fileName.Contains(@"\Service References") == false)
                                     {
                                         var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
                                         if (methodNameWithoutNamespaces.Contains("`1"))
@@ -175,7 +178,7 @@ namespace Leem.Testify
                                         }
                                         CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
 
-                                        Queries.UpdateCodeMethodPath(methodInfo);
+                                        Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
 
                                         ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
 
@@ -187,6 +190,7 @@ namespace Leem.Testify
 
 
                         }
+                        context.SaveChanges();
                     }
                 }
             }

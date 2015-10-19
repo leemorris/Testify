@@ -28,7 +28,7 @@ namespace Leem.Testify
             Database.SetInitializer<TestifyContext>(new CreateDatabaseIfNotExists<TestifyContext>());
         }
 
-        public DbSet<Poco.CoveredLinePoco> CoveredLines { get; set; }
+        public DbSet<Poco.CoveredLine> CoveredLines { get; set; }
 
         public DbSet<Summary> Summary { get; set; }
 
@@ -85,7 +85,7 @@ namespace Leem.Testify
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
 
-            modelBuilder.Entity<CoveredLinePoco>()
+            modelBuilder.Entity<CoveredLine>()
                 .HasKey(y => y.CoveredLineId)
                 .HasRequired(m=>m.Method)
                 .WithMany()

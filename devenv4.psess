@@ -73,6 +73,12 @@
     <Report>
       <Path>devenv150915.vspx</Path>
     </Report>
+    <Report>
+      <Path>devenv150928.vspx</Path>
+    </Report>
+    <Report>
+      <Path>devenv150929.vspx</Path>
+    </Report>
   </Reports>
   <Launches>
     <ProjBinary>

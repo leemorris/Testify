@@ -231,9 +231,9 @@
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="Migrations\201503181056562_TrackedMethod.cs" />
-    <Compile Include="Migrations\201503181056562_TrackedMethod.Designer.cs">
-      <DependentUpon>201503181056562_TrackedMethod.cs</DependentUpon>
+    <Compile Include="Migrations\201509201158281_Initial.cs" />
+    <Compile Include="Migrations\201509201158281_Initial.Designer.cs">
+      <DependentUpon>201509201158281_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -268,7 +268,7 @@
     <Compile Include="Poco\CodeMethod.cs" />
     <Compile Include="Poco\CodeModule.cs" />
     <Compile Include="Poco\Summary.cs" />
-    <Compile Include="Poco\CoveredLinePoco.cs" />
+    <Compile Include="Poco\CoveredLine.cs" />
     <Compile Include="Poco\Project.cs" />
     <Compile Include="Poco\TestProject.cs" />
     <Compile Include="Poco\TestQueue.cs" />
@@ -309,8 +309,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201503181056562_TrackedMethod.resx">
-      <DependentUpon>201503181056562_TrackedMethod.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201509201158281_Initial.resx">
+      <DependentUpon>201509201158281_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

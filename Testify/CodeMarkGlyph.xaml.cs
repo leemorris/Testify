@@ -13,7 +13,7 @@ namespace Leem.Testify
     public partial class CodeMarkGlyph : UserControl
     {
 
-        private readonly CoveredLinePoco _coveredLine;
+        private readonly CoveredLine _coveredLine;
         private readonly IWpfTextView _view;
 
         public CodeMarkGlyph()
@@ -24,7 +24,7 @@ namespace Leem.Testify
             MouseRightButtonDown += CodeMarkGlyph_MouseRightButtonDown;
         }
 
-        public CodeMarkGlyph(IWpfTextView view, CoveredLinePoco line, double yPosition)
+        public CodeMarkGlyph(IWpfTextView view, CoveredLine line, double yPosition)
             : this()
         {
             YPosition = yPosition;

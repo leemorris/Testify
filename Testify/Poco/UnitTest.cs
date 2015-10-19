@@ -8,7 +8,7 @@ namespace Leem.Testify.Poco
         public UnitTest()
         {
            // TrackedMethods = new HashSet<TrackedMethod>();
-            CoveredLines = new HashSet<CoveredLinePoco>();
+            CoveredLines = new HashSet<CoveredLine>();
         }
 
         public int UnitTestId { get; set; }
@@ -42,6 +42,6 @@ namespace Leem.Testify.Poco
 
         public virtual TrackedMethod TrackedMethod { get; set; }
 
-        public virtual ICollection<CoveredLinePoco> CoveredLines { get; set; }
+        public virtual ICollection<CoveredLine> CoveredLines { get; set; }
     }
 }

@@ -114,7 +114,7 @@ namespace Leem.Testify
 
         private List<CodeMark> GetAllCodeMarksForMargin()
         {
-            ConcurrentDictionary<int, CoveredLinePoco> coveredLines =
+            ConcurrentDictionary<int, CoveredLine> coveredLines =
                 _coverageProvider.GetCoveredLines(_textViewHost.TextView);
 
             var allCodeMarks = new List<CodeMark>();
@@ -141,7 +141,7 @@ namespace Leem.Testify
 
         private void TextViewGotAggregateFocus(object sender, EventArgs e)
         {
-            _log.DebugFormat("TextViewGotAggregateFocus - FIRED");
+            //_log.DebugFormat("TextViewGotAggregateFocus - FIRED");
             _coverageProvider.RecreateCoverage((IWpfTextView) sender);
 
             UpdateCodeMarks();
@@ -225,12 +225,12 @@ namespace Leem.Testify
             }
         }
 
-        private async Task UpdateCodeMarksAsync(ConcurrentDictionary<int, CoveredLinePoco> coveredLines)
+        private async Task UpdateCodeMarksAsync(ConcurrentDictionary<int, CoveredLine> coveredLines)
         {
             UpdateCodeMarks(coveredLines);
         }
 
-        private void UpdateCodeMarks(ConcurrentDictionary<int, CoveredLinePoco> coveredLines)
+        private void UpdateCodeMarks(ConcurrentDictionary<int, CoveredLine> coveredLines)
         {
             FileCodeModel fcm = _coverageProvider.GetFileCodeModel(_documentName);
             int apparentLineNumber = 0;
@@ -245,7 +245,7 @@ namespace Leem.Testify
                     int lineNumber = textViewLine.Start.GetContainingLine().LineNumber;
 
                     accumulatedHeight += textViewLine.Height;
-                    var coveredLine = new CoveredLinePoco();
+                    var coveredLine = new CoveredLine();
 
                     ITextSnapshotLine g =
                         _textViewHost.TextView.TextBuffer.CurrentSnapshot.Lines.FirstOrDefault(
@@ -277,7 +277,7 @@ namespace Leem.Testify
 
         }
 
-        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLinePoco line, double yPos)
+        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos)
         {
             // create a glyph
             var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos);
@@ -318,7 +318,7 @@ namespace Leem.Testify
         }
 
         // get y position for this bookmark
-        private double GetYCoordinateForBookmark(CoveredLinePoco line)
+        private double GetYCoordinateForBookmark(CoveredLine line)
         {
             // calculate y position from line number with this bookmark
             return GetYCoordinateFromLineNumber(line.LineNumber);

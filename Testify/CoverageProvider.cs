@@ -21,7 +21,7 @@ namespace Leem.Testify
     {
 
         private readonly ILog _log = LogManager.GetLogger(typeof(CoverageProvider));
-        private readonly ConcurrentDictionary<int, CoveredLinePoco> _coveredLines;
+        private readonly ConcurrentDictionary<int, CoveredLine> _coveredLines;
         private readonly DTE _dte;
 
         private readonly Solution _dteSolution;
@@ -42,7 +42,7 @@ namespace Leem.Testify
             var coverageService = CoverageService.Instance;
 
             _dte = dte;
-            _coveredLines = new ConcurrentDictionary<int, CoveredLinePoco>();
+            _coveredLines = new ConcurrentDictionary<int, CoveredLine>();
             coverageService.DTE = _dte;
             _dteSolution = dte.Solution;
             coverageService.DTE = dte;
@@ -165,9 +165,9 @@ namespace Leem.Testify
 
             CodeModelService.GetCodeBlocks(fcm, out classes, out methods);
             _log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
-            var coveredLines = new List<CoveredLinePoco>();
+            var coveredLines = new List<CoveredLine>();
 
-            IEnumerable<CoveredLinePoco> lines;
+            IEnumerable<CoveredLine> lines;
             var solutionName = fcm.DTE.Solution.FullName;
             using (var context = new TestifyContext(solutionName))
             {
@@ -179,7 +179,7 @@ namespace Leem.Testify
                 {
                     // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
                     // just return an empty list because we are essentially terminated.
-                    lines = new List<CoveredLinePoco>();
+                    lines = new List<CoveredLine>();
                 }
 
             }
@@ -204,7 +204,7 @@ namespace Leem.Testify
 
                     if (!isAdded)
                     {
-                        CoveredLinePoco currentValue;
+                        CoveredLine currentValue;
 
                         _coveredLines.TryGetValue(lineNumber, out currentValue);
 
@@ -268,7 +268,7 @@ namespace Leem.Testify
             return projectItem;
         }
 
-        internal ConcurrentDictionary<int, CoveredLinePoco> GetCoveredLines(IWpfTextView view)
+        internal ConcurrentDictionary<int, CoveredLine> GetCoveredLines(IWpfTextView view)
         {
             if (view.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion
                 || (_HasCoveredLinesBeenInitialized == false && _IsRebuilding == false)

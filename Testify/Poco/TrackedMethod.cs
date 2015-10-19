@@ -7,19 +7,19 @@ namespace Leem.Testify.Poco
 
         public TrackedMethod()
         {
-            CoveredLines = new HashSet<CoveredLinePoco>();
+            CoveredLines = new HashSet<CoveredLine>();
             UnitTests = new HashSet<UnitTest>();
         }
 
         public int TrackedMethodId { get; set; }
+        public CodeModule CodeModule { get; set; }
         public int UniqueId { get; set; }
         public string Name { get; set; }
         public string Strategy { get; set; }
 
         public string FileName { get; set; }
-        public string AssemblyName { get; set; }
 
-        public virtual ICollection<CoveredLinePoco> CoveredLines { get; set; }
+        public virtual ICollection<CoveredLine> CoveredLines { get; set; }
         public virtual ICollection<UnitTest> UnitTests { get; set; }
         public int MetadataToken { get; set; }
 

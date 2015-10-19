@@ -37,7 +37,7 @@ namespace Leem.Testify
 
         IEnumerable<CodeMethod> GetMethods(CodeClass _class);
 
-        void UpdateCodeMethodPath(CodeMethodInfo methodInfo);
+        void UpdateCodeMethodPath(TestifyContext context, CodeMethodInfo methodInfo, Dictionary<string, CodeMethod> codeMethodDictionary);
 
         string ConvertUnitTestFormatToFormatTrackedMethod(string testMethodName);
 
