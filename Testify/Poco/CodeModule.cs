@@ -8,7 +8,7 @@ namespace Leem.Testify.Poco
         public CodeModule()
         {
             Classes = new HashSet<CodeClass>();
-            TrackedMethods = new HashSet<TrackedMethod>();
+            TestMethods = new HashSet<TestMethod>();
         }
 
         public CodeModule(Module module)
@@ -22,7 +22,7 @@ namespace Leem.Testify.Poco
         public int CodeModuleId { get; set; }
 
         public virtual ICollection<CodeClass> Classes { get; set; }
-        public virtual ICollection<TrackedMethod> TrackedMethods { get; set; }
+        public virtual ICollection<TestMethod> TestMethods { get; set; }
         public string Name { get; set; }
         public string FileName { get; set; }
         public string AssemblyName { get; set; }

@@ -6,7 +6,7 @@ namespace Leem.Testify.Poco
     {
         public TestProject()
         {
-            UnitTests = new HashSet<UnitTest>();
+            TestMethods = new HashSet<TestMethod>();
         }
 
         public string UniqueName { get; set; }
@@ -23,6 +23,6 @@ namespace Leem.Testify.Poco
 
         public virtual Project Project { get; set; }
 
-        public virtual ICollection<UnitTest> UnitTests { get; set; }
+        public virtual ICollection<TestMethod> TestMethods { get; set; }
     }
 }

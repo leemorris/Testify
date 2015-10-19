@@ -39,11 +39,13 @@ namespace Leem.Testify
         private List<CodeMark> _codeMarks;
         private bool _isDisposed;
         private const int _marginWidth = 18;
+        private TestifyContext _context;
 
 
         public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider,
             ICoverageProviderBroker coverageProviderBroker)
         {
+           
             ITextDocument document;
             _textViewHost = textViewHost;
 
@@ -58,14 +60,15 @@ namespace Leem.Testify
 
         private void CreateCoverageMargin(SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
         {
+
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
 
             _codeMarkManager = new CodeMarkManager();
 
-            _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider);
+            _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider, _context);
 
-            _codeMarks = GetAllCodeMarksForMargin();
-
+            _context = new TestifyContext(_coverageProvider.SolutionName);
+            _coverageProvider.Context = _context;
             _textViewHost.TextView.LayoutChanged += TextViewLayoutChanged;
 
             _textViewHost.TextView.GotAggregateFocus += TextViewGotAggregateFocus;
@@ -90,7 +93,11 @@ namespace Leem.Testify
                 // add margin canvas to the children list
                 Child = _marginCanvas;
 
-                UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
+                _codeMarks = GetAllCodeMarksForMargin(_context);
+
+                UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView, _context));
+
+                
 
             }));
 
@@ -112,10 +119,10 @@ namespace Leem.Testify
         
 
 
-        private List<CodeMark> GetAllCodeMarksForMargin()
+        private List<CodeMark> GetAllCodeMarksForMargin(TestifyContext context)
         {
             ConcurrentDictionary<int, CoveredLine> coveredLines =
-                _coverageProvider.GetCoveredLines(_textViewHost.TextView);
+                _coverageProvider.GetCoveredLines(_textViewHost.TextView, context);
 
             var allCodeMarks = new List<CodeMark>();
 
@@ -125,7 +132,7 @@ namespace Leem.Testify
                 {
                     LineNumber = line.Value.LineNumber,
                     FileName = line.Value.FileName,
-                    UnitTests = line.Value.UnitTests.Cast<UnitTest>().ToList()
+                    TestMethods = line.Value.TestMethods.Cast<TestMethod>().ToList()
                 });
             }
             return allCodeMarks;
@@ -141,8 +148,8 @@ namespace Leem.Testify
 
         private void TextViewGotAggregateFocus(object sender, EventArgs e)
         {
-            //_log.DebugFormat("TextViewGotAggregateFocus - FIRED");
-            _coverageProvider.RecreateCoverage((IWpfTextView) sender);
+            _log.DebugFormat("TextViewGotAggregateFocus - FIRED");
+            _coverageProvider.RecreateCoverage((IWpfTextView) sender,_context);
 
             UpdateCodeMarks();
         }
@@ -221,7 +228,7 @@ namespace Leem.Testify
 
             if (_codeMarkManager != null)
             {
-                UpdateCodeMarksAsync(_coverageProvider.GetCoveredLines(_textViewHost.TextView));
+                UpdateCodeMarksAsync(_coverageProvider.GetCoveredLines(_textViewHost.TextView, _context));
             }
         }
 
@@ -290,9 +297,9 @@ namespace Leem.Testify
 
             var tooltip = new StringBuilder();
 
-            tooltip.AppendFormat("Covering Tests:\t {0}\n", line.UnitTests.Count);
+            tooltip.AppendFormat("Covering Tests:\t {0}\n", line.TestMethods.Count);
 
-            foreach (UnitTest test in line.UnitTests.OrderBy(x=>x.IsSuccessful))
+            foreach (TestMethod test in line.TestMethods.OrderBy(x=>x.IsSuccessful))
             {
                 tooltip.AppendFormat("{0}\n", test.TestMethodName);
             }

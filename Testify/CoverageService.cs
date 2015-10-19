@@ -145,8 +145,8 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
-                            //if ( !method.IsGetter && !method.IsSetter)
-                            //{
+                            if ( !method.IsGetter && !method.IsSetter)
+                            {
                                 //var fileNames = new List<File>();
                                 string fileName = string.Empty;
                                 if (method.FileRef != null)
@@ -195,7 +195,7 @@ namespace Leem.Testify
                             }
 
 
-                        //}
+                        }
                         context.SaveChanges();
                     }
                     }
@@ -212,7 +212,7 @@ namespace Leem.Testify
         public void UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
 
-            _log.DebugFormat("Entering UpdateMethodsAndClassesFromCodeFile ");
+
 
             foreach (var module in modules)
             {

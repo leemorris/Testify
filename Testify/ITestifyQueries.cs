@@ -47,7 +47,7 @@ namespace Leem.Testify
 
         CodeMethod GetMethod(string clickedMethodName);
 
-        IEnumerable<UnitTest> GetUnitTestByName(string name);
+        IEnumerable<TestMethod> GetUnitTestByName(string name);
 
         void AddTestsCoveringFileToTestQueue(string fileName, EnvDTE.Project project);
     }

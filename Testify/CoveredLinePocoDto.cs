@@ -15,6 +15,6 @@ namespace Leem.Testify
         public int UnitTestId { get; set; }
         public string FileName { get; set; }
         public bool IsBranch { get; set; }
-        public List<Poco.UnitTest> UnitTests { get; set; }
+        public List<Poco.TestMethod> TestMethods { get; set; }
     }
 }

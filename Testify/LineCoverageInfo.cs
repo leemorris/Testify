@@ -9,8 +9,7 @@ namespace Leem.Testify
     {
         public LineCoverageInfo()
         {
-            TrackedMethods = new List<TrackedMethod>();
-            UnitTests = new List<UnitTest>();
+            TestMethods = new List<TestMethod>();
         }
 
         public CodeModule Module { get; set; }
@@ -31,11 +30,9 @@ namespace Leem.Testify
 
         public bool IsCovered { get; set; }
 
-        public List<TrackedMethod> TrackedMethods { get; set; }
+        public List<TestMethod> TestMethods { get; set; }
 
-        public List<UnitTest> UnitTests { get; set; }
-
-        public string FileName { get; set; }
+         public string FileName { get; set; }
 
         public bool IsBranch { get; set; }
 

@@ -6,8 +6,8 @@ namespace Leem.Testify.Poco
     {
         public CoveredLine()
         {
-            TrackedMethods = new HashSet<TrackedMethod>();
-            UnitTests = new HashSet<UnitTest>();
+            TestMethods = new HashSet<TestMethod>();
+
         }
 
         public CodeModule Module { get; set; }
@@ -22,8 +22,8 @@ namespace Leem.Testify.Poco
         public int UnitTestId { get; set; }
         public string FileName { get; set; }
 
-        public virtual ICollection<TrackedMethod> TrackedMethods { get; set; }
-        public virtual ICollection<UnitTest> UnitTests { get; set; }
+        public virtual ICollection<TestMethod> TestMethods { get; set; }
+ 
 
         public bool IsBranch { get; set; }
     }

@@ -44,9 +44,13 @@ namespace Leem.Testify
 
         public DbSet<TestQueue> TestQueue { get; set; }
 
-        public DbSet<TrackedMethod> TrackedMethods { get; set; }
+        //public DbSet<TrackedMethod> TrackedMethods { get; set; }
 
-        public DbSet<UnitTest> UnitTests { get; set; }
+        //public DbSet<UnitTest> UnitTests { get; set; }
+
+
+        public DbSet<TestMethod> TestMethods { get; set; }
+
 
         //public DbSet<Config> Configuration { get; set; }
 
@@ -69,15 +73,15 @@ namespace Leem.Testify
             modelBuilder.Entity<CodeMethod>()
                 .HasKey(x => x.CodeMethodId);  
 
-            modelBuilder.Entity<UnitTest>()
-                .HasKey(x => x.UnitTestId)
-                .Ignore(c => c.MetadataToken);
+            //modelBuilder.Entity<UnitTest>()
+            //    .HasKey(x => x.UnitTestId)
+            //    .Ignore(c => c.MetadataToken);
 
-            modelBuilder.Entity<TrackedMethod>()
-                .HasKey(x => x.TrackedMethodId);
+            //modelBuilder.Entity<TrackedMethod>()
+            //    .HasKey(x => x.TrackedMethodId);
 
-            modelBuilder.Entity<TrackedMethod>()
-               .Ignore(t => t.MetadataToken);
+            //modelBuilder.Entity<TrackedMethod>()
+            //   .Ignore(t => t.MetadataToken);
 
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
@@ -90,7 +94,10 @@ namespace Leem.Testify
                 .HasRequired(m=>m.Method)
                 .WithMany()
                 .WillCascadeOnDelete(true);
-
+            //modelBuilder.Entity<CoveredLine>()
+            //    .HasMany(t => t.TestMethods)
+            //    .WithMany(c=>c.CoveredLines);
+                
 
 
         }

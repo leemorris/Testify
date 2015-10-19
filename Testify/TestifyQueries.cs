@@ -690,14 +690,14 @@ namespace Leem.Testify
                 //    }
 
                 //}
-                //try
-                //{
-                //    RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule, methodMapper);
-                //}
-                //catch(Exception ex)
-                //{
-                //    Log.ErrorFormat("Error in RefreshUnitTestIds: {0} ", ex);
-                //}
+                try
+                {
+                    RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule, methodMapper);
+                }
+                catch(Exception ex)
+                {
+                    Log.ErrorFormat("Error in RefreshUnitTestIds: {0} ", ex);
+                }
                 
                
                 OnClassChanged(changedClasses.Distinct().ToList());
@@ -1283,11 +1283,7 @@ namespace Leem.Testify
             foreach (var test in line.TestMethods)
             {
                 var testFromContext = context.TestMethods.FirstOrDefault(x => x.Name == test.TestMethodName);
-                if (testFromContext != null)
-                {
-                    coveredLine.TestMethods.Add(testFromContext);
-                }
-               
+                coveredLine.TestMethods.Add(testFromContext);
             }
             coveredLine.IsSuccessful = coveredLine.TestMethods.All(y => y.IsSuccessful);
             return coveredLine;
@@ -1456,24 +1452,27 @@ namespace Leem.Testify
 
         private void RefreshUnitTestIds(IList<LineCoverageInfo> newCoveredLineInfos, Leem.Testify.Model.Module module, Leem.Testify.Model.Module testModule,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
-            //var trackedMethodLists = (from testInfo in newCoveredLineInfos
-            //                          where testInfo.TestMethods != null
-            //                          select testInfo.TestMethods);
+            var trackedMethodLists = (from testInfo in newCoveredLineInfos
+                                      where testInfo.TestMethods != null
+                                      select testInfo.TestMethods);
 
-            //var trackedMethods = trackedMethodLists.SelectMany(x => x).ToList();
+            var trackedMethods = trackedMethodLists.SelectMany(x => x).ToList();
 
-            //if (trackedMethods.Any())
-            //{
-            //    var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
+            if (trackedMethods.Any())
+            {
+                var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
 
-            //    //UpdateUnitTests(testModule, distinctTrackedMethods, trackedMethodUnitTestMapper);
+                //UpdateUnitTests(testModule, distinctTrackedMethods, trackedMethodUnitTestMapper);
 
-            //    //UpdateTrackedMethods(distinctTrackedMethods);
-            
-            //    //UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
+                //UpdateTrackedMethods(distinctTrackedMethods);
+                var sw = new Stopwatch();
+                sw.Start();
+                //UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
 
+                Log.DebugFormat("UpdateCoveredLines took {0} seconds", sw.ElapsedMilliseconds/1000);
+                sw.Stop();
 
-            //}
+            }
         }
 
         private void UpdateClassesMethodsSummaries(TestifyContext context, Model.Module module)
@@ -1658,7 +1657,7 @@ namespace Leem.Testify
 
         private void UpdateCodeMethods(Class codeClass, CodeClass pocoCodeClass, ILookup<string, CodeMethod> methodLookup)
         {
-            foreach (var moduleMethod in codeClass.Methods.Where(x => x.SkippedDueTo != SkippedMethod.AutoImplementedProperty))// && !x.IsGetter && !x.IsSetter))
+            foreach (var moduleMethod in codeClass.Methods.Where(x => x.SkippedDueTo != SkippedMethod.AutoImplementedProperty && !x.IsGetter && !x.IsSetter))
             {
                 var moduleMethodName = moduleMethod.Name;
                 var codeMethod = methodLookup[moduleMethodName].FirstOrDefault();

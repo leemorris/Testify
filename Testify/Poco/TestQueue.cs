@@ -10,7 +10,7 @@ namespace Leem.Testify.Poco
         public int TestRunId { get; set; }
         public DateTime QueuedDateTime { get; set; }
         public DateTime? TestStartedDateTime { get; set; }
-        public virtual UnitTest UnitTest { get; set; }
+        public virtual TestMethod TestMethod { get; set; }
         public int Priority { get; set; }
     }
 }

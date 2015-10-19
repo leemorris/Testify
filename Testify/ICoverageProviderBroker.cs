@@ -6,6 +6,6 @@ namespace Leem.Testify
 {
     public interface ICoverageProviderBroker
     {
-        CoverageProvider GetCoverageProvider(IWpfTextView buffer, DTE dte, SVsServiceProvider serviceProvider);
+        CoverageProvider GetCoverageProvider(IWpfTextView buffer, DTE dte, SVsServiceProvider serviceProvider, TestifyContext context);
     }
 }

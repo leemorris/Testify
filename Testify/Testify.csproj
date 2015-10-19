@@ -231,9 +231,9 @@
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="Migrations\201509201158281_Initial.cs" />
-    <Compile Include="Migrations\201509201158281_Initial.Designer.cs">
-      <DependentUpon>201509201158281_Initial.cs</DependentUpon>
+    <Compile Include="Migrations\201510101106433_Initial.cs" />
+    <Compile Include="Migrations\201510101106433_Initial.Designer.cs">
+      <DependentUpon>201510101106433_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -253,6 +253,7 @@
     <Compile Include="Model\TrackedMethodRef.cs" />
     <Compile Include="OpenCoverLauncher.cs" />
     <Compile Include="Poco\Config.cs" />
+    <Compile Include="Poco\TestMethod.cs" />
     <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\CoverageViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\MethodViewModel.cs" />
@@ -272,8 +273,6 @@
     <Compile Include="Poco\Project.cs" />
     <Compile Include="Poco\TestProject.cs" />
     <Compile Include="Poco\TestQueue.cs" />
-    <Compile Include="Poco\TrackedMethod.cs" />
-    <Compile Include="Poco\UnitTest.cs" />
     <Compile Include="ProjectInfo.cs" />
     <Compile Include="QueuedTest.cs" />
     <Compile Include="Resources.Designer.cs">
@@ -309,8 +308,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201509201158281_Initial.resx">
-      <DependentUpon>201509201158281_Initial.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201510101106433_Initial.resx">
+      <DependentUpon>201510101106433_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

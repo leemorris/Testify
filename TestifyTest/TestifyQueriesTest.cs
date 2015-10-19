@@ -46,9 +46,9 @@ namespace Leem.Testify
             {
                 context.Database.Log = L => Log.Debug(L);
                 var lines = queries.GetCoveredLines(context, "UnitTestExperiment.Domain.DosomethingElse").ToList();
-                var newUnitTest = new Poco.UnitTest { AssemblyName="Assembly",TestMethodName="TestMethodName",LineNumber=123,Result="Yippee!"};
-                lines.First().UnitTests.Add(newUnitTest);
-                lines.First().UnitTests.Remove(lines.First().UnitTests.Last());
+                var newUnitTest = new Poco.TestMethod { AssemblyName="Assembly",TestMethodName="TestMethodName",LineNumber=123,Result="Yippee!"};
+                lines.First().TestMethods.Add(newUnitTest);
+                lines.First().TestMethods.Remove(lines.First().TestMethods.Last());
                 context.SaveChanges();
                 lines = queries.GetCoveredLines(context, "UnitTestExperiment.Domain.DosomethingElse").ToList();
 

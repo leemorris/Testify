@@ -15,7 +15,7 @@ namespace Leem.Testify.Poco
         public string AssemblyName { get; set; }
 
         public virtual ICollection<TestProject> TestProjects { get; set; }
-        public virtual ICollection<TrackedMethod> TrackedMethods { get; set; }
+        public virtual ICollection<TestMethod> TestMethods { get; set; }
 
         public string SourceControlVersion { get; set; }
     }

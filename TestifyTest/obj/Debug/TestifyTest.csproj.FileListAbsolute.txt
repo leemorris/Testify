@@ -126,8 +126,6 @@ C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.SqlS
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\log4net.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Text.UI.Wpf.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Text.Data.xml
-C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EnvDTE.xml
-C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EnvDTE80.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Text.UI.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.Shell.Immutable.10.0.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Microsoft.VisualStudio.CoreUtility.xml

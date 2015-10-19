@@ -32,12 +32,12 @@ namespace Leem.Testify
             _coveredLine = line;
             Ellipse.Height = (view.LineHeight * view.ZoomLevel/100) * .8;
             Ellipse.Width = Ellipse.Height;
-            if (!line.UnitTests.Any() && line.IsCode)
+            if (!line.IsCovered && line.IsCode)
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Orange);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Orange);
             }
-            else if (line.UnitTests.All(x => x.IsSuccessful.Equals(true)))
+            else if (line.IsSuccessful.Equals(true))
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Green);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Green);
@@ -72,7 +72,7 @@ namespace Leem.Testify
                 glyph.YPosition);
 
             _view.GetAdornmentLayer("PostAdornmentLayer").RemoveAllAdornments();
-            if (unitTestAdornment.CoveredLine.UnitTests.Any())
+            if (unitTestAdornment.CoveredLine.TestMethods.Any())
             {
                 manager.DisplayUnitTestSelector(unitTestAdornment);
             }

@@ -24,7 +24,7 @@ namespace Leem.Testify.VSEvents
             _testifyQueries = TestifyQueries.Instance;
         }
         ICoverageService coverageService = new CoverageService();
-        public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider)
+        public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyContext context)
         {
             CoverageProvider provider;
             var filename = CoverageProvider.GetFileName(textView.TextBuffer);
@@ -34,8 +34,9 @@ namespace Leem.Testify.VSEvents
             }
             else
             {
-                provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries);
-                dictionary.Add(filename, provider);
+                    provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries, context);
+                    dictionary.Add(filename, provider);
+
             }
 
             return provider;

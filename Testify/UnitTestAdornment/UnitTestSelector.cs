@@ -92,11 +92,11 @@ namespace Leem.Testify.UnitTestAdornment
             Grid.SetColumnSpan(header, 3);
             header.Content = string.Format("Unit tests covering Line # {0}", coveredLineInfo.CoveredLine.LineNumber);
             postGrid.Children.Add(header);
-            var unitTests = coveredLineInfo.CoveredLine.UnitTests;
-            var sortedUnitTests = unitTests.OrderByDescending(x => x.IsSuccessful ? 0 : 1).ToList();
-            for (int i = 0; i < sortedUnitTests.Count; i++)
+            var testMethods = coveredLineInfo.CoveredLine.TestMethods;
+            var sortedTestMethods = testMethods.OrderByDescending(x => x.IsSuccessful ? 0 : 1).ToList();
+            for (int i = 0; i < sortedTestMethods.Count; i++)
             {
-                UnitTest test = sortedUnitTests.ElementAt(i);
+                TestMethod test = sortedTestMethods.ElementAt(i);
                 postGrid.RowDefinitions.Add(new RowDefinition());
                 var icon = new Label {Background = backgroundBrush, BorderBrush = borderBrush, FocusVisualStyle = null};
                 if (test.IsSuccessful)
