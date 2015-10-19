@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CSharp = System.Threading.Tasks;
-using TrackedMethod = Leem.Testify.Poco.TrackedMethod;
+//using TrackedMethod = Leem.Testify.Poco.TrackedMethod;
 using ICSharpCode.NRefactory.CSharp;
 using System.Collections.Concurrent;
 
@@ -147,7 +147,7 @@ namespace Leem.Testify
                         using (var context = new TestifyContext(_solutionName))
                         {
                             //Todo remove next line
-                            var unitTests = context.UnitTests.Where (u => u.TestProjectUniqueName == projectInfo.TestProject.UniqueName);
+                            var unitTests = context.TestMethods.Where (u => u.TestProjectUniqueName == projectInfo.TestProject.UniqueName);
 
                                 var testQueueItem = new TestQueue
                                 {
@@ -214,7 +214,7 @@ namespace Leem.Testify
             var module = new Poco.CodeModule();
             IEnumerable<CodeMethod> methods = new List<CodeMethod>();
             IEnumerable<CoveredLine> coveredLines = new List<CoveredLine>();
-            IEnumerable<UnitTest> unitTests;
+            IEnumerable<TestMethod> testMethods;
 
             var clas = context.CodeClass.FirstOrDefault(c=> c.Name == className);
             if (clas != null)
@@ -222,13 +222,14 @@ namespace Leem.Testify
                 var sw = Stopwatch.StartNew();
                 module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
                // context.Database.Log = L => Log.Debug(L);
+                Log.DebugFormat("Get CoveredLines for Class: {0} ", className);
                 coveredLines = (context.CoveredLines
-                    .Where(line => line.Class.CodeClassId == clas.CodeClassId)
-                    .Include(u => u.UnitTests))
+                    .Where(line => line.Class.CodeClassId == clas.CodeClassId))
+                    //.Include(u => u.TestMethods))
                     .ToList();
                    
                 coveredLines.Select(x => { x.Module = module; return x; });
-                //Log.DebugFormat("Get CoveredLines from database Elapsed Time : {0}", sw.ElapsedMilliseconds);
+                Log.DebugFormat("Get CoveredLines for Class: {0} from database Elapsed Time : {1}", className, sw.ElapsedMilliseconds);
             }
             
             return coveredLines;
@@ -371,7 +372,7 @@ namespace Leem.Testify
             }
         }
 
-        public IEnumerable<UnitTest> GetUnitTestByName(string name)
+        public IEnumerable<TestMethod> GetUnitTestByName(string name)
         {
             using (var context = new TestifyContext(_solutionName))
             {
@@ -385,14 +386,14 @@ namespace Leem.Testify
         {
             string methodNameFragment = className + "::" + methodName;
 
-            var tests = new List<UnitTest>();
+            var tests = new List<TestMethod>();
 
             using (var context = new TestifyContext(_solutionName))
             {
-                var query = (from line in context.CoveredLines.Include(x => x.UnitTests)
+                var query = (from line in context.CoveredLines.Include(x => x.TestMethods)
 
                              where line.Method.Name.Contains(methodNameFragment)
-                             select line.UnitTests);
+                             select line.TestMethods);
 
                 tests = query.SelectMany(x => x).ToList();
             }
@@ -511,7 +512,7 @@ namespace Leem.Testify
 
        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo, List<string> individualTests)
         {
-            Log.DebugFormat("SaveCoverageSessionResults for ModuleName {0} ", projectInfo.ProjectName);
+            Log.DebugFormat("Entering SaveCoverageSessionResults for ModuleName {0} ", projectInfo.ProjectName);
 
             var coverageService = CoverageService.Instance;
             coverageService.Queries = this;
@@ -595,20 +596,30 @@ namespace Leem.Testify
                             // and use NRefactory to get Line number of the Method
                             
                             var modifiedLines = await AddOrUpdateCoveredLine(changedClasses, newCoveredLineInfos, context, existingCoveredLines, module, methodMapper);//3.28%
+
                         var coveredLinesLookup = context.CoveredLines.Where(x => x.Module.AssemblyName.Equals(module.AssemblyName)).ToLookup(item => item.Method.Name);
 
                         var coveredLinePocos = new List<CoveredLine>();
                             foreach (var item in modifiedLines)
                             {
+                            try
+                            {
                                 var coveredLines = coveredLinesLookup[item.MethodName];
 
                                 if (item.Method != null && !coveredLines.Any(x => x.LineNumber == item.LineNumber && x.Method.Name == item.Method.Name))
-                                { 
-                                    coveredLinePocos.Add(ConstructCoveredLinePoco(item));
+                                {
+                                    coveredLinePocos.Add(ConstructCoveredLinePoco(item, context));
 
                                     changedClasses.Add(item.ClassName);
                                 }
                             }
+                            catch ( Exception ex)
+                            {
+                                Log.ErrorFormat("Error in SaveCoverageSessionResults MethodName: {0} Exception: {1} ", item.MethodName, ex );
+
+                            }
+
+                        }
 
                         context.CoveredLines.AddRange(coveredLinePocos);
 
@@ -679,14 +690,14 @@ namespace Leem.Testify
                 //    }
 
                 //}
-                try
-                {
-                    RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule, methodMapper);
-                }
-                catch(Exception ex)
-                {
-                    Log.ErrorFormat("Error in RefreshUnitTestIds: {0} ", ex);
-                }
+                //try
+                //{
+                //    RefreshUnitTestIds(newCoveredLineInfos, sessionModule, testModule, methodMapper);
+                //}
+                //catch(Exception ex)
+                //{
+                //    Log.ErrorFormat("Error in RefreshUnitTestIds: {0} ", ex);
+                //}
                 
                
                 OnClassChanged(changedClasses.Distinct().ToList());
@@ -738,11 +749,14 @@ namespace Leem.Testify
 
         private async CSharp.Task<List<LineCoverageInfo>> AddOrUpdateCoveredLine(IList<string> changedClasses, IList<LineCoverageInfo> newCoveredLineList, TestifyContext context, ILookup<int, CoveredLine> existingCoveredLines, CodeModule module, List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
+
+            Log.DebugFormat("Entering AddOrUpdateCoveredLine ");
+
             //3.28%
             var modifiedLineCoverageInfos = new List<LineCoverageInfo>();
             ILookup<string, CodeMethod> methodLookup = context.CodeMethod.ToLookup(m => m.Name, m => m);
             ILookup<string, CodeClass> classLookup = context.CodeClass.ToLookup(c => c.Name, c => c);
-            ILookup<string, UnitTest> unitTestLookup = context.UnitTests.ToLookup(c => c.TestMethodName, c => c);
+            ILookup<string, TestMethod> unitTestLookup = context.TestMethods.ToLookup(c => c.TestMethodName, c => c);
 
             var numberOfBatches = (newCoveredLineList.Count / 2000) + 1;
             var batches = LineCoverageInfoExtensions.Split<LineCoverageInfo>(newCoveredLineList, numberOfBatches).ToList();
@@ -753,34 +767,41 @@ namespace Leem.Testify
                 {
                     await GetModuleClassMethodForLine(context, line, methodLookup, classLookup);
                     line.Module = module;
-                    foreach (var trackedMethod in line.TrackedMethods)
-                    {
+                    ////foreach (var trackedMethod in line.TestMethods)
+                    ////{
+                    ////    try
+                    ////    {
+                    ////        var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethod.Name);
+                    ////        if (trackedMethodUnitTestMap == null)
+                    ////        {
+                    ////            var trackedMethodNameWithoutNamespaces = CoverageService.Instance.RemoveNamespaces(trackedMethod.Name);
+                    ////            trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethodNameWithoutNamespaces);
+                    ////        }
+                    ////        if (trackedMethodUnitTestMap != null)
+                    ////        {
 
-                        var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethod.Name);
-                        if (trackedMethodUnitTestMap == null)
-                        {
-                            var trackedMethodNameWithoutNamespaces = CoverageService.Instance.RemoveNamespaces(trackedMethod.Name);
-                            trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethodNameWithoutNamespaces);
-                        }
-                        if (trackedMethodUnitTestMap != null)
-                        {
-                            if (!line.UnitTests.Any(x => trackedMethodUnitTestMap.MethodInfos.Any(y => y.MethodName.EndsWith(x.TestMethodName))))
-                            {
-                                foreach (var unitTestMethodInfo in trackedMethodUnitTestMap.MethodInfos)
-                                {
-                                    var unitTest = unitTestLookup[unitTestMethodInfo.MethodName].FirstOrDefault();
-                                    if (unitTest != null)
-                                    {
-                                        line.UnitTests.Add(unitTest);
-                                    }
+                    ////            if (!line.TestMethods.Any(x => trackedMethodUnitTestMap.MethodInfos.Any(y => y.MethodName.EndsWith(x.TestMethodName))))
+                    ////            {
+                    ////                foreach (var unitTestMethodInfo in trackedMethodUnitTestMap.MethodInfos)
+                    ////                {
+                    ////                    var unitTest = unitTestLookup[unitTestMethodInfo.MethodName].FirstOrDefault();
+                    ////                    if (unitTest != null)
+                    ////                    {
+                    ////                        line.TestMethods.Add(unitTest);
+                    ////                    }
 
-                                }
+                    ////                }
 
-                            }
-                        }
+                    ////            }
+                    ////        }
+                    ////    }
+                    ////    catch(Exception ex)
+                    ////    {
+                    ////        Log.ErrorFormat("Error in AddOrUpdateCoveredLine: {0}",ex);
 
+                    ////    }
 
-                    }
+                    ////}
 
                     CoveredLine existingLine = null;
 
@@ -837,7 +858,7 @@ namespace Leem.Testify
 
         }
 
-        private async CSharp.Task<string> ProcessExistingLine(ILookup<string, UnitTest> unitTestLookup, LineCoverageInfo line, Poco.CoveredLine existingLine, List<TrackedMethodMap> trackedMethodUnitTestMapper)
+        private async CSharp.Task<string> ProcessExistingLine(ILookup<string, TestMethod> unitTestLookup, LineCoverageInfo line, Poco.CoveredLine existingLine, List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
             var classThatChanged = string.Empty;
 
@@ -857,7 +878,7 @@ namespace Leem.Testify
              
 
             // Todo Profile and refactor to improve performance
-            foreach (var trackedMethod in line.TrackedMethods)
+            foreach (var trackedMethod in line.TestMethods)
             {
                 var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethod.Name);
                 if (trackedMethodUnitTestMap != null)
@@ -867,39 +888,40 @@ namespace Leem.Testify
                         var matchingUnitTest = unitTestLookup[unitTestMethodInfo.MethodName].FirstOrDefault();
                         if (matchingUnitTest != null)
                         {
-                            if (!existingLine.UnitTests.Any(x => x.UnitTestId == matchingUnitTest.UnitTestId))
-                            {
-                                existingLine.UnitTests.Add(matchingUnitTest);
-                                classThatChanged = existingLine.Class.Name;
-                            }
+                        //    if (!existingLine.TestMethods.Any(x => x.UnitTestId == matchingUnitTest.UnitTestId))
+                        //    {
+                        //        existingLine.TestMethods.Add(matchingUnitTest);
+                        //        classThatChanged = existingLine.Class.Name;
+                        //    }
                         }
                     } 
                 }
 
-
+                existingLine.IsSuccessful = line.TestMethods.All(x=>x.IsSuccessful== true);
 
             }
             return classThatChanged;
         }
 
-        private async CSharp.Task ProcessTrackedMethods(TestifyContext context, Stopwatch unitTestByNameSW, LineCoverageInfo line, ILookup<string, UnitTest> unitTestLookup)
+        private async CSharp.Task ProcessTrackedMethods(TestifyContext context, Stopwatch unitTestByNameSW, LineCoverageInfo line, ILookup<string, TestMethod> unitTestLookup)
         {
 
-            foreach (var trackedMethod in line.TrackedMethods)
-            {
-                unitTestByNameSW.Start();
-                var unitTest = unitTestLookup[trackedMethod.NameInUnitTestFormat].FirstOrDefault();
-                line.UnitTests.Add(unitTest);
-                unitTestByNameSW.Stop();
-            }
+            //foreach (var trackedMethod in line.TestMethods)
+            //{
+            //    unitTestByNameSW.Start();
+            //    var unitTest = unitTestLookup[trackedMethod.NameInUnitTestFormat].FirstOrDefault();
+            //    line.TestMethods.Add(unitTest);
+            //    unitTestByNameSW.Stop();
+            //}
         }
 
         public List<string> SaveUnitTestResults(resultType testOutput, Leem.Testify.Model.Module testModule, List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
+            Log.DebugFormat("Inside SaveUnitTestResults ");
             //81.4%
             var changedUnitTestClasses = new List<string>();
 
-            
+            var testMethods = new List<TestMethod>();
             string runDate = testOutput.date;
             string runTime = testOutput.time;
             string fileName = testOutput.name;
@@ -916,99 +938,102 @@ namespace Leem.Testify
                                                       mc => mc.FullPath);
 
                 var unitTests = GetUnitTests(testOutput.testsuite);
-
-                var trackedMethodDictionary = new ConcurrentDictionary<string, TrackedMethod>();
-                
+// do we need both of these????
+                var trackedMethodDictionary = new ConcurrentDictionary<string, TestMethod>();
+                var testMethodDictionary = new ConcurrentDictionary<string, TestMethod>();
 
                 using (var context = new TestifyContext(_solutionName))
                 {
-                    var codeModule = UpdateModule(testModule, context);
+                    var codeModule = context.CodeModule.FirstOrDefault(x => x.Name.Equals(testModule.ModuleName)); 
 
-                    var trackedMethodLookup = new Dictionary<string, TrackedMethod>();
-                    TrackedMethod dummy;
-                    //foreach (var trackedMethod in context.TrackedMethods.Where(x=>x.AssemblyName == testModule.AssemblyName))
-                        foreach (var trackedMethod in codeModule.TrackedMethods)
-                        {
+                    var trackedMethodLookup = new Dictionary<string, TestMethod>();
+                    TestMethod dummy;
+                    foreach (var testMethod in context.TestMethods.Where(x=>x.AssemblyName == testModule.AssemblyName))
+                    {
 
-                        var isInDictionary = trackedMethodLookup.TryGetValue(trackedMethod.Name, out dummy);
-                        if (!isInDictionary) { trackedMethodLookup.Add(trackedMethod.Name, trackedMethod); }
-                        trackedMethodDictionary.TryAdd(trackedMethod.Name, trackedMethod);
+                        var isInDictionary = trackedMethodLookup.TryGetValue(testMethod.Name, out dummy);
+                        if (!isInDictionary) { trackedMethodLookup.Add(testMethod.Name, testMethod); }
+                        testMethodDictionary.TryAdd(testMethod.Name, testMethod);
                     }
-                   
-          
+
+
 
                     foreach (var test in unitTests)
                     {
                         try
                         {
-                            Poco.TrackedMethod existingTrackedMethodFromDictionary;
-                            Poco.TrackedMethod trackedMethodJustAdded = null;
+                          
+                            Poco.TestMethod existingTestMethodFromDictionary;
+                            Poco.TestMethod trackedMethodJustAdded = null;
 
                             var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(y => y.MethodInfos.Any(z => z.MethodName.Contains(test.TestMethodName)));
-
-                            var isTrackedMethodInDictionary = trackedMethodDictionary.TryGetValue(trackedMethodUnitTestMap.TrackedMethodName, out existingTrackedMethodFromDictionary);
+//testMethodDictionary needs to be changed to look at existing TestMethods that are in the database, then add back in the commented lines
+                            var isTestMethodInDictionary = testMethodDictionary.TryGetValue(trackedMethodUnitTestMap.TrackedMethodName, out existingTestMethodFromDictionary);
                             if (filePathDictionary.ContainsKey(test.TestMethodName))
                             {
                                test.FilePath = filePathDictionary[test.TestMethodName];
                                 test.LineNumber = trackedMethodUnitTestMap.MethodInfos.First().BeginLine;
                             }
                            
-                            if (isTrackedMethodInDictionary == false)
+                            if (isTestMethodInDictionary == false)
                             {
-                                TrackedMethod existingTrackedMethod = null;
-                                trackedMethodLookup.TryGetValue(trackedMethodUnitTestMap.TrackedMethodName,out existingTrackedMethod);// context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
+                                TestMethod existingTestMethod = null;
+                                trackedMethodLookup.TryGetValue(trackedMethodUnitTestMap.TrackedMethodName,out existingTestMethod);// context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
 
-                                if (existingTrackedMethod == null)
+                                if (existingTestMethod == null)
                                 {
                                     var trackedMethodToAdd = trackedMethods.FirstOrDefault(x => x.Name == trackedMethodUnitTestMap.TrackedMethodName);
                                     if (trackedMethodToAdd != null)
                                     {
                                         var trackedMethodToAddWithoutNamespaces = CoverageService.Instance.RemoveNamespaces(trackedMethodToAdd.Name);
 
-                                        var pocoTrackedMethod = new Poco.TrackedMethod
-                                        {
-                                            UniqueId = (int)trackedMethodToAdd.UniqueId,
-                                            //UnitTestId = trackedMethod.UnitTestId,
-                                            Strategy = trackedMethodToAdd.Strategy,
-                                            Name = trackedMethodToAddWithoutNamespaces,
-                                            MetadataToken = trackedMethodToAdd.MetadataToken
-                                        };
+                                        //var pocoTrackedMethod = new Poco.TestMethod
+                                        //{
+                                        test.UniqueId = (int)trackedMethodToAdd.UniqueId;
+                                        //UnitTestId = trackedMethod.UnitTestId,
+                                        test.Strategy = trackedMethodToAdd.Strategy;
+                                        test.Name = trackedMethodToAddWithoutNamespaces;
+                                        test.MetadataToken = trackedMethodToAdd.MetadataToken;
+                                        test.CodeModule = codeModule;
+                                        test.AssemblyName = testModule.AssemblyName;
+                                        //};
 
-                                        pocoTrackedMethod.UnitTests.Add(test);
-                                        context.TrackedMethods.Add(pocoTrackedMethod);//14.1%
-                                        context.SaveChanges();//14.6%
+                                     //   testMethods.Add(new TestMethod(pocoTrackedMethod, test));
+                                      //  pocoTrackedMethod.UnitTests.Add(test);
+                                        context.TestMethods.Add(test);
+                                        context.SaveChanges();
                                         // VERY SLOW!!!! 34.1%
-                                        trackedMethodJustAdded = context.TrackedMethods.Local.FirstOrDefault(x => x.Name.Equals(trackedMethodToAddWithoutNamespaces));
-                                        trackedMethodDictionary.TryAdd(trackedMethodJustAdded.Name, trackedMethodJustAdded);
+                                        trackedMethodJustAdded = context.TestMethods.Local.FirstOrDefault(x => x.Name.Equals(trackedMethodToAddWithoutNamespaces));
+                                       // trackedMethodDictionary.TryAdd(trackedMethodJustAdded.Name, trackedMethodJustAdded);
                                     }
 
 
                                 }
                                 else
                                 {
-                                    trackedMethodDictionary.TryAdd(existingTrackedMethod.Name, existingTrackedMethod);
+                                    trackedMethodDictionary.TryAdd(existingTestMethod.Name, existingTestMethod);
                                 }
                                 if (trackedMethodJustAdded != null)
                                 {
-                                    test.TrackedMethod = trackedMethodJustAdded;
+                                    //test.TestMethod = trackedMethodJustAdded;
                                     context.SaveChanges(); //15.2%
                                 }
 
 
                             }
 
-                            var trackedMethodFromContext = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
+                            var trackedMethodFromContext = context.TestMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.TrackedMethodName));
 
                    
 
                             if (trackedMethodFromContext != null)
                             {
-                                test.TrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name == trackedMethodUnitTestMap.TrackedMethodName);
+                                //test.TestMethod = context.TestMethods.FirstOrDefault(x => x.Name == trackedMethodUnitTestMap.TrackedMethodName);
 
-                                var existingTest = context.UnitTests.FirstOrDefault(y => y.TestMethodName.Equals(test.TestMethodName));
+                                var existingTest = context.TestMethods.FirstOrDefault(y => y.TestMethodName.Equals(test.TestMethodName));
                                 test.LastRunDatetime = runDate + " " + runTime;
 
-                                test.AssemblyName = fileName;
+                                //test.AssemblyName = fileName;
 
                                 if (test.IsSuccessful)
                                 {
@@ -1027,14 +1052,14 @@ namespace Leem.Testify
                                     filePathDictionary.TryGetValue(testName.Replace("::", "."), out filePath);
                                     test.FilePath = filePath;
 
-                                    context.UnitTests.Add(test);
-                                    if (!trackedMethodFromContext.UnitTests.Any(x => x.TestMethodName == test.TestMethodName))
-                                    {
-                                        // Remove this is never hit
+                                    context.TestMethods.Add(test);
+                                    context.SaveChanges();
+                                    //if (!trackedMethodFromContext.UnitTests.Any(x => x.TestMethodName == test.TestMethodName))
+                                    //{
+                                    //    // Remove this is never hit
 
-                                        trackedMethodFromContext.UnitTests.Add(test);
-                                    }
-                                    changedUnitTestClasses.Add(className);
+                                    //   // trackedMethodFromContext.UnitTests.Add(test);
+                                    //}
                                 }
                                 else
                                 {
@@ -1049,7 +1074,9 @@ namespace Leem.Testify
                                         changedUnitTestClasses.Add(className);
                                     }
 
-                                } 
+                                }
+                                changedUnitTestClasses.Add(className);
+
                             }
                         }
                         catch (Exception ex)
@@ -1070,8 +1097,8 @@ namespace Leem.Testify
                             Log.ErrorFormat("Error building FilePathDictionary Error: {0}", ex);
 	            }
 
-
-                return changedUnitTestClasses;
+            Log.DebugFormat("Leaving SaveUnitTestResults ");
+            return changedUnitTestClasses;
             
         }
 
@@ -1104,10 +1131,10 @@ namespace Leem.Testify
             //    extractedMethodNames.Add(methodName);
             //}
             // = extractedMethods.Select(y => y.Name.Substring(y.Name.IndexOf(" ") + 1)).ToList();
-            var unitTestsToBeDeleted = new  List<UnitTest>();// = context.UnitTests.Where(x => !methodsInCoverageResult.Any( y=>y.UnitTestMethodName == TestMethodName)).ToList();
+            var unitTestsToBeDeleted = new  List<TestMethod>();// = context.UnitTests.Where(x => !methodsInCoverageResult.Any( y=>y.UnitTestMethodName == TestMethodName)).ToList();
             foreach (var test in unitTestsToBeDeleted)
             {
-                 var linesInUnitTestToBeDeleted = context.CoveredLines.SelectMany(x => x.UnitTests)
+                 var linesInUnitTestToBeDeleted = context.CoveredLines.SelectMany(x => x.TestMethods)
                                              .Where(x => x.TestMethodName == test.TestMethodName && x.FilePath == test.FilePath);
 
                 var coveredLines = linesInUnitTestToBeDeleted.SelectMany(x=>x.CoveredLines).Include(y=>y.Class).Distinct().ToList();
@@ -1119,7 +1146,7 @@ namespace Leem.Testify
                     changedUnitTestClasses.Add(line.Class.Name);
                     context.CoveredLines.Remove(line);
                 }
-                context.UnitTests.Remove(test);
+                context.TestMethods.Remove(test);
                 var className = test.TestMethodName.Substring(0, test.TestMethodName.LastIndexOf("."));
                 changedUnitTestClasses.Add(className);
             }
@@ -1141,66 +1168,66 @@ namespace Leem.Testify
 
         private void UpdateTrackedMethods(IEnumerable<TrackedMethod> trackedMethods)
         {
-            using (var context = new TestifyContext(_solutionName))
-            {
-                foreach (var currentTrackedMethod in trackedMethods)
-                {
-                    var existingTrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(currentTrackedMethod.Name));
+            //using (var context = new TestifyContext(_solutionName))
+            //{
+            //    foreach (var currentTrackedMethod in trackedMethods)
+            //    {
+            //        var existingTrackedMethod = context.TestMethods.FirstOrDefault(x => x.Name.Equals(currentTrackedMethod.Name));
 
-                    if (existingTrackedMethod == null)
-                    {
-                        context.TrackedMethods.Add(currentTrackedMethod);
-                    }
+            //        if (existingTrackedMethod == null)
+            //        {
+            //            context.TestMethods.Add(currentTrackedMethod);
+            //        }
 
-                }
+            //    }
 
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
-                }
-            }
+            //    try
+            //    {
+            //        context.SaveChanges();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
+            //    }
+            //}
         }
         
         private void UpdateTrackedMethods(List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
-            using (var context = new TestifyContext(_solutionName))
-            {
-                TrackedMethod trackedMethodFromContext = null;
-                foreach (var trackedMethodMap in trackedMethodUnitTestMapper)
-                {
-                    var existingTrackedMethod = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodMap.TrackedMethodName));
+            //using (var context = new TestifyContext(_solutionName))
+            //{
+            //    TrackedMethod trackedMethodFromContext = null;
+            //    foreach (var trackedMethodMap in trackedMethodUnitTestMapper)
+            //    {
+            //        var existingTrackedMethod = context.TestMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodMap.TrackedMethodName));
 
-                    if (existingTrackedMethod == null)
-                    {
-                        context.TrackedMethods.Add(existingTrackedMethod);
-                    }                    
+            //        if (existingTrackedMethod == null)
+            //        {
+            //            context.TestMethods.Add(existingTrackedMethod);
+            //        }                    
 
-                    trackedMethodFromContext = context.TrackedMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodMap.TrackedMethodName));
+            //        trackedMethodFromContext = context.TestMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodMap.TrackedMethodName));
 
-                    foreach (var unitTestMethodInfo in trackedMethodMap.MethodInfos) 
-                    {
-                        var existingUnitTest = trackedMethodFromContext.UnitTests.FirstOrDefault(x => x.TestMethodName == unitTestMethodInfo.MethodName);
-                        if (existingUnitTest == null)
-                        {
-                           // trackedMethodFromContext.Add();
-                        }
+            //        foreach (var unitTestMethodInfo in trackedMethodMap.MethodInfos) 
+            //        {
+            //            var existingUnitTest = trackedMethodFromContext.FirstOrDefault(x => x.TestMethodName == unitTestMethodInfo.MethodName);
+            //            if (existingUnitTest == null)
+            //            {
+            //               // trackedMethodFromContext.Add();
+            //            }
 
-                    }
-                }
+            //        }
+            //    }
 
-                try
-                {
-                    context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
-                }
-            }
+            //    try
+            //    {
+            //        context.SaveChanges();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Log.ErrorFormat("Error in UpdateTrackedMethods Message: {0}", ex.InnerException);
+            //    }
+            //}
         }
         
         protected virtual void OnClassChanged(List<string> changedClasses)
@@ -1228,15 +1255,14 @@ namespace Leem.Testify
                 Class_CodeClassId = line.Class.CodeClassId,
                 Method_CodeMethodId = line.Method.CodeMethodId,
                 FileName = line.FileName,
-                IsBranch= line.IsBranch,
-                UnitTests=line.UnitTests
-
+                IsBranch= line.IsBranch
+        
             };
 
             return newCoverage;
         }
 
-        private static CoveredLine ConstructCoveredLinePoco(LineCoverageInfo line)
+        private static CoveredLine ConstructCoveredLinePoco(LineCoverageInfo line, TestifyContext context)
         {
             if (line.Class == null) 
             {
@@ -1249,14 +1275,21 @@ namespace Leem.Testify
                 IsBranch=line.IsBranch,
                 IsCode = line.IsCode,
                 IsCovered = line.IsCovered,
-                IsSuccessful = line.UnitTests.All(y => y.IsSuccessful),
+               
                 LineNumber = line.LineNumber,
                 Method = line.Method,
-                Module = line.Module,
-                TrackedMethods = line.TrackedMethods,
-                UnitTests=line.UnitTests
+                Module = line.Module
             };
-
+            foreach (var test in line.TestMethods)
+            {
+                var testFromContext = context.TestMethods.FirstOrDefault(x => x.Name == test.TestMethodName);
+                if (testFromContext != null)
+                {
+                    coveredLine.TestMethods.Add(testFromContext);
+                }
+               
+            }
+            coveredLine.IsSuccessful = coveredLine.TestMethods.All(y => y.IsSuccessful);
             return coveredLine;
         }
 
@@ -1325,27 +1358,28 @@ namespace Leem.Testify
             return testsToMarkInProgress;
         }
 
-        private static List<UnitTest> SelectUnitTestByName(string name, TestifyContext context)
+        private static List<TestMethod> SelectUnitTestByName(string name, TestifyContext context)
         {
-            var query = (from test in context.UnitTests
+            var query = (from test in context.TestMethods
                          where test.TestMethodName.Equals(name)
                          select test);
 
             return query.ToList();
         }
 
-        private UnitTest ConstructUnitTest(testcaseType testcase)
+        private TestMethod ConstructUnitTest(testcaseType testcase)
         {
 
-             var unitTest = new Poco.UnitTest
-            {
+             var unitTest = new Poco.TestMethod
+             {
                 TestDuration = testcase.time,
                 TestMethodName = testcase.name,
                 Executed = testcase.executed.Equals(bool.TrueString),
                 Result = testcase.result,
                 NumberOfAsserts = Convert.ToInt32(testcase.asserts),
-                IsSuccessful = testcase.success == bool.TrueString
-            };
+                IsSuccessful = testcase.success == bool.TrueString,
+                 LastRunDatetime = DateTime.Now.ToString()
+        };
           
             if (testcase.success != null && testcase.success.Equals(Boolean.TrueString))
             {
@@ -1384,9 +1418,9 @@ namespace Leem.Testify
             return changedMethods;
         }
 
-        private List<Poco.UnitTest> GetUnitTests(object element)
+        private List<Poco.TestMethod> GetUnitTests(object element)
         {
-            var unitTests = new List<UnitTest>();
+            var unitTests = new List<TestMethod>();
 
             try
             {
@@ -1422,27 +1456,24 @@ namespace Leem.Testify
 
         private void RefreshUnitTestIds(IList<LineCoverageInfo> newCoveredLineInfos, Leem.Testify.Model.Module module, Leem.Testify.Model.Module testModule,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
-            var trackedMethodLists = (from testInfo in newCoveredLineInfos
-                                      where testInfo.TrackedMethods != null
-                                      select testInfo.TrackedMethods);
+            //var trackedMethodLists = (from testInfo in newCoveredLineInfos
+            //                          where testInfo.TestMethods != null
+            //                          select testInfo.TestMethods);
 
-            var trackedMethods = trackedMethodLists.SelectMany(x => x).ToList();
+            //var trackedMethods = trackedMethodLists.SelectMany(x => x).ToList();
 
-            if (trackedMethods.Any())
-            {
-                var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
+            //if (trackedMethods.Any())
+            //{
+            //    var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
 
-                UpdateUnitTests(testModule, distinctTrackedMethods, trackedMethodUnitTestMapper);
+            //    //UpdateUnitTests(testModule, distinctTrackedMethods, trackedMethodUnitTestMapper);
 
-                UpdateTrackedMethods(distinctTrackedMethods);
-                var sw = new Stopwatch();
-                sw.Start();
-                UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
+            //    //UpdateTrackedMethods(distinctTrackedMethods);
+            
+            //    //UpdateCoveredLines(module, distinctTrackedMethods, newCoveredLineInfos);
 
-                Log.DebugFormat("UpdateCoveredLines took {0} seconds", sw.ElapsedMilliseconds/1000);
-                sw.Stop();
 
-            }
+            //}
         }
 
         private void UpdateClassesMethodsSummaries(TestifyContext context, Model.Module module)
@@ -1464,6 +1495,7 @@ namespace Leem.Testify
 
         private CodeModule UpdateModule(Model.Module module, TestifyContext context)
         {
+            Log.DebugFormat("Entering UpdateModule for Module: {0}", module.AssemblyName);
             var codeModule = context.CodeModule.FirstOrDefault(x => x.Name.Equals(module.ModuleName));
             if (codeModule != null)
             {
@@ -1478,26 +1510,41 @@ namespace Leem.Testify
                 context.SaveChanges();
             }
 
-            if (codeModule.TrackedMethods != null)
+            if (codeModule.TestMethods != null)
             {
-                // Remove TrackedMethods that are no longer in the Session Module
-                foreach (var trackedMethod in codeModule.TrackedMethods)
+                try
                 {
-                    if (!module.TrackedMethods.Any(n => n.Name == trackedMethod.Name))
+                    var testMethodsToRemove = new List<TestMethod>();
+                    // Remove TrackedMethods that are no longer in the Session Module
+                    foreach (var trackedMethod in codeModule.TestMethods)
                     {
-                        codeModule.TrackedMethods.Remove(trackedMethod);
+                        if (trackedMethod.Name == null)
+                        {
+                            Log.ErrorFormat("TestMethod has a NULL Name , fileName = {0}", trackedMethod.FileName);
+                        }
+                        if (!module.TrackedMethods.Any(n => n.Name == trackedMethod.Name))
+                        {
+                            Log.DebugFormat("TestMethod marked for Removal , Name = {0}", trackedMethod.Name);
+                            testMethodsToRemove.Add(trackedMethod);
+                        }
+                    }
+
+                    testMethodsToRemove.ForEach(x=> codeModule.TestMethods.Remove(x));
+
+                    foreach (var trackedMethod in module.TrackedMethods)
+                    {
+                        if (!codeModule.TestMethods.Any(n => n.Name == trackedMethod.Name))
+                        {
+                            codeModule.TestMethods.Add(new TestMethod { Name = trackedMethod.Name, CodeModule = codeModule });
+                        }
+
                     }
                 }
-
-
-                foreach (var trackedMethod in module.TrackedMethods)
+                catch(Exception ex)
                 {
-                    if (!codeModule.TrackedMethods.Any(n => n.Name == trackedMethod.Name))
-                    {
-                        codeModule.TrackedMethods.Add(new TrackedMethod { Name = trackedMethod.Name, CodeModule = codeModule });
-                    }
-
+                    Log.ErrorFormat("ERROR in UpdateModule  Error: {0}", ex);
                 }
+   
             }
             context.SaveChanges();
 
@@ -1611,7 +1658,7 @@ namespace Leem.Testify
 
         private void UpdateCodeMethods(Class codeClass, CodeClass pocoCodeClass, ILookup<string, CodeMethod> methodLookup)
         {
-            foreach (var moduleMethod in codeClass.Methods.Where(x => x.SkippedDueTo != SkippedMethod.AutoImplementedProperty && !x.IsGetter && !x.IsSetter))
+            foreach (var moduleMethod in codeClass.Methods.Where(x => x.SkippedDueTo != SkippedMethod.AutoImplementedProperty))// && !x.IsGetter && !x.IsSetter))
             {
                 var moduleMethodName = moduleMethod.Name;
                 var codeMethod = methodLookup[moduleMethodName].FirstOrDefault();
@@ -1647,17 +1694,17 @@ namespace Leem.Testify
                                                        .Include(y=>y.Module)
                                                        .Include(z=>z.Method)
                                                        .Where(w =>w.Module.AssemblyName.Equals(module.ModuleName));
-                var unitTestLookup = context.UnitTests.ToLookup(x=>x.TestMethodName);
+                var unitTestLookup = context.TestMethods.ToLookup(x=>x.TestMethodName);
 
                 foreach (var coveredLine in coveredLines)
                 {
                     var line = newCoveredLineInfos.FirstOrDefault(x => x.Method != null && x.Method.CodeMethodId.Equals(coveredLine.Method.CodeMethodId) && x.LineNumber.Equals(coveredLine.LineNumber));
 
-                    if (line != null && line.TrackedMethods.Any())
+                    if (line != null && line.TestMethods.Any())
                     {
-                        string testMethodName  = line.TrackedMethods.FirstOrDefault().NameInUnitTestFormat;
-                        coveredLine.UnitTests = unitTestLookup[testMethodName].ToList();
-                        if (coveredLine.UnitTests.All(x => x.IsSuccessful == true))
+                        string testMethodName  = line.TestMethods.FirstOrDefault().Name;
+                        coveredLine.TestMethods = unitTestLookup[testMethodName].ToList();
+                        if (coveredLine.TestMethods.All(x => x.IsSuccessful == true))
                         {
                             coveredLine.IsSuccessful = true;
                         }
@@ -1798,7 +1845,7 @@ namespace Leem.Testify
 
 
 
-        private void UpdateUnitTests(Leem.Testify.Model.Module testModule, List<Poco.TrackedMethod> trackedMethods, List<TrackedMethodMap> trackedMethodUnitTestMapper)
+        private void UpdateUnitTests(Leem.Testify.Model.Module testModule, List<Poco.TestMethod> trackedMethods, List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
             _sw.Restart();
             var coverageService = CoverageService.Instance;
@@ -1820,7 +1867,7 @@ namespace Leem.Testify
                         var testProjectUniqueName = context.TestProjects.First(x => x.AssemblyName.Equals(testModule.ModuleName)).UniqueName;
 
                         //Create Unit Test objects
-                        var unitTests = new List<UnitTest>();
+                        var unitTests = new List<TestMethod>();
                         foreach (var trackedMethod in trackedMethods)
                         {
                             string filePath;
@@ -1829,14 +1876,14 @@ namespace Leem.Testify
 
                            
 
-                            List<UnitTest> matchingUnitTests = new List<UnitTest>();
+                            List<TestMethod> matchingUnitTests = new List<TestMethod>();
 
                             var trackedMethodUnitTestMap = trackedMethodUnitTestMapper.FirstOrDefault(x => x.CoverageSessionName == trackedMethod.Name);
                             if (trackedMethodUnitTestMap != null)
                             {
                                 var methodInfo = coverageService.UpdateMethodLocation(method, filePath, trackedMethodUnitTestMap);
                                 var unitTestNames = trackedMethodUnitTestMap.MethodInfos.Select(x => x.ReflectionName).ToList();
-                                var unitTestsToAdd = context.UnitTests.Where(x => unitTestNames.Contains(x.TestMethodName)).ToList();
+                                var unitTestsToAdd = context.TestMethods.Where(x => unitTestNames.Contains(x.TestMethodName)).ToList();
                                 matchingUnitTests.AddRange(unitTestsToAdd);  
 
                   

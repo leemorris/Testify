@@ -100,7 +100,8 @@ namespace Leem.Testify
             }
         }
 
-        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, List<TrackedMethodMap> methodMapper,TestifyContext context)
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, 
+                                                                        List<TrackedMethodMap> methodMapper, TestifyContext context)
         {
             //4.42%
             var coveredLines = new List<LineCoverageInfo>();
@@ -123,13 +124,18 @@ namespace Leem.Testify
 
                 if (sessionModule != null)
                 {
+                    try
+                    { 
                     List<Class> classes = sessionModule.Classes.ToList();
 
                     _log.DebugFormat("First Module Name: {0}", sessionModule.ModuleName);
                     _log.DebugFormat("Number of Classes: {0}", classes.Count());
 
                     var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
-                    var codeMethodDictionary = context.CodeMethod.ToDictionary(item => item.Name);
+                        var classesFromModule = context.CodeClass.Where(x => x.CodeModule.AssemblyName == projectAssemblyName).ToList();
+                        var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
+                        var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
+                    var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => item.Name);
  
                     foreach (var codeClass in classes)
                     {
@@ -139,8 +145,8 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
-                            if ( !method.IsGetter && !method.IsSetter)
-                            {
+                            //if ( !method.IsGetter && !method.IsSetter)
+                            //{
                                 //var fileNames = new List<File>();
                                 string fileName = string.Empty;
                                 if (method.FileRef != null)
@@ -189,10 +195,16 @@ namespace Leem.Testify
                             }
 
 
-                        }
+                        //}
                         context.SaveChanges();
                     }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.ErrorFormat("ERROR in GetCoveredLinesFromCoverageSession {0}", ex);
+                    }
                 }
+
             }
             return coveredLines;
         }
@@ -200,6 +212,7 @@ namespace Leem.Testify
         public void UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
 
+            _log.DebugFormat("Entering UpdateMethodsAndClassesFromCodeFile ");
 
             foreach (var module in modules)
             {
@@ -245,7 +258,7 @@ namespace Leem.Testify
 
 
             }
-
+            _log.DebugFormat("Leaving UpdateMethodsAndClassesFromCodeFile ");
 
         }
 
@@ -344,6 +357,7 @@ namespace Leem.Testify
         {
             List<SequencePoint> sequencePoints = method.SequencePoints;
             List<BranchPoint> branchPoints = method.BranchPoints;
+            var isTestProject = module.AssemblyName.EndsWith(".Test");
             foreach (SequencePoint sequencePoint in sequencePoints)
             {
                 var branchPoint = branchPoints.FirstOrDefault(x => x.StartLine == sequencePoint.StartLine);
@@ -358,11 +372,11 @@ namespace Leem.Testify
                     ClassName = modelClass.FullName,
                     MethodName = method.Name,
                     FileName = fileName,
-                    UnitTests = new List<UnitTest>(),
+                    TestMethods = new List<TestMethod>(),
                     IsBranch = branchPoint != null
                 };
 
-                if (tests.Any())
+                if (isTestProject == false && tests.Any())
                 {
                     foreach (var trackedMethodRef in sequencePoint.TrackedMethodRefs)
                     {
@@ -374,12 +388,13 @@ namespace Leem.Testify
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
                         coveredLine.FileName = fileName;
                         
-                        coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
+                        coveredLine.TestMethods.Add(new Poco.TestMethod
                         {
                             UniqueId = (int) trackedMethod.UniqueId,
                             Strategy = trackedMethod.Strategy,
                             Name = trackedMethod.Name,
-                            MetadataToken = trackedMethod.MetadataToken
+                            MetadataToken = trackedMethod.MetadataToken,
+                            TestMethodName = trackedMethod.Name
                         });
                     }
                 }
@@ -803,7 +818,7 @@ namespace Leem.Testify
 
                                                 coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
 
-                                                coveredLine.TrackedMethods.Add(new Poco.TrackedMethod
+                                                coveredLine.TestMethods.Add(new Poco.TestMethod
                                                 {
                                                     UniqueId = (int) test.UniqueId,
                                                     MetadataToken = method.MetadataToken,
