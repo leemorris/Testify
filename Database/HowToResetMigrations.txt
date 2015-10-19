@@ -1,0 +1,69 @@
+You need to delete the state:
+1.Delete the migrations folder in your project
+2.Delete the __MigrationHistory table in your database (may be under system tables)
+
+Then run the following command in the Package Manager Console:
+Enable-Migrations -EnableAutomaticMigrations -Force
+
+Use with or without -EnableAutomaticMigrations
+
+And finally, you can run:
+Add-Migration Initial
+
+Then create the script for SQL CE
+Update-Database -script
+
+
+ALTER TABLE [CodeClass] DROP CONSTRAINT [FK_dbo.CodeClass_dbo.Summary_Summary_SummaryId];
+GO
+ALTER TABLE [CodeClass] DROP CONSTRAINT [FK_dbo.CodeClass_dbo.CodeModule_CodeModule_CodeModuleId];
+GO
+ALTER TABLE [CodeMethod] DROP CONSTRAINT [FK_dbo.CodeMethod_dbo.Summary_Summary_SummaryId];
+GO
+ALTER TABLE [CodeMethod] DROP CONSTRAINT [FK_dbo.CodeMethod_dbo.CodeClass_CodeClassId];
+GO
+ALTER TABLE [CodeModule] DROP CONSTRAINT [FK_dbo.CodeModule_dbo.Summary_Summary_SummaryId];
+GO
+ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeClass_Class_CodeClassId];
+GO
+ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeMethod_Method_CodeMethodId];
+GO
+ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeModule_Module_CodeModuleId];
+GO
+ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.TestMethod_TestMethod_TestMethodId];
+GO
+ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.CodeModule_CodeModule_CodeModuleId];
+GO
+ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.CoveredLine_TestMethodId];
+GO
+ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.Project_Project_UniqueName];
+GO
+ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.TestProject_TestProjectUniqueName];
+GO
+
+DROP TABLE [__MigrationHistory];
+GO
+DROP TABLE [TestQueue];
+GO
+DROP TABLE [CodeClass];
+GO
+DROP TABLE [CodeMethod];
+GO
+DROP TABLE [Summary];
+GO
+
+DROP TABLE [CoveredLineTestMethod];
+GO
+DROP TABLE [CoveredLine];
+GO
+DROP TABLE [TestMethod];
+GO
+
+DROP TABLE [CodeModule];
+GO
+
+DROP TABLE [TestProject];
+GO
+DROP TABLE [Project];
+GO
+
