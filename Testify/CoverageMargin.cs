@@ -259,6 +259,15 @@ namespace Leem.Testify
                             x => x.LineNumber.Equals(lineNumber));
 
                     bool isCovered = coveredLines.TryGetValue(lineNumber + 1, out coveredLine);
+                    if (coveredLine != null)
+                    {
+                        var isSuccessfulFromDatabase = coveredLine.IsSuccessful;
+                        coveredLine.IsCovered = coveredLine.TestMethods.Any();
+                        var isSuccessful = coveredLine.IsCovered && coveredLine.TestMethods.All(x => x.IsSuccessful);
+                        coveredLine.IsSuccessful = isSuccessful;
+                       
+                    }
+
                     var text = g.Extent.GetText();
 
                     if (text.Trim().StartsWith("[Test")) 

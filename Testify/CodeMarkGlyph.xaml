@@ -9,6 +9,7 @@
 
     </UserControl.Resources>
     <Canvas x:Name="LayoutRoot">
+        <Grid>
         <Ellipse Stroke="Green" Height="12" Width="12" x:Name="Ellipse" Canvas.Left="0" Canvas.Top="0">
             <Ellipse.Fill>
                 <RadialGradientBrush
@@ -17,7 +18,8 @@
                     <GradientStop Color="Green" Offset="0.9" />
                 </RadialGradientBrush>
             </Ellipse.Fill>
-        </Ellipse>
-       
+            </Ellipse>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Padding="0" FontWeight="SemiBold" x:Name="GlyphCharacter"/>
+        </Grid>
     </Canvas>
 </UserControl>

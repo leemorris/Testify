@@ -222,7 +222,7 @@ namespace Leem.Testify
                 var sw = Stopwatch.StartNew();
                 module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
                // context.Database.Log = L => Log.Debug(L);
-                Log.DebugFormat("Get CoveredLines for Class: {0} ", className);
+                //Log.DebugFormat("Get CoveredLines for Class: {0} ", className);
                 coveredLines = (context.CoveredLines
                     .Where(line => line.Class.CodeClassId == clas.CodeClassId))
                     //.Include(u => u.TestMethods))
@@ -602,6 +602,10 @@ namespace Leem.Testify
                         var coveredLinePocos = new List<CoveredLine>();
                             foreach (var item in modifiedLines)
                             {
+                            if (item == null)
+                            {
+                                continue;
+                            }
                             try
                             {
                                 var coveredLines = coveredLinesLookup[item.MethodName];
@@ -633,7 +637,13 @@ namespace Leem.Testify
                         try
                         {
                             var sw = Stopwatch.StartNew();
-                            context.SaveChanges();
+                        var hasChanges = context.ChangeTracker.HasChanges();
+                        if (hasChanges)
+                        {
+                            Log.DebugFormat("SaveCoverageSessionResults - Changes were made = {0}", context.ChangeTracker.HasChanges());
+                        }
+                      
+                        context.SaveChanges();
                            // Log.DebugFormat("context.SaveChanges() for project: {0} Elapsed Time:{1}", projectInfo.UniqueName,sw.ElapsedMilliseconds);
                         }
 
@@ -920,7 +930,7 @@ namespace Leem.Testify
             Log.DebugFormat("Inside SaveUnitTestResults ");
             //81.4%
             var changedUnitTestClasses = new List<string>();
-
+            bool hasChanges = false;
             var testMethods = new List<TestMethod>();
             string runDate = testOutput.date;
             string runTime = testOutput.time;
@@ -1001,6 +1011,13 @@ namespace Leem.Testify
                                      //   testMethods.Add(new TestMethod(pocoTrackedMethod, test));
                                       //  pocoTrackedMethod.UnitTests.Add(test);
                                         context.TestMethods.Add(test);
+                                        Log.DebugFormat("SaveUnitTestResults- Added test, name:{0}", test.Name);
+                                        hasChanges = context.ChangeTracker.HasChanges();
+                                        if (hasChanges)
+                                        {
+                                            Log.DebugFormat("SaveUnitTestResults - Changes were made = {0}", hasChanges);
+                                        }
+                                        
                                         context.SaveChanges();
                                         // VERY SLOW!!!! 34.1%
                                         trackedMethodJustAdded = context.TestMethods.Local.FirstOrDefault(x => x.Name.Equals(trackedMethodToAddWithoutNamespaces));
@@ -1016,6 +1033,11 @@ namespace Leem.Testify
                                 if (trackedMethodJustAdded != null)
                                 {
                                     //test.TestMethod = trackedMethodJustAdded;
+                                    hasChanges = context.ChangeTracker.HasChanges();
+                                    if (hasChanges)
+                                    {
+                                        Log.DebugFormat("SaveUnitTestResults - TrackedMethod added = {0}", hasChanges);
+                                    }
                                     context.SaveChanges(); //15.2%
                                 }
 
@@ -1053,6 +1075,8 @@ namespace Leem.Testify
                                     test.FilePath = filePath;
 
                                     context.TestMethods.Add(test);
+                                    Log.DebugFormat("Added TestMethod {0}", test.Name);
+
                                     context.SaveChanges();
                                     //if (!trackedMethodFromContext.UnitTests.Any(x => x.TestMethodName == test.TestMethodName))
                                     //{
@@ -1063,15 +1087,23 @@ namespace Leem.Testify
                                 }
                                 else
                                 {
-                                    existingTest.LastSuccessfulRunDatetime = test.LastSuccessfulRunDatetime;
-                                    existingTest.TestDuration = test.TestDuration;
-                                    existingTest.FilePath = test.FilePath;
-                                    existingTest.LineNumber = test.LineNumber;
+                                    if (existingTest.FilePath != test.FilePath ||
+                                        existingTest.LineNumber != test.LineNumber)
+                                    {
+                                        existingTest.TestDuration = test.TestDuration;
+                                        existingTest.FilePath = test.FilePath;
+                                        existingTest.LineNumber = test.LineNumber;
+                                    }
+
                                     if (existingTest.IsSuccessful != test.IsSuccessful || existingTest.Result != test.Result)
                                     {
+                                        Log.DebugFormat("SaveUnitTestResults - UnitTest result changed from {0} to {1 } for {2}", existingTest.Result, test.Result, existingTest.Name);
+
                                         existingTest.IsSuccessful = test.IsSuccessful;
                                         existingTest.Result = test.Result;
                                         changedUnitTestClasses.Add(className);
+                                        existingTest.TestDuration = test.TestDuration;
+                                       
                                     }
 
                                 }
@@ -1087,6 +1119,12 @@ namespace Leem.Testify
 
                     //var classesWithRemovedTests = RemoveDeletedUnitTests(trackedMethodUnitTestMapper, context);
                     //changedUnitTestClasses.AddRange(classesWithRemovedTests);
+                    hasChanges = context.ChangeTracker.HasChanges();
+                    if (hasChanges)
+                    {
+                        Log.DebugFormat("SaveUnitTestResults - Changes were made = {0}", hasChanges);
+                    }
+                   
                     context.SaveChanges();
                 }
 
@@ -1283,9 +1321,14 @@ namespace Leem.Testify
             foreach (var test in line.TestMethods)
             {
                 var testFromContext = context.TestMethods.FirstOrDefault(x => x.Name == test.TestMethodName);
-                coveredLine.TestMethods.Add(testFromContext);
+                if (testFromContext != null)
+                {
+                    coveredLine.TestMethods.Add(testFromContext);
+                }
+                
             }
             coveredLine.IsSuccessful = coveredLine.TestMethods.All(y => y.IsSuccessful);
+            Log.DebugFormat("Created CoveredLine for Line Number; {0} in MethodL:{1}", line.LineNumber, line.MethodName);
             return coveredLine;
         }
 
@@ -1485,8 +1528,14 @@ namespace Leem.Testify
                 var methodLookup = context.CodeMethod.ToLookup(m => m.Name.ToString(), m => m);
 
                 UpdateCodeClasses(module, context, classLookup, methodLookup);
-                //RemoveMissingClasses(context, codeModule);
+            //RemoveMissingClasses(context, codeModule);
+            var hasChanges = context.ChangeTracker.HasChanges();
 
+            if (hasChanges)
+            {
+                Log.DebugFormat("UpdateClassesMethodsSummaries - Changes were made = {0}", context.ChangeTracker.HasChanges());
+            }
+               
                 context.SaveChanges();
             //}
             Log.DebugFormat("Finished UpdateModulesClassesMethodsSummaries for Module: {0}", module.AssemblyName);
@@ -1552,28 +1601,42 @@ namespace Leem.Testify
 
         private void UpdateCodeClasses(Model.Module module, TestifyContext context, ILookup<string, CodeClass> classLookup, ILookup<string, CodeMethod> methodLookup)
         {
+            bool hasChanges = context.ChangeTracker.HasChanges();
             var codeModule = context.CodeModule.FirstOrDefault(x => x.AssemblyName == module.AssemblyName);
             foreach (var moduleClass in module.Classes)
             {
+                hasChanges = context.ChangeTracker.HasChanges();
                 var pocoCodeClass = classLookup[ moduleClass.FullName].FirstOrDefault();
                           
 
                 if (pocoCodeClass != null)
                 {
                     UpdateSummary(moduleClass.Summary, pocoCodeClass.Summary);
-
+                    hasChanges = context.ChangeTracker.HasChanges();
+                    if (hasChanges)
+                    {
+                        Log.DebugFormat("Summary changed for  {0}", pocoCodeClass.Name);
+                    }
                 }
                 else
                 {
                     pocoCodeClass = new CodeClass(moduleClass);
                     codeModule.Classes.Add(pocoCodeClass);
+                    Log.DebugFormat("Added Class {0}", pocoCodeClass.Name);
+                    hasChanges = context.ChangeTracker.HasChanges();
                 }
 
                 UpdateCodeMethods(moduleClass, pocoCodeClass, methodLookup);
                 // RemoveMissingMethods(context, moduleClass);
-                    
-                context.SaveChanges();
 
+                hasChanges = context.ChangeTracker.HasChanges();
+                if (hasChanges)
+                {
+                    Log.DebugFormat("UpdateCodeClasses - Changes were made = {0} to {1}", hasChanges, moduleClass.FullName);
+                }
+             
+                context.SaveChanges();
+                
             }
 
         }
@@ -1645,14 +1708,26 @@ namespace Leem.Testify
 
         private static void UpdateSummary(Model.Summary newSummary, Poco.Summary existing)
         {
-            existing.BranchCoverage = newSummary.BranchCoverage;
-            existing.MaxCyclomaticComplexity = newSummary.MaxCyclomaticComplexity;
-            existing.MinCyclomaticComplexity = newSummary.MinCyclomaticComplexity;
-            existing.NumBranchPoints = newSummary.NumBranchPoints;
-            existing.NumSequencePoints = newSummary.NumSequencePoints;
-            existing.SequenceCoverage = newSummary.SequenceCoverage;
-            existing.VisitedBranchPoints = newSummary.VisitedBranchPoints;
-            existing.VisitedSequencePoints = newSummary.VisitedSequencePoints;
+            if (existing.BranchCoverage != newSummary.BranchCoverage ||
+                existing.MaxCyclomaticComplexity != newSummary.MaxCyclomaticComplexity ||
+                existing.MinCyclomaticComplexity != newSummary.MinCyclomaticComplexity ||
+                existing.NumBranchPoints != newSummary.NumBranchPoints ||
+                existing.NumSequencePoints != newSummary.NumSequencePoints ||
+                existing.SequenceCoverage != newSummary.SequenceCoverage ||
+                existing.VisitedBranchPoints != newSummary.VisitedBranchPoints ||
+                existing.VisitedSequencePoints != newSummary.VisitedSequencePoints)
+            {
+               // Log.DebugFormat("UpdateSummary - summary changed ");
+                existing.BranchCoverage = newSummary.BranchCoverage;
+                existing.MaxCyclomaticComplexity = newSummary.MaxCyclomaticComplexity;
+                existing.MinCyclomaticComplexity = newSummary.MinCyclomaticComplexity;
+                existing.NumBranchPoints = newSummary.NumBranchPoints;
+                existing.NumSequencePoints = newSummary.NumSequencePoints;
+                existing.SequenceCoverage = newSummary.SequenceCoverage;
+                existing.VisitedBranchPoints = newSummary.VisitedBranchPoints;
+                existing.VisitedSequencePoints = newSummary.VisitedSequencePoints;
+            }
+           
         }
 
         private void UpdateCodeMethods(Class codeClass, CodeClass pocoCodeClass, ILookup<string, CodeMethod> methodLookup)
@@ -1765,7 +1840,7 @@ namespace Leem.Testify
 
                 _sw.Stop();
 
-                Log.DebugFormat("UpdateProjects Elapsed Time {0} milliseconds", _sw.ElapsedMilliseconds);
+               /// Log.DebugFormat("UpdateProjects Elapsed Time {0} milliseconds", _sw.ElapsedMilliseconds);
             }
             catch (Exception ex)
             {

@@ -99,7 +99,7 @@ namespace Leem.Testify
             {
                 _IsRebuilding = true;
                 _documentName = documentName;
-                _log.DebugFormat("RebuildCoverage - Document: {0}", documentName);
+                //_log.DebugFormat("RebuildCoverage - Document: {0}", documentName);
                 ITextSnapshot snapshot = snapshotObject;
 
                 if (_dte != null && _dte.ActiveDocument != null)
@@ -185,7 +185,7 @@ namespace Leem.Testify
 
             //}
 
-            _log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
+            //_log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
 
             var addRangeSw = Stopwatch.StartNew();
             coveredLines.AddRange(lines);
@@ -217,7 +217,7 @@ namespace Leem.Testify
                 _HasCoveredLinesBeenInitialized = true;
                 _IsRebuilding = false;
             }
-            _log.DebugFormat("Update _coveredLInes Elapsed Time {0}", lockAndLoadSw.ElapsedMilliseconds);
+            //_log.DebugFormat("Update _coveredLInes Elapsed Time {0}", lockAndLoadSw.ElapsedMilliseconds);
         }
 
         private ProjectItem FindProjectItemInProject(Project project, string name, bool recursive)

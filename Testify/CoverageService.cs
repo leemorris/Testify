@@ -271,7 +271,7 @@ namespace Leem.Testify
             {
                 var codeClasses = from clas in context.CodeClass
                                   join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-                                  where clas.Name.Equals(fileClass.ReflectionName)
+                                  where clas.Name.Equals(fileClass.UnresolvedFile.FileName)
                                   select clas;
                 foreach (var codeClass in codeClasses)
                 {
@@ -302,8 +302,12 @@ namespace Leem.Testify
                        // trackedMethodUnitTestMapper.FirstOrDefault(x=>x.TrackedMethodName);
                     }
 
-                    // remove closing paren
-                    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+                    if (modifiedMethodName.EndsWith(")"))
+                    {
+                        // remove closing paren
+                        modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+                    }
+
 
                     var codeMethods = from clas in codeClasses
                                       join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
@@ -315,6 +319,7 @@ namespace Leem.Testify
                            || method.Line != fileMethod.BodyRegion.BeginLine
                            || method.Column != fileMethod.BodyRegion.BeginColumn)
                         {
+                            _log.DebugFormat("UpdateMethods - Modifing {0}", method.Name);
                             method.FileName = fileName;
                             method.Line = fileMethod.BodyRegion.BeginLine;
                             method.Column = fileMethod.BodyRegion.BeginColumn;
@@ -324,6 +329,13 @@ namespace Leem.Testify
 
 
                 }
+                var hasChanges = context.ChangeTracker.HasChanges();
+                if (hasChanges)
+                {
+                    _log.DebugFormat("UpdateMethods - Changes were made = {0} in FileName {1}", hasChanges, fileName);
+                }
+               
+
                 context.SaveChanges();
             }
         }

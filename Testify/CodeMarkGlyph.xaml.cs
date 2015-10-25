@@ -47,7 +47,16 @@ namespace Leem.Testify
                 Ellipse.Fill = new SolidColorBrush(Colors.Red);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Red);
             }
+            if (line.IsBranch)
+            {
+                GlyphCharacter.Text = ((char)'\u2144').ToString();
+                GlyphCharacter.Height = 1.15 * Ellipse.Height;
+                GlyphCharacter.FontSize = Math.Round(Ellipse.Height) + 1;
+                GlyphCharacter.FontWeight = FontWeights.Bold;
+                GlyphCharacter.Margin =new System.Windows.Thickness( 0,0,0, GlyphCharacter.Height/2);
 
+
+            }
 
         }
 

@@ -55,7 +55,7 @@ namespace Leem.Testify
 
         private string GetTarget()
         {
-            Log.Debug("Inside GetTarget");
+            //Log.Debug("Inside GetTarget");
             Log.DebugFormat("Solution Directory: {0}", _solutionDirectory.ToString());
 
             string target = string.Empty;
@@ -83,7 +83,7 @@ namespace Leem.Testify
         private async Task RunTests(string openCoverCommandLine, string arguments, ProjectInfo projectInfo, Guid fileNameGuid, QueuedTest testQueueItem)
         {
             // BuildProject(_solutionDirectory + testQueueItem.ProjectName);
-            Log.DebugFormat("Verify project executing on Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
+            //Log.DebugFormat("Verify project executing on Thread: {0}", System.Threading.Thread.CurrentThread.ManagedThreadId);
 
             var coverFilename = fileNameGuid.ToString() + "-cover.xml";
 
@@ -438,12 +438,12 @@ namespace Leem.Testify
             testParameters.Append(GetTarget());
             if ( individualTests.Any())
             {
-                testParameters.Append("/run:");
-                
+                testParameters.Append("/run:"); 
+
                 testParameters.Append(GetCommaSeparatedListOfTests(individualTests));
                 testParameters.Append(" ");
             }
-            const int timeout = 3000;
+            const int timeout = 15000;
             testParameters.Append(projectInfo.TestProject.Path);
             testParameters.Append(".dll");
             testParameters.Append(" /result:");
@@ -496,7 +496,7 @@ namespace Leem.Testify
 
         private CoverageSession GetCoverageSessionFile(string filename)
         {
-            Log.DebugFormat("GetCoverageSessionFile for file name: {0}", filename);
+            //Log.DebugFormat("GetCoverageSessionFile for file name: {0}", filename);
 
             var reader = new CoverageFileReader();
 
