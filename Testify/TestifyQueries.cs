@@ -1357,40 +1357,17 @@ namespace Leem.Testify
             return unitTests;
         }
 
-        //private void RefreshUnitTestIds(IList<LineCoverageInfo> newCoveredLineInfos, Leem.Testify.Model.Module module, Leem.Testify.Model.Module testModule,List<TrackedMethodMap> trackedMethodUnitTestMapper)
-        //{
-        //    var trackedMethodLists = (from testInfo in newCoveredLineInfos
-        //                              where testInfo.TestMethods != null
-        //                              select testInfo.TestMethods);
-
-        //    var trackedMethods = trackedMethodLists.SelectMany(x => x).ToList();
-
-        //    if (trackedMethods.Any())
-        //    {
-        //        var distinctTrackedMethods = trackedMethods.GroupBy(x => x.MetadataToken).Select(y => y.First()).ToList();
-
-
-        //        var sw = new Stopwatch();
-        //        sw.Start();
-
-
-        //        Log.DebugFormat("UpdateCoveredLines took {0} seconds", sw.ElapsedMilliseconds/1000);
-        //        sw.Stop();
-
-        //    }
-        //}
-
+   
         private void UpdateClassesMethodsSummaries(TestifyContext context, Model.Module module)
         {
             //3.28%
             Log.DebugFormat("Inside UpdateModulesClassesMethodsSummaries for Module: {0}", module.AssemblyName);
-            //using (var context = new TestifyContext(_solutionName))
-            //{
-                var classLookup = context.CodeClass.ToLookup(clas => clas.Name, clas => clas);
-                var methodLookup = context.CodeMethod.ToLookup(m => m.Name.ToString(), m => m);
 
-                UpdateCodeClasses(module, context, classLookup, methodLookup);
-            //RemoveMissingClasses(context, codeModule);
+            var classLookup = context.CodeClass.ToLookup(clas => clas.Name, clas => clas);
+            var methodLookup = context.CodeMethod.ToLookup(m => m.Name.ToString(), m => m);
+
+            UpdateCodeClasses(module, context, classLookup, methodLookup);
+
             var hasChanges = context.ChangeTracker.HasChanges();
 
             if (hasChanges)
@@ -1399,7 +1376,7 @@ namespace Leem.Testify
             }
                
                 context.SaveChanges();
-            //}
+
             Log.DebugFormat("Finished UpdateModulesClassesMethodsSummaries for Module: {0}", module.AssemblyName);
         }
 
@@ -1474,28 +1451,17 @@ namespace Leem.Testify
                 if (pocoCodeClass != null)
                 {
                     UpdateSummary(moduleClass.Summary, pocoCodeClass.Summary);
-                    //hasChanges = context.ChangeTracker.HasChanges();
-                    //if (hasChanges)
-                    //{
-                    //    Log.DebugFormat("Summary changed for  {0}", pocoCodeClass.Name);
-                    //}
                 }
                 else
                 {
                     pocoCodeClass = new CodeClass(moduleClass);
                     codeModule.Classes.Add(pocoCodeClass);
                     Log.DebugFormat("Added Class {0}", pocoCodeClass.Name);
-                   // hasChanges = context.ChangeTracker.HasChanges();
+
                 }
 
                 UpdateCodeMethods(moduleClass, pocoCodeClass, methodLookup);
-                // RemoveMissingMethods(context, moduleClass);
-
-                //hasChanges = context.ChangeTracker.HasChanges();
-                //if (hasChanges)
-                //{
-                //    Log.DebugFormat("UpdateCodeClasses - Changes were made = {0} to {1}", hasChanges, moduleClass.FullName);
-                //}
+   
              
                 context.SaveChanges();
                 
@@ -1507,12 +1473,6 @@ namespace Leem.Testify
         {
             using (var context = new TestifyContext(_solutionName))
             {
-                //var classesInDatabase = from l in context.CoveredLines
-                //                        join m in context.CodeMethod on l.Method.CodeMethodId equals m.CodeMethodId
-                //                        join c in context.CodeClass on m.CodeClassId equals c.CodeClassId
-                //                        where m.CodeClass.CodeModule.Name == module.FullName
-                //                        select c;
-
                 var classesInDatabase = from c in context.CodeClass 
                                         where c.CodeModule.Name == module.FullName
                                         select c;
@@ -1605,15 +1565,9 @@ namespace Leem.Testify
                                            }
                     else
                     {
+                        codeMethod = new CodeMethod(moduleMethod);
+                        pocoCodeClass.Methods.Add(codeMethod);
 
-                        //if (!moduleMethodName.Contains(Underscores)
-                        //    && !moduleMethodName.Contains(GetUnderscore)
-                        //    && !moduleMethodName.Contains(SetUnderscore)
-                        //    && moduleMethod.FileRef != null)
-                        //{ 
-                            codeMethod = new CodeMethod(moduleMethod);
-                            pocoCodeClass.Methods.Add(codeMethod);
-                        //}
                     }
             }
 
@@ -1702,7 +1656,7 @@ namespace Leem.Testify
 
                 _sw.Stop();
 
-               /// Log.DebugFormat("UpdateProjects Elapsed Time {0} milliseconds", _sw.ElapsedMilliseconds);
+
             }
             catch (Exception ex)
             {
@@ -1881,9 +1835,9 @@ namespace Leem.Testify
             var unitTestCasesList = new List<TrackedMethodMap>();
             foreach (var element in namespaceDeclarationNode.Children)
             {
-                if (element.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeDeclaration) && element.HasChildren)
+                if (element.GetType() == typeof(TypeDeclaration) && element.HasChildren)
                 {
-                    var xx = ((ICSharpCode.NRefactory.CSharp.EntityDeclaration)(element)).Name;
+                    var xx = ((EntityDeclaration)(element)).Name;
                     var unitTestCasesFromClass = CheckClassForTestCaseAttribute(syntaxTree, (TypeDeclaration)element);
                     if (unitTestCasesFromClass.Any())
                     {
@@ -1899,9 +1853,9 @@ namespace Leem.Testify
             var unitTestCasesList = new List<TrackedMethodMap>();
             foreach (var element in typeDeclarationNode.Children)
             {
-                if (element.GetType() == typeof(ICSharpCode.NRefactory.CSharp.MethodDeclaration) && element.HasChildren)
+                if (element.GetType() == typeof(MethodDeclaration) && element.HasChildren)
                 {
-                    var xxx = ((ICSharpCode.NRefactory.CSharp.EntityDeclaration)(element)).Name;
+                    var xxx = ((EntityDeclaration)(element)).Name;
                     var unitTestCasesFromMethod = CheckMethodForTestCaseAttribute(syntaxTree, (MethodDeclaration)element);
                     if (unitTestCasesFromMethod != null)
                     {
@@ -1949,11 +1903,11 @@ namespace Leem.Testify
                             var identifier = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).Identifier;
                             if ((identifier == "List" || identifier == "IDictionary")
                                 && typeArguments != null
-                                && typeArguments.GetType() == typeof(ICSharpCode.NRefactory.TypeSystem.KnownTypeReference))
+                                && typeArguments.GetType() == typeof(KnownTypeReference))
                             {
                                 // var lookupMode = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(typeArguments)).LookupMode;
                                 var abbreviatedName = typeArguments.ToString();
-                                var fullName = ((ICSharpCode.NRefactory.TypeSystem.KnownTypeReference)(typeArguments)).Name;
+                                var fullName = ((KnownTypeReference)(typeArguments)).Name;
                                 extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).ToString().Replace(abbreviatedName, fullName);
                             }
                             else
@@ -1981,11 +1935,11 @@ namespace Leem.Testify
                         }
                         else if (parameter.Type.GetType() == typeof(ArrayTypeReference))
                         {
-                            if (((ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
+                            if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
                             {
                                 extractedParameter = ((KnownTypeReference)(((ArrayTypeReference)(parameter.Type)).ElementType)).Name + "[]";
                             }
-                            else if (((ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
+                            else if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
                             {
                                 extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)parameter.Type).ElementType).Identifier + "[]";
                             }
@@ -2014,7 +1968,7 @@ namespace Leem.Testify
                                 }
 
                             }
-                            else if (elementType.GetType() == typeof(ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference))
+                            else if (elementType.GetType() == typeof(ArrayTypeReference))
                             {
                                 if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
                                 {
@@ -2025,16 +1979,16 @@ namespace Leem.Testify
                                     extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
 
                                 }
-                                else if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ArrayTypeReference))
+                                else if (((ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ArrayTypeReference))
                                 {
-                                    if (((((ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference)elementType).ElementType)).GetType() == typeof(KnownTypeReference))
+                                    if (((((ArrayTypeReference)elementType).ElementType)).GetType() == typeof(KnownTypeReference))
                                     {
-                                        extractedParameter = ((ICSharpCode.NRefactory.TypeSystem.KnownTypeReference)((ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference)elementType).ElementType).Name + "[]";
+                                        extractedParameter = ((KnownTypeReference)((ArrayTypeReference)elementType).ElementType).Name + "[]";
                                     }
 
                                     else
                                     {
-                                        extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ICSharpCode.NRefactory.TypeSystem.ArrayTypeReference)elementType).ElementType).Identifier + "[]";
+                                        extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
                                     }
                                 }
                             }
@@ -2080,22 +2034,12 @@ namespace Leem.Testify
             string returnType;
             var returnTypeBuilder = new System.Text.StringBuilder(memberDefinition.UnresolvedMember.ReturnType.ToString());
 
-            //returnType = memberDefinition.UnresolvedMember.ReturnType.ToString();
-
-
             returnTypeBuilder.Replace("string","String");
-            ////returnTypeBuilder.Replace("Void", "System.Void");
-            ////returnTypeBuilder.Replace("void", "System.Void");
             returnTypeBuilder.Replace("void", "Void");
-            //returnTypeBuilder.Replace("bool", "System.Boolean");
             returnTypeBuilder.Replace("bool", "Boolean");
-
-            //returnTypeBuilder.Replace("double", "System.Double");
             returnTypeBuilder.Replace("object", "Object");
             returnTypeBuilder.Replace("char", "Char");
-
             returnTypeBuilder.Replace("short", "Int16");
-            //returnType = returnType.Replace("int", "System.Int32"); // causes the name Appointment to become AppoSystem.Int32mentDto
             returnTypeBuilder.Replace("System.Nullable[[int]]", "Nullable<Int32>");
             returnTypeBuilder.Replace("IEnumerable<int>", "IEnumerable<Int32>");
             returnTypeBuilder.Replace("[[DateTime]]", "Nullable<DateTime>");
@@ -2111,11 +2055,9 @@ namespace Leem.Testify
             if (returnType == "IList<int>")
             {
                 var returnTypeArgument = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(memberDefinition.UnresolvedMember.ReturnType)).TypeArguments[0];
-                returnType = "IList<" + ((ICSharpCode.NRefactory.TypeSystem.KnownTypeReference)(returnTypeArgument)).Name + ">";
+                returnType = "IList<" + ((KnownTypeReference)(returnTypeArgument)).Name + ">";
             }
-
-            //var unresolvedMemberReturnType = memberDefinition.UnresolvedMember.ReturnType.Resolve(compilation);
-            
+           
 
             var unitTestCases = new TrackedMethodMap
             {
@@ -2131,7 +2073,7 @@ namespace Leem.Testify
             {
                 arguments = string.Empty;
 
-                if (element.GetType() == typeof(ICSharpCode.NRefactory.CSharp.AttributeSection) && element.HasChildren)
+                if (element.GetType() == typeof(AttributeSection) && element.HasChildren)
                 {
                     methodInfo =
                            new MethodInfo
@@ -2176,7 +2118,6 @@ namespace Leem.Testify
                     arguments.Append(")");
 
                     arguments.Replace("true", "True");
-                   // arguments.Replace(" ", string.Empty);
                     arguments.Replace("false","False");
                 }
                 

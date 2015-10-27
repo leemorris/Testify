@@ -139,7 +139,7 @@ namespace Leem.Testify
  
                     foreach (var codeClass in classes)
                     {
-                       // codeClass.Methods.RemoveAll(x=>x.Name.Contains("__"));
+
                         _log.DebugFormat("Class Name: {0}", codeClass.FullName);
                         List<Method> methods = codeClass.Methods;
 
@@ -151,13 +151,12 @@ namespace Leem.Testify
                                 string fileName = string.Empty;
                                 if (method.FileRef != null)
                                 {
-                                    fileName = fileDictionary[method.FileRef.UniqueId].FullPath;//.sessionModule.Files.Where(x => x.UniqueId == method.FileRef.UniqueId).ToList();
+                                    fileName = fileDictionary[method.FileRef.UniqueId].FullPath;
                                 }
 
                                
                                 if (fileName != string.Empty)
                                 {
-                                    //fileName = fileNames.FirstOrDefault().FullPath;
 
                                     if (fileName.Contains(@"\WebServices\") == false
                                         && fileName.Contains(@"\Web References\") == false
@@ -299,7 +298,6 @@ namespace Leem.Testify
                     else
                     {
                         modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-                       // trackedMethodUnitTestMapper.FirstOrDefault(x=>x.TrackedMethodName);
                     }
 
                     if (modifiedMethodName.EndsWith(")"))

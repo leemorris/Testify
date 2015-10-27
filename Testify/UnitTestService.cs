@@ -55,7 +55,6 @@ namespace Leem.Testify
 
         private string GetTarget()
         {
-            //Log.Debug("Inside GetTarget");
             Log.DebugFormat("Solution Directory: {0}", _solutionDirectory.ToString());
 
             string target = string.Empty;
@@ -99,12 +98,12 @@ namespace Leem.Testify
             Log.DebugFormat("*Start Process for Process For Project: {0}", testQueueItem.ProjectName);
             Log.DebugFormat("ProcessStartInfo.Arguments: {0}", startInfo.Arguments.ToString());
             Log.DebugFormat("ProcessStartInfo.FileName: {0}", startInfo.FileName.ToString());
-            var args = new string[] {@"-target:C:\USERS\LEE\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\11.0EXP\EXTENSIONS\LEEM\TESTIFY\1.0\NUnit.Runners.2.6.2\nunit-console.exe ",
-                                     @"-targetargs:C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.Test.dll /result:C:\Users\Lee\AppData\Local\Testify\UnitTestExperiment\5ce700cd-e242-46fd-b817-ff276495e958-result.xml /noshadow", 
-                                     @"-coverbytest:*.Test.dll",
-                                     @"-hideskipped: Domain",
-                                     @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
-                                     @"-register:Path64"  };
+            //var args = new string[] {@"-target:C:\USERS\LEE\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\11.0EXP\EXTENSIONS\LEEM\TESTIFY\1.0\NUnit.Runners.2.6.2\nunit-console.exe ",
+            //                         @"-targetargs:C:\WIP\UnitTestExperiment\Domain.Test\bin\Debug\Domain.Test.dll /result:C:\Users\Lee\AppData\Local\Testify\UnitTestExperiment\5ce700cd-e242-46fd-b817-ff276495e958-result.xml /noshadow", 
+            //                         @"-coverbytest:*.Test.dll",
+            //                         @"-hideskipped: Domain",
+            //                         @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
+            //                         @"-register:Path64"  };
             //var launcher = new OpenCoverLauncher(args);
 
 
@@ -230,113 +229,7 @@ namespace Leem.Testify
             System.IO.File.Delete(fileToRead);
         }
 
-        //public void UpdateMethodsAndClassesFromCodeFile( List<Module> modules)
-        //{
-        //    IProjectContent project = new CSharpProjectContent();
-        //    var classNames = new List<string>();
-        //    var methodNames = new List<string>();
-
-        //    foreach (var module in modules)
-        //    {
-        //        var fileNames = module.Files.Select(x => x.FullPath);
-        //        foreach (var file in module.Files)
-        //        {
-        //            project.SetAssemblyName(file.FullPath);
-        //            project = AddFileToProject(project, file.FullPath);
-        //            var classes = new List<string>();
-        //        }
-        //            var typeDefinitions = project.TopLevelTypeDefinitions;
-
-        //            foreach (var typeDef in typeDefinitions)
-        //            {
-
-        //                if (typeDef.Kind == TypeKind.Class)
-        //                {
-        //                    classNames.Add(typeDef.ReflectionName);
-        //                    var methods = typeDef.Methods;
-        //                    UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName);
-        //                    methodNames.AddRange(methods.Select(x => x.ReflectionName));
-        //                }
-
-
-
-        //            }
-
-                   
-        //            _queries.RemoveMissingClasses(module, classNames);
-        //            _queries.RemoveMissingMethods(module, methodNames);
-
-                
-        //    }
-
-
-        //}
-
-
-        //public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName)
-        //{
-        //    var methodsToDelete = new List<string>();
-
-        //    using (var context = new TestifyContext(_solutionName))
-        //    {
-        //        var codeClasses = from clas in context.CodeClass
-        //                          join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-        //                          where clas.Name.Equals(fileClass.ReflectionName)
-        //                          select clas;
-        //        foreach (var codeClass in codeClasses)
-        //        {
-        //            if (codeClass.FileName != fileName
-        //                || codeClass.Line != fileClass.BodyRegion.BeginLine
-        //                || codeClass.Column != fileClass.BodyRegion.BeginColumn)
-        //            {
-        //                codeClass.FileName = fileName;
-        //                codeClass.Line = fileClass.BodyRegion.BeginLine;
-        //                codeClass.Column = fileClass.BodyRegion.BeginColumn;
-        //            }
-
-        //        }
-
-        //        string modifiedMethodName;
-        //        foreach (var fileMethod in methods)
-        //        {
-        //            var rawMethodName = fileMethod.ReflectionName;
-        //            if (fileMethod.IsConstructor)
-        //            {
-        //                rawMethodName = rawMethodName.Replace("..", ".");
-        //                modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-        //                modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
-        //            }
-        //            else
-        //            {
-        //                modifiedMethodName = _queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-        //            }
-
-        //            // remove closing paren
-        //            modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
-
-        //            var codeMethods = from clas in codeClasses
-        //                              join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-        //                              where method.Name.Contains(modifiedMethodName)
-        //                              select method;
-        //            foreach (var method in codeMethods)
-        //            {
-        //                if (method.FileName != fileName
-        //                   || method.Line != fileMethod.BodyRegion.BeginLine
-        //                   || method.Column != fileMethod.BodyRegion.BeginColumn)
-        //                {
-        //                    method.FileName = fileName;
-        //                    method.Line = fileMethod.BodyRegion.BeginLine;
-        //                    method.Column = fileMethod.BodyRegion.BeginColumn;
-        //                }
-
-        //            }
-
-
-        //        }
-        //        context.SaveChanges();
-        //    }
-        //}
-
+   
 
         private IProjectContent AddFileToProject(IProjectContent project, string fileName)
         {
@@ -360,33 +253,6 @@ namespace Leem.Testify
             return project;
         }
 
-        //Lazy<IList<IUnresolvedAssembly>> builtInLibs = new Lazy<IList<IUnresolvedAssembly>>(
-        //    delegate
-        //    {
-        //        Assembly[] assemblies = {
-        ////			        typeof(object).Assembly, // mscorlib
-        ////			        typeof(Uri).Assembly, // System.dll
-        ////			        typeof(System.Linq.Enumerable).Assembly, // System.Core.dll
-        ////					typeof(System.Xml.XmlDocument).Assembly, // System.Xml.dll
-        ////					typeof(System.Drawing.Bitmap).Assembly, // System.Drawing.dll
-        ////					typeof(Form).Assembly, // System.Windows.Forms.dll
-        ////			        typeof(ICSharpCode.NRefactory.TypeSystem.IProjectContent).Assembly,
-        //                };
-        //        var projectContents = new IUnresolvedAssembly[assemblies.Length];
-        //        Stopwatch total = Stopwatch.StartNew();
-        //        Parallel.For(
-        //            0, assemblies.Length,
-        //            delegate(int i)
-        //            {
-        //                Stopwatch w = Stopwatch.StartNew();
-        //                var loader = new CecilLoader();
-        //                projectContents[i] = loader.LoadAssemblyFile(assemblies[i].Location);
-        //                Debug.WriteLine(Path.GetFileName(assemblies[i].Location) + ": " + w.Elapsed);
-        //            });
-        //        Debug.WriteLine("Total: " + total.Elapsed);
-        //        return projectContents;
-        //    });
-
 
         private async Task RunAllNunitTestsForProject(QueuedTest item)
         {
@@ -394,15 +260,7 @@ namespace Leem.Testify
             Log.DebugFormat("Test Started TestRunId {0} on Project {1}", item.TestRunId, item.ProjectName);
 
             ProjectInfo projectInfo;
-
-            //if (item.IndividualTests == null || !item.IndividualTests.Any())
-            //{
-            //    projectInfo = _queries.GetProjectInfo(item.ProjectName);
-            //}
-            //else 
-            //{
-                projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
-            //}
+            projectInfo = _queries.GetProjectInfoFromTestProject(item.ProjectName);
 
             if (projectInfo.TestProject.Path == null)
             {
@@ -496,8 +354,6 @@ namespace Leem.Testify
 
         private CoverageSession GetCoverageSessionFile(string filename)
         {
-            //Log.DebugFormat("GetCoverageSessionFile for file name: {0}", filename);
-
             var reader = new CoverageFileReader();
 
             var codeCoverage = reader.ReadCoverageFile(filename);
@@ -620,8 +476,7 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                //.DebugFormat("GetProjectOutputBuildFolder could not determine folder name: {0}", ex.Message);
-                return string.Empty;
+               return string.Empty;
             }
         }
         private string GetProjectPropertyByName(EnvDTE.Properties properties, string name)
