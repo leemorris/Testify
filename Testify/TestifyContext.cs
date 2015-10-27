@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.Entity;
 using System.IO;
-using System.Data.Entity.Infrastructure;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Leem.Testify.Poco;
 using System.Data.SqlServerCe;
 using System.Data.Entity.ModelConfiguration.Conventions;
-using System.Data.Entity.ModelConfiguration.Configuration;
 using log4net;
 
 namespace Leem.Testify
@@ -73,16 +65,6 @@ namespace Leem.Testify
             modelBuilder.Entity<CodeMethod>()
                 .HasKey(x => x.CodeMethodId);  
 
-            //modelBuilder.Entity<UnitTest>()
-            //    .HasKey(x => x.UnitTestId)
-            //    .Ignore(c => c.MetadataToken);
-
-            //modelBuilder.Entity<TrackedMethod>()
-            //    .HasKey(x => x.TrackedMethodId);
-
-            //modelBuilder.Entity<TrackedMethod>()
-            //   .Ignore(t => t.MetadataToken);
-
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
 
@@ -94,9 +76,7 @@ namespace Leem.Testify
                 .HasRequired(m=>m.Method)
                 .WithMany()
                 .WillCascadeOnDelete(true);
-            //modelBuilder.Entity<CoveredLine>()
-            //    .HasMany(t => t.TestMethods)
-            //    .WithMany(c=>c.CoveredLines);
+
                 
 
 
