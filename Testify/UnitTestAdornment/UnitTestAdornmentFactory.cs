@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Editor;
+//using Microsoft.VisualStudio.Editor;
 
 
 namespace Leem.Testify.UnitTestAdornment

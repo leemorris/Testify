@@ -11,9 +11,8 @@ using System.IO;
 using System.Diagnostics;
 using OpenCover.Framework.Manager;
 using System.Collections.Specialized;
-using OpenCover.Framework.Manager;
 using OpenCover;
-using System.ServiceProcess;
+
 
 namespace Leem.Testify
 {
