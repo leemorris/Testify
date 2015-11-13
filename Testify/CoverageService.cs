@@ -103,7 +103,6 @@ namespace Leem.Testify
         public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, 
                                                                         List<TrackedMethodMap> methodMapper, TestifyContext context)
         {
-            //4.42%
             var coveredLines = new List<LineCoverageInfo>();
 
             List<Module> sessionModules = codeCoverage.Modules;
@@ -136,7 +135,9 @@ namespace Leem.Testify
                         var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
                         var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
                     var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => item.Name);
- 
+
+                    var typeDefinitions = GetTypeDefinitionsFromRefactory(sessionModule.AssemblyName, fileDictionary);
+
                     foreach (var codeClass in classes)
                     {
 
@@ -147,7 +148,21 @@ namespace Leem.Testify
                         {
                             if ( !method.IsGetter && !method.IsSetter)
                             {
-                                //var fileNames = new List<File>();
+                                var indexOfOpEquality = method.Name.IndexOf("::op_Equality(");
+      
+                                if (indexOfOpEquality>0)
+                                {
+                                    method.Name = method.Name.Substring(0,indexOfOpEquality);
+                                     method.Name = string.Concat(method.Name , "::Equals(Object)");
+                                }
+                                method.Name = method.Name.Replace("&", string.Empty);
+                                //var indexOfOpInEquality = method.Name.IndexOf("::op_Inequality(");
+                                //if ( indexOfOpInEquality > 0)
+                                //{
+                                //    method.Name = method.Name.Substring(0, indexOfOpInEquality);
+                                //    method.Name = string.Concat(method.Name, "::Equals(Object)");
+                                //}
+
                                 string fileName = string.Empty;
                                 if (method.FileRef != null)
                                 {
@@ -169,9 +184,10 @@ namespace Leem.Testify
                                             var modifiedReturnType = CoverageService.Instance.RemoveNamespaceFromType(returnType, isReturnType: true);
                                             methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
                                         }
-
-                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(RemoveNamespaces(x.TrackedMethodName)));
-
+/// 5.7%
+                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodNameWithoutNamespaces));
+                                        var trackedMethodUnitTestMapAlternative = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.Equals(x.TrackedMethodNameWithoutNamespaces));
+                                       
                                         if (trackedMethodUnitTestMap != null)
                                         {
                                             trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
@@ -181,7 +197,8 @@ namespace Leem.Testify
                                         {
                                             _log.ErrorFormat("Did not find Map object for: <{0}>", methodNameWithoutNamespaces);
                                         }
-                                        CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap);
+
+                                        CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap, typeDefinitions);
 
                                         Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
 
@@ -195,7 +212,8 @@ namespace Leem.Testify
 
 
                         }
-                        context.SaveChanges();
+
+                       context.SaveChanges();
                     }
                     }
                     catch (Exception ex)
@@ -224,7 +242,8 @@ namespace Leem.Testify
                 {
                     project.SetAssemblyName(file.FullPath);
                     var syntaxTree= GetSyntaxTree(file.FullPath);
-                    project = AddFileToProject(project, syntaxTree);
+
+                  project = AddFileToProject(project, syntaxTree);
                     var classes = new List<string>();
                 }
                 var typeDefinitions = project.TopLevelTypeDefinitions;
@@ -238,6 +257,7 @@ namespace Leem.Testify
                             {
                                 classNames.Add(typeDef.ReflectionName);
                                 var methods = typeDef.Methods;
+
                                 UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper);
                                 methodNames.AddRange(methods.Select(x => x.ReflectionName));
                             }
@@ -307,10 +327,10 @@ namespace Leem.Testify
                     }
 
 
-                    var codeMethods = from clas in codeClasses
+                    var codeMethods = (from clas in codeClasses
                                       join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                       where method.Name.Contains(modifiedMethodName)
-                                      select method;
+                                      select method).ToList();
                     foreach (var method in codeMethods)
                     {
                         if (method.FileName != fileName
@@ -413,7 +433,7 @@ namespace Leem.Testify
             }
         }
 
-        public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName, TrackedMethodMap methodMapper)
+        public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName, TrackedMethodMap methodMapper,IEnumerable<IUnresolvedTypeDefinition> typeDefinitions)
         {
 
           
@@ -439,10 +459,6 @@ namespace Leem.Testify
 
             try
             {
-                var typeDefinitions = GetTypeDefinitionsFromRefactory(fileName);
-
-
-
                 var classes = new List<string>();
 
                 foreach (var typeDef in typeDefinitions)
@@ -488,81 +504,84 @@ namespace Leem.Testify
             return null;
         }
 
-        private IEnumerable<IUnresolvedTypeDefinition> GetTypeDefinitionsFromRefactory(string fileName)
+        private IEnumerable<IUnresolvedTypeDefinition> GetTypeDefinitionsFromRefactory(string assemblyName,Dictionary<uint,Testify.Model.File> fileDictionary)
         {
             IProjectContent project = new CSharpProjectContent();
+            project.SetAssemblyName(assemblyName);
+            foreach (var file in fileDictionary)
+            {
+                var syntaxTree = GetSyntaxTree(file.Value.FullPath);
+                project = AddFileToProject(project, syntaxTree);
+            }
 
-            project.SetAssemblyName(fileName);
-            var syntaxTree = GetSyntaxTree(fileName);
-            project = AddFileToProject(project, syntaxTree);
 
             var typeDefinitions = project.TopLevelTypeDefinitions;
             return typeDefinitions;
         }
 
-        internal List<string> ParseArguments(string modifiedMethodName)
-        {
-            var result = new List<string>();
-            try
-            {
-                int locationOfParen = modifiedMethodName.IndexOf('(') + 1;
-                string argumentString;
-                if (locationOfParen > 0)
-                {
-                    argumentString = modifiedMethodName.Substring(locationOfParen,
-                        modifiedMethodName.Length - locationOfParen - 1);
-                }
-                else
-                {
-                    argumentString = modifiedMethodName;
-                }
-                int locationOfOpenAngleBracket = modifiedMethodName.IndexOf('<') + 1;
+        //internal List<string> ParseArguments(string modifiedMethodName)
+        //{
+        //    var result = new List<string>();
+        //    try
+        //    {
+        //        int locationOfParen = modifiedMethodName.IndexOf('(') + 1;
+        //        string argumentString;
+        //        if (locationOfParen > 0)
+        //        {
+        //            argumentString = modifiedMethodName.Substring(locationOfParen,
+        //                modifiedMethodName.Length - locationOfParen - 1);
+        //        }
+        //        else
+        //        {
+        //            argumentString = modifiedMethodName;
+        //        }
+        //        int locationOfOpenAngleBracket = modifiedMethodName.IndexOf('<') + 1;
 
-                string[] arguments = argumentString.Split(',');
-                foreach (string argument in arguments)
-                {
-                    string name = string.Empty;
-                    try
-                    {
-                         name = RemoveNamespaces(argument);
+        //        string[] arguments = argumentString.Split(',');
+        //        foreach (string argument in arguments)
+        //        {
+        //            string name = string.Empty;
+        //            try
+        //            {
+        //                 name = RemoveNamespaces(argument);
 
-                        name = name.Replace(Xmlnode, SystemXmlXmlnode)
-                            .Replace(Int32, Integer)
-                            .Replace(Dataset, SystemDataDataset)
-                            //.Replace(Exception, SystemException)
-                            .Replace(SystemCollectionsGenericList, List)
-                            .Replace(SystemCollectionsGenericIlist, Ilist)
-                            .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
-                            .Replace(SystemFunc1, Func)
-                            .Replace(SystemFunc, Func)
-                            .Replace(SystemNullable, Nullable)
-                            .Replace(SystemString, Stringy)
-                            .Replace(SystemGuid, Guid)
-                            .Replace(SystemObject, Objecty)
-                            .Replace(NullableBoolean, SystemNullableBool)
-                            .Replace(NullableInt, SystemNullableInt)
-                            .Replace(NullableDouble, SystemNullableDouble)
-                            ;
+        //                name = name.Replace(Xmlnode, SystemXmlXmlnode)
+        //                    .Replace(Int32, Integer)
+        //                    .Replace(Dataset, SystemDataDataset)
+        //                    //.Replace(Exception, SystemException)
+        //                    .Replace(SystemCollectionsGenericList, List)
+        //                    .Replace(SystemCollectionsGenericIlist, Ilist)
+        //                    .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
+        //                    .Replace(SystemFunc1, Func)
+        //                    .Replace(SystemFunc, Func)
+        //                    .Replace(SystemNullable, Nullable)
+        //                    .Replace(SystemString, Stringy)
+        //                    .Replace(SystemGuid, Guid)
+        //                    .Replace(SystemObject, Objecty)
+        //                    .Replace(NullableBoolean, SystemNullableBool)
+        //                    .Replace(NullableInt, SystemNullableInt)
+        //                    .Replace(NullableDouble, SystemNullableDouble)
+        //                    ;
 
-                        result.Add(name);
-                    }
-                    catch
-                    {
-                        _log.ErrorFormat("Error in RemoveNamespaces for: {0}", argument);
-                        name = argument;
-                    }
-                }
+        //                result.Add(name);
+        //            }
+        //            catch
+        //            {
+        //                _log.ErrorFormat("Error in RemoveNamespaces for: {0}", argument);
+        //                name = argument;
+        //            }
+        //        }
 
-                string parsedMethodName = modifiedMethodName.Substring(0, locationOfParen) + string.Join(",", result) +
-                                          ")";
-            }
-            catch (Exception ex)
-            {
-                _log.ErrorFormat("Error Parsing Arguments:{0}", ex);
-            }
+        //        string parsedMethodName = modifiedMethodName.Substring(0, locationOfParen) + string.Join(",", result) +
+        //                                  ")";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _log.ErrorFormat("Error Parsing Arguments:{0}", ex);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         //System.Collections.Generic.IList`1<Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest> Quad.QuadMed.QMedClinicalTools.DataAccess.AccountRequestDao::GetAccountRequestsByRequestCriteria(Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest)
 
@@ -607,15 +626,7 @@ namespace Leem.Testify
                     // todo need to parse arguments to see if the argument contains a Lync expression like "System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>"
                     // failing Method = System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>> Quad.QuadMed.QMedClinicalTools.Domain.Services.Util.PredicateBuilder::Or(System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>,System.Linq.Expressions.Expression`1<System.Func`2<T,System.Boolean>>)
 
-                    var arguments = argumentString.Split(',');
-                    string[] argumentsWithoutNamespaces = new string[arguments.Length];
-
-                    for (int i = 0; i < arguments.Length; i++)
-                    {
-                        argumentsWithoutNamespaces[i] = RemoveNamespaceFromType(arguments[i], isReturnType: false);
-                    }
-
-                    argumentStringWithoutNamespaces = "(" + string.Join(",", argumentsWithoutNamespaces) + ")";
+                    argumentStringWithoutNamespaces =  "(" + ParseArguments(argumentString) + ")";
 
                 }
 
@@ -634,47 +645,186 @@ namespace Leem.Testify
             //return returnTypeWithoutNamespace + " " + baseMethodName + argumentStringWithoutNamespaces;
         }
 
+        private string ParseArguments(string argumentString)
+        {
+            string argumentStringWithoutNamespaces = string.Empty;
+            string[] argumentsWithoutNamespaces=null ;
+            const string _Comma_ = "#Comma#";
+            //if (argumentString.Contains("<"))
+            //{
+                var arguments = GetArguments(argumentString);
+                //int firstOpenBracket = argumentString.IndexOf("<");
+                //int lastCloseBracket = argumentString.IndexOf(">");
+                //var reducedString = argumentString.Substring(firstOpenBracket+1, lastCloseBracket - firstOpenBracket-1);
+                //var tempArgumentString = ParseArguments(reducedString);
+                //tempArgumentString.Replace(",", _Comma_);
+                //argumentString = argumentString.Replace(reducedString, tempArgumentString);
+            //}
+
+       //     var arguments = GetArgument(argumentString);
+     //
+                var results = new List<string>();
+                foreach (var argument in arguments)
+                {
+                    results.Add( RemoveNamespaceFromType(argument, isReturnType: false));
+                }
+
+
+
+
+
+
+                argumentStringWithoutNamespaces = string.Join(",", results);
+            // replace the Comma placeholder with the a real Comma
+            //argumentStringWithoutNamespaces = argumentStringWithoutNamespaces.Replace(_Comma_, ",");
+            return argumentStringWithoutNamespaces;
+        }
+        private List<string> GetArguments(string argumentString)
+        {
+            int level = 0;
+            int lastCommaPosition = 0;
+            var argumentCharArray = argumentString.ToCharArray();
+            var argumentList = new List<string>();
+            for (int i = 0; i < argumentCharArray.Length; i++)
+            {
+
+                if (level == 0 && ((argumentCharArray[i] == ',') ))
+                {
+
+                    var segment = new ArraySegment<char>(argumentCharArray, lastCommaPosition, i - lastCommaPosition );
+
+                    argumentList.Add(new string(segment.ToArray()));
+                    lastCommaPosition = i + 1;
+                }
+                else if (argumentCharArray[i] == '<')
+                {
+                     --level;
+                }
+                else if (argumentCharArray[i] == '>')
+                {
+                    level++;
+                }
+
+                if (i == argumentCharArray.Length - 1)
+                {
+                    var segment = new ArraySegment<char>(argumentCharArray, lastCommaPosition, argumentCharArray.Length - lastCommaPosition);
+                    argumentList.Add(new string(segment.ToArray()));
+                    level = 0;
+                }
+            }
+            return argumentList;
+
+        }
+
         public string RemoveNamespaceFromType(string returnType, bool isReturnType)
         {
-            if (returnType.Contains("`1"))
-            {
-                var positionOfApostropheOne = returnType.IndexOf("`1<") + 3;
-                var collectionTypeWithNamespace = returnType.Substring(0, positionOfApostropheOne-3);
-                var collectionTypeWithoutNamespace = collectionTypeWithNamespace.Substring(collectionTypeWithNamespace.LastIndexOf(".")+1);
-                var positionOfGreaterThan = returnType.LastIndexOf(">");        //System.Collections.Generic.IList`1<Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest>
-                var collectedType = returnType.Substring(positionOfApostropheOne, positionOfGreaterThan-positionOfApostropheOne);
-                var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType,  false);
 
-                return string.Concat(collectionTypeWithoutNamespace, "<", collectedTypeWithoutNamespace, ">");
-
-                //return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
-            }
-            else if (returnType.Contains("<") && returnType.Contains(">"))
+             if (returnType.Contains("<") && returnType.Contains(">"))
             {
                 var positionOfOpenBracket = returnType.IndexOf("<") + 1;
                 var collectionTypeWithNamespace = returnType.Substring(0, positionOfOpenBracket - 1);
                 var collectionTypeWithoutNamespace = collectionTypeWithNamespace.Substring(collectionTypeWithNamespace.LastIndexOf(".") + 1);
+                collectionTypeWithoutNamespace = ConvertNameToCSharpName(collectionTypeWithoutNamespace);
+                collectionTypeWithoutNamespace = collectionTypeWithoutNamespace.Replace("`2", string.Empty);
                 var positionOfCloseBracket = returnType.LastIndexOf(">");
-                var collectedType = returnType.Substring(positionOfOpenBracket, positionOfCloseBracket - positionOfOpenBracket);
-                var collectedTypeWithoutNamespace = RemoveNamespaceFromType(collectedType, false);
+                var collectedTypes = returnType.Substring(positionOfOpenBracket, positionOfCloseBracket - positionOfOpenBracket);
+                var collectedTypesSplitByComa = collectedTypes.Split(',');
+                var collectedTypeWithoutNamespace = new string[collectedTypesSplitByComa.Length];
+                int i=0;
 
-                return string.Concat(collectionTypeWithoutNamespace, "<", collectedTypeWithoutNamespace, ">");
-               // return collectionTypeWithoutNamespace + "<" + collectedTypeWithoutNamespace + ">";
+                foreach (var collectedType in collectedTypesSplitByComa)
+                {
+                    collectedTypeWithoutNamespace[i] =  RemoveNamespaceFromType(collectedType, false);
+                    i++;
+                }
+
+                var reconstructedCollectedTypes=string.Join(",", collectedTypeWithoutNamespace);
+
+                return string.Concat(collectionTypeWithoutNamespace, "<", reconstructedCollectedTypes, ">");
+
             }
             else 
             {
                 var typeWithoutNamespace = returnType.Substring(returnType.LastIndexOf(".") + 1);
-                if (isReturnType)
-                {
-                    typeWithoutNamespace = typeWithoutNamespace//.Replace("Void", "void")
-                                                                .Replace("Boolean", "bool")
-                                                                .Replace("Int32", "int");
+                typeWithoutNamespace = ConvertNameToCSharpName(typeWithoutNamespace);
 
-                }
                 return typeWithoutNamespace;
             }
 
             return null;
+        }
+
+        private List<string> ConvertNamesToCSharpNames(List<string> typeNames)
+        {
+            var result = new List<string>();
+            foreach(var typeName in typeNames)
+            {
+                result.Add(ConvertNameToCSharpName(typeName));
+            }
+
+            return result;
+        }
+        public  string ConvertNameToCSharpName(string typeName)
+        {
+
+            if (typeName == KnownTypeCode.Boolean.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Boolean);
+
+            if (typeName == KnownTypeCode.Byte.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Byte);
+
+            if (typeName == KnownTypeCode.Char.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Byte);
+
+            if (typeName == KnownTypeCode.Decimal.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Decimal);
+
+            if (typeName == KnownTypeCode.Double.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Double);
+
+            if (typeName == KnownTypeCode.Int16.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Int16);
+
+            if (typeName == KnownTypeCode.Int32.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Int32);
+
+            if (typeName == KnownTypeCode.Int64.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Int64);
+
+            if (typeName == KnownTypeCode.Object.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Object);
+
+            if (typeName == KnownTypeCode.SByte.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.SByte);
+
+            if (typeName == KnownTypeCode.Single.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Single);
+
+            if (typeName == KnownTypeCode.String.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.String);
+
+            if (typeName == KnownTypeCode.UInt16.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.UInt16);
+
+            if (typeName == KnownTypeCode.UInt32.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.UInt32);
+
+            if (typeName == KnownTypeCode.UInt64.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.UInt64);
+
+            if (typeName == KnownTypeCode.Void.ToString())
+                return KnownTypeReference.GetCSharpNameByTypeCode(KnownTypeCode.Void);
+            if (typeName.Contains("`"))
+                return typeName.Substring(0,typeName.IndexOf("`"));
+            if (typeName.Contains("Byte[]"))
+                return "byte[]";
+            if (typeName.Contains("System.Nullable[[") && typeName.Contains("]]"))
+            {
+                return typeName.Replace("System.Nullable[[", "Nullable<")
+                                .Replace("]]", ">");
+            }
+
+            return typeName;
         }
 
         private string RemoveNamespaceFromMethod(string argumentPart)
@@ -702,7 +852,8 @@ namespace Leem.Testify
             IUnresolvedAssembly[] projectAssemblies = new IUnresolvedAssembly[assembliesToLoad.Length];
             for(int i = 0; i < assembliesToLoad.Length; i++)
             {
-                projectAssemblies[i] = loader.LoadAssemblyFile(assembliesToLoad[i].Location);
+
+              projectAssemblies[i] = loader.LoadAssemblyFile(assembliesToLoad[i].Location);
             }
 
       

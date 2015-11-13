@@ -75,8 +75,10 @@ namespace Leem.Testify.SummaryView
                     clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
                     filePath = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
-                    line = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line -1;
+                    line = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line;
+                    line = line > 1 ? line-- : 1;
                     column = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Column;
+                    column = column > 1 ? column-- : 1;
                 }
                 if (type == "Leem.Testify.SummaryView.ViewModel.ClassViewModel" && wasCalledForMethod == false)
                 {

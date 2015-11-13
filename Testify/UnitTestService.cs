@@ -33,7 +33,7 @@ namespace Leem.Testify
             _dte = dte;
             _queries = TestifyQueries.Instance;
 
-            TestifyQueries.SolutionName = solutionName;
+            TestifyQueries.SolutionName = Path.Combine(solutionDirectory, solutionName);
 
             _solutionName = solutionName;
 
@@ -215,11 +215,11 @@ namespace Leem.Testify
             if (testOutput != null && coverageSession.Modules.Count == 2)
             {
                 Log.DebugFormat("SaveUnitTestResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
-                sw.Reset();
+                sw.Restart();
 
               
                 await _queries.SaveCoverageSessionResults(coverageSession, testOutput, projectInfo, testQueueItem.IndividualTests);
-                Log.DebugFormat("SaveCoverageSessionResults Elapsed Time = {0}", sw.ElapsedMilliseconds);
+                Log.DebugFormat("SaveCoverageSessionResults  {0} Elapsed Time = {1} min {2} sec",projectInfo.ProjectName, sw.Elapsed.Minutes,sw.Elapsed.Seconds);
 
                 Log.DebugFormat("ProcessCoverageSessionResults Completed, Name: {0}, Individual Test Count: {1}, Time from Build-to-Complete {2} minutes, {3} seconds",
 
@@ -342,14 +342,13 @@ namespace Leem.Testify
 
         private string GetOutputFolder()
         {
-            var folderPath = new StringBuilder();
+            var hashCode = Path.Combine(_solutionDirectory, _solutionName).GetHashCode().ToString();
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Testify", _solutionName, hashCode);
 
-            folderPath.Append(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)));
-            folderPath.Append("\\Testify\\");
-            folderPath.Append(_solutionName);
-            folderPath.Append("\\");
 
-            return folderPath.ToString();
+      
+
+            return string.Concat(path, "\\");
         }
 
         private CoverageSession GetCoverageSessionFile(string filename)

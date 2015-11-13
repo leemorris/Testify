@@ -199,7 +199,7 @@ namespace Leem.Testify
                 solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out solutionName);
                 _solutionName = solutionName.ToString();
                 _queries = TestifyQueries.Instance;
-                TestifyQueries.SolutionName = _solutionName;
+                TestifyQueries.SolutionName = Path.Combine(Path.GetDirectoryName(_solutionName), Path.GetFileNameWithoutExtension(_solutionName));
             }
 
 
@@ -629,8 +629,10 @@ namespace Leem.Testify
             _log.DebugFormat("Solution Opened: {0}", _solutionName);
             _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
             var appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-            var databasePath = GetDatabasePath(appDataDirectory);
+            var fullPath = Path.Combine(_solutionDirectory,_solutionName);
+            var hashcode = fullPath.GetHashCode();
+            var databasePath = GetDatabasePath(appDataDirectory, hashcode);
+           
             CheckForDatabase(databasePath);
 
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -677,9 +679,9 @@ namespace Leem.Testify
         public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
         { return VSConstants.E_NOTIMPL; }
 
-        private string GetDatabasePath(string directory)
+        private string GetDatabasePath(string directory, int hashcode)
         {
-            var path = Path.Combine(directory, "Testify", _solutionName);
+            var path = Path.Combine(directory, "Testify", _solutionName, hashcode.ToString());
 
             var appDataExists = Directory.Exists(Path.Combine(path));
             if (!appDataExists)

@@ -22,6 +22,7 @@ namespace Leem.Testify.VSEvents
             dictionary = new Dictionary<string, CoverageProvider>();
             var dte = (DTE)serviceProvider.GetService(typeof(DTE));
             _testifyQueries = TestifyQueries.Instance;
+    
         }
         ICoverageService coverageService = new CoverageService();
         public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyContext context)

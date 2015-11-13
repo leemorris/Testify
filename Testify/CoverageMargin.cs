@@ -67,7 +67,7 @@ namespace Leem.Testify
 
             _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider, _context);
 
-            _context = new TestifyContext(_coverageProvider.SolutionName);
+            _context = new TestifyContext(_coverageProvider.SolutionName.Replace(".sln",string.Empty));
             _coverageProvider.Context = _context;
             _textViewHost.TextView.LayoutChanged += TextViewLayoutChanged;
 

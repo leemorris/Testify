@@ -84,8 +84,9 @@ namespace Leem.Testify
 
         private static string GetConnectionString(string solutionName) 
         {
+            var hashCode = solutionName.GetHashCode().ToString();
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), "TestifyCE.sdf;password=lactose");
+            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName),hashCode, "TestifyCE.sdf;password=lactose");
 
             // Set connection string
            string connectionString = string.Format("Data Source={0}", path);
