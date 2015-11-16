@@ -30,9 +30,10 @@ namespace Leem.Testify
             }
             catch (Exception ex)
             {
-                Log.ErrorFormat("Error ReadCoverageFile: {0} Message{1}", path, ex.Message);
+                Log.ErrorFormat("Error Reading Nunit Result File: {0} Message{1}", path, ex.Message);
                 var queries = TestifyQueries.Instance;
                 queries.SetAllQueuedTestsToNotRunning();
+                queries.RemoveAllTestsFromQueue();
                 throw;
             }
             

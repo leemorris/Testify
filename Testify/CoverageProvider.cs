@@ -201,18 +201,18 @@ namespace Leem.Testify
                 {
                     int lineNumber = line.LineNumber;
 
-                    bool isAdded = _coveredLines.TryAdd(lineNumber, line);
+                    //bool isAdded = _coveredLines.TryAdd(lineNumber, line);
 
-                    if (!isAdded)
-                    {
+                   // if (!isAdded)
+                   // {
                         CoveredLine currentValue;
 
-                        _coveredLines.TryGetValue(lineNumber, out currentValue);
+                        //_coveredLines.TryGetValue(lineNumber, out currentValue);
 
-                        _coveredLines.TryUpdate(line.LineNumber, currentValue, line);
+                        //_coveredLines.TryUpdate(line.LineNumber, line,currentValue );
 
                         _coveredLines.AddOrUpdate(lineNumber, line, (oldKey, oldValue) => line);
-                    }
+                    //}
                 }
                 _HasCoveredLinesBeenInitialized = true;
                 _IsRebuilding = false;

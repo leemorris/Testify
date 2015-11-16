@@ -32,35 +32,7 @@ namespace Leem.Testify
         private string _solutionName;
         const string Xmlnode = "XmlNode";
         const string SystemXmlXmlnode = "System.Xml.XmlNode";
-        const string Int32 = "Int32";
-        const string Integer = "int";
-        const string Dataset = "DataSet";
-        const string SystemDataDataset = "System.Data.DataSet";
-        const string Exception = "Exception";
-        const string SystemException = "System.Exception";
-        const string SystemCollectionsGenericIlist = "System.Collections.Generic.IList`1";
-        const string Ilist = "IList";
-        const string SystemCollectionsGenericList = "System.Collections.Generic.List`1";
-        const string List = "List";
-        const string SystemCollectionsGenericIenumerable = "System.Collections.Generic.IEnumerable`1";
-        const string Ienumerable = "IEnumerable";
-        const string SystemFunc1 = "System.Func`1";
-        const string Func = "Func";
-        const string SystemFunc = "System.Func";
-        const string SystemNullable = "System.Nullable`1";
-        const string Stringy = "String";
-        const string Nullable = "Nullable";
-        const string SystemString = "System.String";
-        const string SystemGuid = "System.Guid";
-        const string Guid = "Guid";
-        const string SystemObject = "System.Object";
-        const string Objecty = "Object";
-        const string NullableBoolean = "Nullable<Boolean>";
-        const string SystemNullableBool = "System.Nullable[[bool]]";
-        const string NullableInt = "Nullable<int>";
-        const string SystemNullableInt = "System.Nullable[[int]]";
-        const string NullableDouble = "Nullable<Double>";
-        const string SystemNullableDouble = "System.Nullable[[Double]]";
+
 
         public static CoverageService Instance
         {
@@ -213,7 +185,7 @@ namespace Leem.Testify
 
                         }
 
-                       context.SaveChanges();
+                       context.SaveChanges();//12.4%
                     }
                     }
                     catch (Exception ex)
@@ -229,7 +201,7 @@ namespace Leem.Testify
         public void UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
 
-
+            
 
             foreach (var module in modules)
             {
@@ -258,7 +230,7 @@ namespace Leem.Testify
                                 classNames.Add(typeDef.ReflectionName);
                                 var methods = typeDef.Methods;
 
-                                UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper);
+                                UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper);//6.9%
                                 methodNames.AddRange(methods.Select(x => x.ReflectionName));
                             }
 
@@ -326,7 +298,7 @@ namespace Leem.Testify
                         modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
                     }
 
-
+// Can we use equals instead of contains, this 5.7%
                     var codeMethods = (from clas in codeClasses
                                       join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                       where method.Name.Contains(modifiedMethodName)
@@ -429,6 +401,7 @@ namespace Leem.Testify
                     }
                 }
 
+
                 coveredLines.Add(coveredLine);
             }
         }
@@ -436,27 +409,7 @@ namespace Leem.Testify
         public CodeMethodInfo UpdateMethodLocation(Method codeMethod, string fileName, TrackedMethodMap methodMapper,IEnumerable<IUnresolvedTypeDefinition> typeDefinitions)
         {
 
-          
-            //var modifiedMethodName = string.Empty;
-            //var rawMethodName = codeMethod.Name;
-
-            //modifiedMethodName = ConvertTrackedMethodFormatToUnitTestFormat(rawMethodName);
-
-            //if (codeMethod.IsConstructor)
-            //{
-            //    modifiedMethodName = modifiedMethodName.Replace(".cctor", ".ctor");
-            //}
-            //var parameters = new List<string>();
-            //if (!modifiedMethodName.EndsWith("()"))
-            //{
-            //    parameters = ParseArguments(modifiedMethodName);
-
-            //}
-
-            //modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.LastIndexOf('('));
-
-
-
+         
             try
             {
                 var classes = new List<string>();
@@ -519,71 +472,7 @@ namespace Leem.Testify
             return typeDefinitions;
         }
 
-        //internal List<string> ParseArguments(string modifiedMethodName)
-        //{
-        //    var result = new List<string>();
-        //    try
-        //    {
-        //        int locationOfParen = modifiedMethodName.IndexOf('(') + 1;
-        //        string argumentString;
-        //        if (locationOfParen > 0)
-        //        {
-        //            argumentString = modifiedMethodName.Substring(locationOfParen,
-        //                modifiedMethodName.Length - locationOfParen - 1);
-        //        }
-        //        else
-        //        {
-        //            argumentString = modifiedMethodName;
-        //        }
-        //        int locationOfOpenAngleBracket = modifiedMethodName.IndexOf('<') + 1;
-
-        //        string[] arguments = argumentString.Split(',');
-        //        foreach (string argument in arguments)
-        //        {
-        //            string name = string.Empty;
-        //            try
-        //            {
-        //                 name = RemoveNamespaces(argument);
-
-        //                name = name.Replace(Xmlnode, SystemXmlXmlnode)
-        //                    .Replace(Int32, Integer)
-        //                    .Replace(Dataset, SystemDataDataset)
-        //                    //.Replace(Exception, SystemException)
-        //                    .Replace(SystemCollectionsGenericList, List)
-        //                    .Replace(SystemCollectionsGenericIlist, Ilist)
-        //                    .Replace(SystemCollectionsGenericIenumerable, Ienumerable)
-        //                    .Replace(SystemFunc1, Func)
-        //                    .Replace(SystemFunc, Func)
-        //                    .Replace(SystemNullable, Nullable)
-        //                    .Replace(SystemString, Stringy)
-        //                    .Replace(SystemGuid, Guid)
-        //                    .Replace(SystemObject, Objecty)
-        //                    .Replace(NullableBoolean, SystemNullableBool)
-        //                    .Replace(NullableInt, SystemNullableInt)
-        //                    .Replace(NullableDouble, SystemNullableDouble)
-        //                    ;
-
-        //                result.Add(name);
-        //            }
-        //            catch
-        //            {
-        //                _log.ErrorFormat("Error in RemoveNamespaces for: {0}", argument);
-        //                name = argument;
-        //            }
-        //        }
-
-        //        string parsedMethodName = modifiedMethodName.Substring(0, locationOfParen) + string.Join(",", result) +
-        //                                  ")";
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _log.ErrorFormat("Error Parsing Arguments:{0}", ex);
-        //    }
-
-        //    return result;
-        //}
-
-        //System.Collections.Generic.IList`1<Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest> Quad.QuadMed.QMedClinicalTools.DataAccess.AccountRequestDao::GetAccountRequestsByRequestCriteria(Quad.QuadMed.QMedClinicalTools.Domain.Objects.AccountRequest)
+     
 
         public string RemoveNamespaces(string methodNameWithArgsAndReturnType)
         {
@@ -607,13 +496,7 @@ namespace Leem.Testify
                 {
                     baseMethodName = string.Empty;
                 }
-               
-               
 
-                //returnTypeWithoutNamespace = RemoveNamespaceFromType(returnType,isReturnType:true);
-
-
-                
                 if (locationOfCloseParen - locationOfOpenParen > 1)
                 {
                     var argumentString = methodNameWithArgsAndReturnType.Substring(methodNameWithArgsAndReturnType.IndexOf("(") + 1, methodNameWithArgsAndReturnType.IndexOf(")") - 1 - methodNameWithArgsAndReturnType.IndexOf("("));
@@ -642,7 +525,7 @@ namespace Leem.Testify
             
 
             return string.Concat(returnTypeWithoutNamespace, " ", baseMethodName, argumentStringWithoutNamespaces).Trim();
-            //return returnTypeWithoutNamespace + " " + baseMethodName + argumentStringWithoutNamespaces;
+
         }
 
         private string ParseArguments(string argumentString)
@@ -650,35 +533,20 @@ namespace Leem.Testify
             string argumentStringWithoutNamespaces = string.Empty;
             string[] argumentsWithoutNamespaces=null ;
             const string _Comma_ = "#Comma#";
-            //if (argumentString.Contains("<"))
-            //{
-                var arguments = GetArguments(argumentString);
-                //int firstOpenBracket = argumentString.IndexOf("<");
-                //int lastCloseBracket = argumentString.IndexOf(">");
-                //var reducedString = argumentString.Substring(firstOpenBracket+1, lastCloseBracket - firstOpenBracket-1);
-                //var tempArgumentString = ParseArguments(reducedString);
-                //tempArgumentString.Replace(",", _Comma_);
-                //argumentString = argumentString.Replace(reducedString, tempArgumentString);
-            //}
 
-       //     var arguments = GetArgument(argumentString);
-     //
-                var results = new List<string>();
-                foreach (var argument in arguments)
-                {
-                    results.Add( RemoveNamespaceFromType(argument, isReturnType: false));
-                }
+            var arguments = GetArguments(argumentString);
 
+            var results = new List<string>();
+            foreach (var argument in arguments)
+            {
+                results.Add( RemoveNamespaceFromType(argument, isReturnType: false));
+            }
 
+            argumentStringWithoutNamespaces = string.Join(",", results);
 
-
-
-
-                argumentStringWithoutNamespaces = string.Join(",", results);
-            // replace the Comma placeholder with the a real Comma
-            //argumentStringWithoutNamespaces = argumentStringWithoutNamespaces.Replace(_Comma_, ",");
             return argumentStringWithoutNamespaces;
         }
+
         private List<string> GetArguments(string argumentString)
         {
             int level = 0;

@@ -50,5 +50,7 @@ namespace Leem.Testify
         IEnumerable<TestMethod> GetUnitTestByName(string name);
 
         void AddTestsCoveringFileToTestQueue(string fileName, EnvDTE.Project project);
+
+        void RemoveAllTestsFromQueue();
     }
 }

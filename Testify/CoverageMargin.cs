@@ -259,14 +259,14 @@ namespace Leem.Testify
                             x => x.LineNumber.Equals(lineNumber));
 
                     bool isCovered = coveredLines.TryGetValue(lineNumber + 1, out coveredLine);
-                    if (coveredLine != null)
-                    {
-                        var isSuccessfulFromDatabase = coveredLine.IsSuccessful;
-                        coveredLine.IsCovered = coveredLine.TestMethods.Any();
-                        var isSuccessful = coveredLine.IsCovered && coveredLine.TestMethods.All(x => x.IsSuccessful);
-                        coveredLine.IsSuccessful = isSuccessful;
+                    //if (coveredLine != null)
+                    //{
+                    //    var isSuccessfulFromDatabase = coveredLine.IsSuccessful;
+                    //    //coveredLine.IsCovered = coveredLine.TestMethods.Any();
+                    //    var isSuccessful = coveredLine.IsCovered && coveredLine.TestMethods.All(x => x.IsSuccessful);
+                    //    coveredLine.IsSuccessful = isSuccessful;
                        
-                    }
+                    //}
 
                     var text = g.Extent.GetText();
 
@@ -282,7 +282,13 @@ namespace Leem.Testify
                         //double yPos = (_textViewHost.TextView.ZoomLevel / 100) * (apparentLineNumber - 1) * _textViewHost.TextView.LineHeight + (.1 * _textViewHost.TextView.LineHeight); // GetYCoordinateForBookmark(coveredLine);
                         double yPos = (_textViewHost.TextView.ZoomLevel / 100) * ((accumulatedHeight - minLineHeight) + (.1 * _textViewHost.TextView.LineHeight)); // GetYCoordinateForBookmark(coveredLine);
 
-
+                        if (coveredLine.Class.CodeModule.AssemblyName.EndsWith(".Test") || text.Contains("=>"))
+                        {
+                            // remove the branch icon from Unit Tests, the icon doesn't make sense
+                            // lines containing Linq expressions are marked as Branches, lets remove that
+                            coveredLine.IsBranch = false;
+                        }
+                            
                         var glyph = CreateCodeMarkGlyph(coveredLine, yPos);
 
                         _marginCanvas.Children.Add(glyph);
@@ -306,7 +312,7 @@ namespace Leem.Testify
 
             var tooltip = new StringBuilder();
 
-            tooltip.AppendFormat("Covering Tests:\t {0}\n", line.TestMethods.Count);
+            tooltip.AppendFormat("Click to see Tests \nCovering Tests:\t {0}\n", line.TestMethods.Count);
 
             foreach (TestMethod test in line.TestMethods.OrderBy(x=>x.IsSuccessful))
             {

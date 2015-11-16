@@ -16,7 +16,20 @@ namespace Leem.Testify.Poco
 
         public int LineNumber { get; set; }
         public bool IsCode { get; set; }
-        public bool IsCovered { get; set; }
+        private bool _IsCovered = false;
+        public bool IsCovered { 
+            get { 
+                return _IsCovered; 
+            } 
+            set 
+            {
+                if (_IsCovered != value)
+                {
+                    _IsCovered = value; 
+                }
+                
+            } 
+        }
         public int CoveredLineId { get; set; }
         public bool IsSuccessful { get; set; }
         public int UnitTestId { get; set; }
