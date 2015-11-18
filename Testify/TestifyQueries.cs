@@ -18,7 +18,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CSharp = System.Threading.Tasks;
-
 using ICSharpCode.NRefactory.CSharp;
 using System.Collections.Concurrent;
 
@@ -79,27 +78,6 @@ namespace Leem.Testify
             }
         }
 
-
-        public static string ConvertTrackedMethodFormatToUnitTestFormat(string trackedMethodName)
-        {
-            // Convert This:
-            // System.Void UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest::TestIt()
-            // Into This:
-            // UnitTestExperiment.Domain.Test.ThingsThatWereDoneTest.TestIt
-            if (string.IsNullOrEmpty(trackedMethodName))
-            {
-                return string.Empty;
-            }
-            int locationOfSpace = trackedMethodName.IndexOf(' ') + 1;
-
-            int locationOfParen = trackedMethodName.IndexOf('(');
-
-            var testMethodName = trackedMethodName.Substring(locationOfSpace, locationOfParen - locationOfSpace);
-
-            testMethodName = testMethodName.Replace("::", ".");
-
-            return testMethodName;
-        }
 
         public string ConvertUnitTestFormatToFormatTrackedMethod(string testMethodName)
         {
@@ -228,11 +206,9 @@ namespace Leem.Testify
             {
                 var sw = Stopwatch.StartNew();
                 module = context.CodeModule.FirstOrDefault(mo => mo.CodeModuleId == clas.CodeModule.CodeModuleId);
-               // context.Database.Log = L => Log.Debug(L);
-                //Log.DebugFormat("Get CoveredLines for Class: {0} ", className);
                 coveredLines = (context.CoveredLines
                     .Where(line => line.Class.CodeClassId == clas.CodeClassId))
-                    //.Include(u => u.TestMethods))
+
                     .ToList();
                    
                 coveredLines.Select(x => { x.Module = module; return x; });
@@ -456,6 +432,7 @@ namespace Leem.Testify
                 context.SaveChanges();
             }
         }
+
         public void RemoveAllTestsFromQueue()
         {
             var testsToDelete = new List<TestQueue>();
@@ -527,8 +504,6 @@ namespace Leem.Testify
             {
                 Log.ErrorFormat("Error in RunTestsThatCoverLine {0}", ex);
             }
-
-
         }
 
        public async Task<List<string>> SaveCoverageSessionResults(CoverageSession coverageSession, resultType testOutput, ProjectInfo projectInfo, List<string> individualTests)
@@ -878,14 +853,15 @@ namespace Leem.Testify
             if (  existingLine.IsCode != line.IsCode
                || existingLine.IsCovered != line.IsCovered
                || existingLine.IsBranch != line.IsBranch
-               || existingLine.FileName != line.FileName)
+               || existingLine.FileName != line.FileName
+               || existingLine.BranchCoverage!= line.BranchCoverage)
             {
                 existingLine.IsCode = line.IsCode;
                 existingLine.IsCovered = line.IsCovered;
                 existingLine.IsBranch = line.IsBranch;
                 existingLine.FileName = line.FileName;
+                existingLine.BranchCoverage = line.BranchCoverage;
                 classThatChanged = existingLine.Class.Name;
-
             }
 
             foreach (var trackedMethod in line.TestMethods)

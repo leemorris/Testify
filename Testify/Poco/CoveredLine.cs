@@ -36,8 +36,8 @@ namespace Leem.Testify.Poco
         public string FileName { get; set; }
 
         public virtual ICollection<TestMethod> TestMethods { get; set; }
- 
 
+        public decimal BranchCoverage { get; set; }
         public bool IsBranch { get; set; }
     }
 }

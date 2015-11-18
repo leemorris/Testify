@@ -13,7 +13,7 @@ namespace Leem.Testify.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201510101106433_Initial"; }
+            get { return "201511180129229_Initial"; }
         }
         
         string IMigrationMetadata.Source

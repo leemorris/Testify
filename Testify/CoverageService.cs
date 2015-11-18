@@ -118,8 +118,8 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
-                            if ( !method.IsGetter && !method.IsSetter)
-                            {
+                            //if ( !method.IsGetter && !method.IsSetter)
+                            //{
                                 var indexOfOpEquality = method.Name.IndexOf("::op_Equality(");
       
                                 if (indexOfOpEquality>0)
@@ -157,8 +157,8 @@ namespace Leem.Testify
                                             methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
                                         }
 /// 5.7%
-                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodNameWithoutNamespaces));
-                                        var trackedMethodUnitTestMapAlternative = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.Equals(x.TrackedMethodNameWithoutNamespaces));
+                                       // var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodNameWithoutNamespaces));
+                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.Equals(x.TrackedMethodNameWithoutNamespaces));
                                        
                                         if (trackedMethodUnitTestMap != null)
                                         {
@@ -180,7 +180,7 @@ namespace Leem.Testify
 
                                     
                                 }
-                            }
+                           // }
 
 
                         }
@@ -362,8 +362,14 @@ namespace Leem.Testify
             var isTestProject = module.AssemblyName.EndsWith(".Test");
             foreach (SequencePoint sequencePoint in sequencePoints)
             {
-                var branchPoint = branchPoints.FirstOrDefault(x => x.StartLine == sequencePoint.StartLine);
-
+                var branchPointForThisLine = branchPoints.Where(x => x.StartLine == sequencePoint.StartLine).ToList();
+                decimal branchCoverage = 0;
+                if (branchPointForThisLine.Any(x => x.VisitCount > 0)) 
+                {
+                    branchCoverage = ((decimal)branchPointForThisLine.Count(x => x.VisitCount > 0) / (decimal)branchPointForThisLine.Count) * 100;
+                    _log.DebugFormat("Method :{0}, LineNumber {1}, branchCoverage: {2}%", method.Name, sequencePoint.StartLine, branchCoverage.ToString("G"));
+                }
+                
                
                 var coveredLine = new LineCoverageInfo
                 {
@@ -375,7 +381,8 @@ namespace Leem.Testify
                     MethodName = method.Name,
                     FileName = fileName,
                     TestMethods = new List<TestMethod>(),
-                    IsBranch = branchPoint != null
+                    IsBranch = branchPointForThisLine.Any(x => x.VisitCount > 0),
+                    BranchCoverage= branchCoverage
                 };
 
                 if (isTestProject == false && tests.Any())

@@ -32,7 +32,7 @@ namespace Leem.Testify
             _coveredLine = line;
             Ellipse.Height = (view.LineHeight * view.ZoomLevel/100) * .8;
             Ellipse.Width = Ellipse.Height;
-            if (!line.IsCovered && line.IsCode)
+            if ((!line.IsCovered && line.IsCode) || (line.IsBranch && line.BranchCoverage<100))
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Orange);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Orange);
@@ -50,10 +50,11 @@ namespace Leem.Testify
             if (line.IsBranch)
             {
                 GlyphCharacter.Text = ((char)'\u2144').ToString();
-                GlyphCharacter.Height = 1.15 * Ellipse.Height;
+                GlyphCharacter.Height = 1.25 * Ellipse.Height;
                 GlyphCharacter.FontSize = Math.Round(Ellipse.Height) + 1;
-                
-                GlyphCharacter.Margin =new System.Windows.Thickness( 0,0,0, GlyphCharacter.Height/2);
+               // Ellipse.Margin = new System.Windows.Thickness(0, 0, 0, GlyphCharacter.Height);
+
+                GlyphCharacter.Margin = new System.Windows.Thickness(0, -GlyphCharacter.Height/4, 0, 0);
 
 
             }

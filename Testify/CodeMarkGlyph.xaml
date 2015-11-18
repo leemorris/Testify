@@ -19,7 +19,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
             </Ellipse>
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Padding="0" FontWeight="SemiBold" x:Name="GlyphCharacter"/>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top"  FontWeight="SemiBold" x:Name="GlyphCharacter"/>
         </Grid>
     </Canvas>
 </UserControl>

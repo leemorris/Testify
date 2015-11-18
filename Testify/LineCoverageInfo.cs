@@ -36,12 +36,11 @@ namespace Leem.Testify
 
         public bool IsBranch { get; set; }
 
-
+        public decimal BranchCoverage { get; set; }
     }
     public static class LineCoverageInfoExtensions
     {
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> items,
-                                    int numOfParts)
+        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> items, int numOfParts)
         {
             int i = 0;
             return items.GroupBy(x => i++ % numOfParts);
