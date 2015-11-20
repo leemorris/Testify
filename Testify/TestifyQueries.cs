@@ -2286,6 +2286,11 @@ namespace Leem.Testify
            }
             return method;
         }
+
+        public List<CoveredLine> GetCoveredLinesForDocument(TestifyContext context, string documentName)
+        {
+            return context.CoveredLines.Where(x => x.FileName == documentName).Include(x=>x.Class).ToList();
+        }
     }
 
 }

@@ -212,6 +212,7 @@ namespace Leem.Testify
 
                     _documentEvents = _dte.Events.DocumentEvents;
                     _documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
+                    _documentEvents.DocumentOpening += new _dispDocumentEvents_DocumentOpeningEventHandler(this.OnDocumentOpening);
                     var outputPath = GetProjectOutputBuildFolder(project);
                     var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
 
@@ -429,6 +430,7 @@ namespace Leem.Testify
         }
         private void OnDocumentOpening(string documentPath,bool isReadOnly)
         {
+            _log.DebugFormat("OnDocumentOpening fired for {0}",documentPath);
             //var project = document.ProjectItem;
             //_queries.AddToTestQueue(project.ContainingProject.UniqueName);
 

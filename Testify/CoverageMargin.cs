@@ -239,6 +239,8 @@ namespace Leem.Testify
 
         private void UpdateCodeMarks(ConcurrentDictionary<int, CoveredLine> coveredLines)
         {
+            var sw = Stopwatch.StartNew();
+
             FileCodeModel fcm = _coverageProvider.GetFileCodeModel(_documentName);
             int apparentLineNumber = 0;
             double accumulatedHeight = 0.0;
@@ -296,7 +298,7 @@ namespace Leem.Testify
                 }
             }
             var pont = new SnapshotPoint(_textViewHost.TextView.TextSnapshot, 0);
-
+            _log.DebugFormat("UpdateCodeMarks = {0} ms", sw.ElapsedMilliseconds);
         }
 
         private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos)

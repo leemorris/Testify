@@ -95,6 +95,8 @@ namespace Leem.Testify
 
         private void RebuildCoverage(ITextSnapshot snapshotObject, string documentName, TestifyContext context)
         {
+            var sw = Stopwatch.StartNew();
+
             try
             {
                 _IsRebuilding = true;
@@ -115,11 +117,11 @@ namespace Leem.Testify
                     {
                         if (_HasCoveredLinesBeenInitialized)
                         {
-                            Task.Run(() => GetCoveredLinesFromCodeModel(fcm, context));
+                            Task.Run(() => GetCoveredLinesFromCodeModel(fcm, context, documentName));
                         }
                         else
                         {
-                            GetCoveredLinesFromCodeModel(fcm, context);
+                            GetCoveredLinesFromCodeModel(fcm, context, documentName);
                         }
 
                     }
@@ -133,6 +135,7 @@ namespace Leem.Testify
                 _log.ErrorFormat("Error RebuildingCoveredLines Error: {0} StackTrace: {1} InnerException: {2}",
                     ex.Message, ex.StackTrace, ex.InnerException);
             }
+            _log.DebugFormat("RebuildCoverage = {0} ms", sw.ElapsedMilliseconds);
         }
 
         public FileCodeModel GetFileCodeModel(string documentName)
@@ -157,14 +160,15 @@ namespace Leem.Testify
             return fcm;
         }
 
-        private void GetCoveredLinesFromCodeModel(FileCodeModel fcm, TestifyContext context)
+        private void GetCoveredLinesFromCodeModel(FileCodeModel fcm, TestifyContext context, string documentName)
         {
             var sw = Stopwatch.StartNew();
             IList<CodeElement> classes;
             IList<CodeElement> methods;
             var getCodeBlocksSw = Stopwatch.StartNew();
 
-            CodeModelService.GetCodeBlocks(fcm, out classes, out methods);
+           // CodeModelService.GetCodeBlocks(fcm, out classes, out methods);
+            //CodeModelService.GetCodeBlocks(fcm, out classes);
             _log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
             var coveredLines = new List<CoveredLine>();
 
@@ -172,16 +176,18 @@ namespace Leem.Testify
             var solutionName = fcm.DTE.Solution.FullName;
             //using (var context = new TestifyContext(solutionName))
             //{
-                if (classes.Count > 0)
-                {
-                    lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
-                }
-                else
-                {
-                    // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
-                    // just return an empty list because we are essentially terminated.
-                    lines = new List<CoveredLine>();
-                }
+                //if (classes.Count > 0)
+                //{
+                    _log.Debug("Getting CoveredLines from Database");
+                    //lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
+                    lines = Queries.GetCoveredLinesForDocument(context, documentName).ToList();
+                //}
+                //else
+                //{
+                //    // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
+                //    // just return an empty list because we are essentially terminated.
+                //    lines = new List<CoveredLine>();
+                //}
 
             //}
 
@@ -192,8 +198,8 @@ namespace Leem.Testify
 
             sw.Stop();
 
-            _log.DebugFormat("Get Covered lines from Classes Elapsed Time {0} Number of Classes {1}",
-                sw.ElapsedMilliseconds, classes.Count());
+            //_log.DebugFormat("Get Covered lines from Classes Elapsed Time {0} Number of Classes {1}",
+            //    sw.ElapsedMilliseconds, classes.Count());
             var lockAndLoadSw = Stopwatch.StartNew();
             lock (_coveredLines)
             {
@@ -271,11 +277,20 @@ namespace Leem.Testify
 
         internal ConcurrentDictionary<int, CoveredLine> GetCoveredLines(IWpfTextView view, TestifyContext context)
         {
+            _log.DebugFormat("view.TextBuffer.CurrentSnapshot.Version.VersionNumber = {0}", view.TextBuffer.CurrentSnapshot.Version.VersionNumber);
+            _log.DebugFormat("_currentVersion = {0}", _currentVersion);
+            _log.DebugFormat("_HasCoveredLinesBeenInitialized = {0}", _HasCoveredLinesBeenInitialized);
+            _log.DebugFormat("_IsRebuilding = {0}", _IsRebuilding);
+
+            _log.DebugFormat("WasClosed = {0}", WasClosed);
+            _log.DebugFormat("WasUpdated = {0}", WasUpdated);
+
             if (view.TextBuffer.CurrentSnapshot.Version.VersionNumber != _currentVersion
                 || (_HasCoveredLinesBeenInitialized == false && _IsRebuilding == false)
                 || WasClosed
                 || WasUpdated)
             {
+                _log.DebugFormat("Recreating Coverage " );
                 RecreateCoverage(view, context);
                 WasClosed = false;
             }
@@ -285,12 +300,15 @@ namespace Leem.Testify
 
         internal void RecreateCoverage(IWpfTextView view, TestifyContext context)
         {
+            var sw = Stopwatch.StartNew();
             if (!_IsRebuilding)
             {
                 string documentName = GetFileName(view.TextBuffer);
 
                 RebuildCoverage(view.TextBuffer.CurrentSnapshot, documentName, context);
             }
+
+            _log.DebugFormat("RecreateCoverage = {0} ms", sw.ElapsedMilliseconds);
         }
 
         public bool WasClosed { get; set; }
