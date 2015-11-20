@@ -8,7 +8,7 @@ namespace Leem.Testify
         public CodeMark()
         {
             FileName = string.Empty;
-            TestMethods = new List<TestMethod>();
+            //TestMethods = new List<TestMethod>();
             LineNumber = 0;
         }
 
@@ -23,6 +23,6 @@ namespace Leem.Testify
 
         public int LineNumber { get; set; } // current line number (cursor position)
 
-        public IList<TestMethod> TestMethods { get; set; }
+        //public IList<TestMethod> TestMethods { get; set; }
     }
 }

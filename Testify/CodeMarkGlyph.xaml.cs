@@ -32,7 +32,7 @@ namespace Leem.Testify
             _coveredLine = line;
             Ellipse.Height = (view.LineHeight * view.ZoomLevel/100) * .8;
             Ellipse.Width = Ellipse.Height;
-            if ((!line.IsCovered && line.IsCode) || (line.IsBranch && line.BranchCoverage < 100))
+            if ((!line.IsCovered && line.IsCode) || (line.IsBranch && line.IsSuccessful && line.BranchCoverage < 100))
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Orange);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Orange);

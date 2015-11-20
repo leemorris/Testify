@@ -131,8 +131,8 @@ namespace Leem.Testify
                 allCodeMarks.Add(new CodeMark
                 {
                     LineNumber = line.Value.LineNumber,
-                    FileName = line.Value.FileName,
-                    TestMethods = line.Value.TestMethods.Cast<TestMethod>().ToList()
+                    FileName = line.Value.FileName//,
+                    //TestMethods = line.Value.TestMethods.ToList()
                 });
             }
             return allCodeMarks;
