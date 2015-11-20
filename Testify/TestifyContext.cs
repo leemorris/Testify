@@ -77,14 +77,12 @@ namespace Leem.Testify
                 .WithMany()
                 .WillCascadeOnDelete(true);
 
-                
-
-
+  
         }
 
         private static string GetConnectionString(string solutionName) 
         {
-            var hashCode = solutionName.GetHashCode().ToString();
+            var hashCode = solutionName.Replace(".sln", string.Empty).GetHashCode().ToString();
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName),hashCode, "TestifyCE.sdf;password=lactose");
 

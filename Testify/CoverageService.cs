@@ -72,14 +72,14 @@ namespace Leem.Testify
             }
         }
 
-        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, string projectAssemblyName, 
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, ProjectInfo projectInfo, 
                                                                         List<TrackedMethodMap> methodMapper, TestifyContext context)
         {
             var coveredLines = new List<LineCoverageInfo>();
-
+            var projectAssemblyName = string.Empty;
             List<Module> sessionModules = codeCoverage.Modules;
 
-            _log.DebugFormat("GetCoveredLines for project: {0}", projectAssemblyName);
+            _log.DebugFormat("GetCoveredLines for project: {0}", projectInfo.ProjectAssemblyName);
             _log.DebugFormat("Summary.NumSequencePoints: {0}", codeCoverage.Summary.NumSequencePoints);
             _log.DebugFormat("Summary.SequenceCoverage: {0}", codeCoverage.Summary.SequenceCoverage);
             _log.DebugFormat("Summary.VisitedSequencePoints: {0}", codeCoverage.Summary.VisitedSequencePoints);
@@ -89,7 +89,14 @@ namespace Leem.Testify
             foreach (Module sessionModule in sessionModules)
             {
                 _log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
-           
+                if(sessionModule.ModuleName.EndsWith(".Test"))
+                {
+                    projectAssemblyName = projectInfo.TestProject.AssemblyName;
+                }
+                else
+                {
+                    projectAssemblyName = projectInfo.ProjectAssemblyName;
+                }
                 IEnumerable<TrackedMethod> tests =
                     sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
 
@@ -106,7 +113,23 @@ namespace Leem.Testify
                         var classesFromModule = context.CodeClass.Where(x => x.CodeModule.AssemblyName == projectAssemblyName).ToList();
                         var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
                         var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
-                    var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => item.Name);
+                        uniqueMethodsFromClasses.ForEach(x => x.Name = RemoveNamespaces(x.Name));
+                        var codeMethodDictionary = new Dictionary<string,Leem.Testify.Poco.CodeMethod>();
+                        foreach (var method in uniqueMethodsFromClasses)
+                        {
+                           
+
+                            try
+                            {
+                                codeMethodDictionary.Add(string.Concat(method.CodeClass.Name, ".", method.Name), method);
+                                //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
+                            }
+                            catch (Exception ex) 
+                            {
+                                _log.ErrorFormat("Error creating CodeMethodDictionary Class: {0}, Method: {1}", method.CodeClass.Name, method.Name);
+                        }
+                        }
+                    //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
 
                     var typeDefinitions = GetTypeDefinitionsFromRefactory(sessionModule.AssemblyName, fileDictionary);
 
@@ -118,6 +141,7 @@ namespace Leem.Testify
 
                         foreach (var method in methods)
                         {
+                            method.Name = RemoveNamespaces(method.Name);
                             //if ( !method.IsGetter && !method.IsSetter)
                             //{
                                 var indexOfOpEquality = method.Name.IndexOf("::op_Equality(");
@@ -149,31 +173,31 @@ namespace Leem.Testify
                                         && fileName.Contains(@"\Web References\") == false
                                         && fileName.Contains(@"\Service References") == false)
                                     {
-                                        var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
-                                        if (methodNameWithoutNamespaces.Contains("`1"))
+                                       // var methodNameWithoutNamespaces = RemoveNamespaces(method.Name);
+                                        if (method.Name.Contains("`1"))
                                         {
-                                            var returnType = methodNameWithoutNamespaces.Substring(0, methodNameWithoutNamespaces.IndexOf(" "));
+                                            var returnType = method.Name.Substring(0, method.Name.IndexOf(" "));
                                             var modifiedReturnType = CoverageService.Instance.RemoveNamespaceFromType(returnType, isReturnType: true);
-                                            methodNameWithoutNamespaces = methodNameWithoutNamespaces.Replace(returnType, modifiedReturnType);
+                                            method.Name = method.Name.Replace(returnType, modifiedReturnType);
                                         }
-/// 5.7%
+
                                        // var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodNameWithoutNamespaces));
-                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.Equals(x.TrackedMethodNameWithoutNamespaces));
+                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => method.Name.Equals(x.TrackedMethodNameWithoutNamespaces));
                                        
                                         if (trackedMethodUnitTestMap != null)
                                         {
-                                            trackedMethodUnitTestMap.CoverageSessionName = methodNameWithoutNamespaces;
+                                            trackedMethodUnitTestMap.CoverageSessionName = method.Name;
                                         }
 
-                                        if (trackedMethodUnitTestMap == null && methodNameWithoutNamespaces.Contains(".ctor") == false && methodNameWithoutNamespaces.Contains(".cctor") == false)
+                                        if (trackedMethodUnitTestMap == null && method.Name.Contains(".ctor") == false && method.Name.Contains(".cctor") == false)
                                         {
-                                            _log.ErrorFormat("Did not find Map object for: <{0}>", methodNameWithoutNamespaces);
+                                            _log.ErrorFormat("Did not find Map object for: <{0}>", method.Name);
                                         }
 
                                         CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap, typeDefinitions);
 
                                         Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
-
+                                        //method.Name = methodNameWithoutNamespaces;
                                         ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
 
                                     }
@@ -429,7 +453,7 @@ namespace Leem.Testify
 
                         var codeMethodInfo = new CodeMethodInfo
                         {
-                            RawMethodName = codeMethod.Name,
+                            RawMethodName = string.Concat(typeDef.ReflectionName,".",codeMethod.Name),
                             FileName = fileName
                         };
 
