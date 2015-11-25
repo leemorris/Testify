@@ -67,7 +67,7 @@ namespace Leem.Testify.UnitTestAdornment
             _view.Closed -= OnClosed;
         }
 
-        public void DisplayUnitTestSelector(UnitTestAdornment coveredLineInfo)
+        public void DisplayUnitTestSelector(UnitTestAdornment coveredLineInfo,TestifyContext context)
         {
             SnapshotSpan span = coveredLineInfo.Span.GetSpan(this._view.TextSnapshot);
             //Geometry g = this.view.TextViewLines.GetMarkerGeometry(span);
@@ -81,7 +81,7 @@ namespace Leem.Testify.UnitTestAdornment
 
                 var vertPos = this._view.ViewportTop + coveredLineInfo.YPosition + .5 * this._view.LineHeight;
                  //Create the visualization.
-                var selector = new UnitTestSelector(vertPos, coveredLineInfo, this._layer);
+                var selector = new UnitTestSelector(vertPos, coveredLineInfo, this._layer, context);
 
                 //Add it to the layer.
                 _layer.AddAdornment(span, coveredLineInfo, selector);

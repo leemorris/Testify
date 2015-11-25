@@ -27,7 +27,7 @@ namespace Leem.Testify.UnitTestAdornment
         private ITestifyQueries _queries;
 
 
-        public UnitTestSelector(double ypos, UnitTestAdornment coveredLineInfo, IAdornmentLayer layer)
+        public UnitTestSelector(double ypos, UnitTestAdornment coveredLineInfo, IAdornmentLayer layer, TestifyContext context)
         {
             _layer = layer;
             string HeavyCheckMark = ((char) (0x2714)).ToString();
@@ -92,6 +92,8 @@ namespace Leem.Testify.UnitTestAdornment
             Grid.SetColumnSpan(header, 3);
             header.Content = string.Format("Unit tests covering Line # {0}, double-click test below to navigate", coveredLineInfo.CoveredLine.LineNumber);
             postGrid.Children.Add(header);
+            //var x = coveredLineInfo.CoveredLine.TestMethods;
+            //var coveredLine = context.CoveredLines.Attach(coveredLineInfo.CoveredLine);
             var testMethods = coveredLineInfo.CoveredLine.TestMethods;
             var sortedTestMethods = testMethods.OrderByDescending(x => x.IsSuccessful ? 0 : 1).ToList();
             for (int i = 0; i < sortedTestMethods.Count; i++)

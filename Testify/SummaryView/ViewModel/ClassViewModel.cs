@@ -4,7 +4,7 @@ namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ClassViewModel : TreeViewItemViewModel
     {
-        readonly Poco.CodeClass _class;
+        internal readonly Poco.CodeClass _class;
         private readonly ITestifyQueries _queries;
 
         public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule)

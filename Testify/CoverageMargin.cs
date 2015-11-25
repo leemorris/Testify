@@ -291,7 +291,7 @@ namespace Leem.Testify
                             coveredLine.IsBranch = false;
                         }
                             
-                        var glyph = CreateCodeMarkGlyph(coveredLine, yPos);
+                        var glyph = CreateCodeMarkGlyph(coveredLine, yPos, _context);
 
                         _marginCanvas.Children.Add(glyph);
                     }
@@ -301,10 +301,10 @@ namespace Leem.Testify
             _log.DebugFormat("UpdateCodeMarks = {0} ms", sw.ElapsedMilliseconds);
         }
 
-        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos)
+        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos, TestifyContext context)
         {
             // create a glyph
-            var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos);
+            var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos, context);
 
             // position it
             Canvas.SetTop(glyph, yPos);

@@ -121,7 +121,7 @@ namespace Leem.Testify
 
                             try
                             {
-                                codeMethodDictionary.Add(string.Concat(method.CodeClass.Name, ".", method.Name), method);
+                                codeMethodDictionary.Add(method.Name, method);
                                 //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
                             }
                             catch (Exception ex) 
@@ -182,11 +182,11 @@ namespace Leem.Testify
                                         }
 
                                        // var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => methodNameWithoutNamespaces.EndsWith(x.TrackedMethodNameWithoutNamespaces));
-                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => method.Name.Equals(x.TrackedMethodNameWithoutNamespaces));
+                                        var trackedMethodUnitTestMap = methodMapper.FirstOrDefault(x => method.Name.Equals(x.MethodName));
                                        
                                         if (trackedMethodUnitTestMap != null)
                                         {
-                                            trackedMethodUnitTestMap.CoverageSessionName = method.Name;
+                                            trackedMethodUnitTestMap.MethodName = method.Name;
                                         }
 
                                         if (trackedMethodUnitTestMap == null && method.Name.Contains(".ctor") == false && method.Name.Contains(".cctor") == false)
@@ -222,8 +222,9 @@ namespace Leem.Testify
             return coveredLines;
         }
 
-        public void UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
+        public List<string> UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
+            var changedClasses = new List<string>();
 
             
 
@@ -254,7 +255,7 @@ namespace Leem.Testify
                                 classNames.Add(typeDef.ReflectionName);
                                 var methods = typeDef.Methods;
 
-                                UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper);//6.9%
+                                changedClasses.AddRange(UpdateMethods(typeDef, methods, typeDef.UnresolvedFile.FileName, trackedMethodUnitTestMapper));
                                 methodNames.AddRange(methods.Select(x => x.ReflectionName));
                             }
 
@@ -274,14 +275,14 @@ namespace Leem.Testify
 
             }
             _log.DebugFormat("Leaving UpdateMethodsAndClassesFromCodeFile ");
-
+            return changedClasses;
         }
 
-        public void UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName, List<TrackedMethodMap>  trackedMethodUnitTestMapper)
+        public List<string> UpdateMethods(IUnresolvedTypeDefinition fileClass, IEnumerable<IUnresolvedMethod> methods, string fileName, List<TrackedMethodMap> trackedMethodUnitTestMapper)
         {
             //todo remove trackedmethodmapper from arguments 
             var methodsToDelete = new List<string>();
-
+            var changedClasses = new List<string>();
             using (var context = new TestifyContext(_solutionName))
             {
                 var codeClasses = from clas in context.CodeClass
@@ -297,6 +298,7 @@ namespace Leem.Testify
                         codeClass.FileName = fileName;
                         codeClass.Line = fileClass.BodyRegion.BeginLine;
                         codeClass.Column = fileClass.BodyRegion.BeginColumn;
+                        changedClasses.Add(codeClass.Name);
                     }
 
                 }
@@ -337,6 +339,7 @@ namespace Leem.Testify
                             method.FileName = fileName;
                             method.Line = fileMethod.BodyRegion.BeginLine;
                             method.Column = fileMethod.BodyRegion.BeginColumn;
+                            changedClasses.Add(method.CodeClass.Name);
                         }
 
                     }
@@ -352,6 +355,7 @@ namespace Leem.Testify
 
                 context.SaveChanges();
             }
+            return changedClasses;
         }
 
 
@@ -453,7 +457,7 @@ namespace Leem.Testify
 
                         var codeMethodInfo = new CodeMethodInfo
                         {
-                            RawMethodName = string.Concat(typeDef.ReflectionName,".",codeMethod.Name),
+                            RawMethodName = codeMethod.Name,
                             FileName = fileName
                         };
 
@@ -464,6 +468,7 @@ namespace Leem.Testify
 
                             if (method != null)
                             {
+                               // codeMethodInfo.RawMethodName = string.Concat(typeDef.ReflectionName, ".", codeMethod.Name);
                                 codeMethodInfo.Line = method.BodyRegion.BeginLine;
                                 codeMethodInfo.Column = method.BodyRegion.BeginColumn;
                             }

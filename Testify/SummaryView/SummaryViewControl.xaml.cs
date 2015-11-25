@@ -30,8 +30,14 @@ namespace Leem.Testify.SummaryView
                 Task<CoverageViewModel> coverageViewModel = GetSummariesAsync();
                 coverageViewModel.Wait();
                 base.DataContext =  coverageViewModel.Result;
-
-                treeGrid.DataContext = coverageViewModel.Result;
+                if (coverageViewModel.Result.Modules.Count > 0)
+                {
+                    treeGrid.DataContext = coverageViewModel.Result;
+                }
+                else 
+                {
+                    base.Content = "Waiting for Solution to be Built";
+                }
 
             }
             else
@@ -75,6 +81,10 @@ namespace Leem.Testify.SummaryView
                     clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
                     filePath = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
+                    if (filePath == null)
+                    {
+                        filePath = (((ClassViewModel)(((Leem.Testify.SummaryView.ViewModel.MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)((e.Source))).Header)).Parent))._class).FileName;
+                    }
                     line = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line;
                     line = line > 1 ? line-- : 1;
                     column = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Column;

@@ -8,9 +8,8 @@ namespace Leem.Testify
 {
     public class TrackedMethodMap
     {
-        public string TrackedMethodName { get; set; }
-        public string TrackedMethodNameWithoutNamespaces { get; set; }
-        public string CoverageSessionName { get; set; }
+        public string MethodName { get; set; }
+
         public List<MethodInfo> MethodInfos { get; set; }
         
         

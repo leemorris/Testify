@@ -15,17 +15,18 @@ namespace Leem.Testify
 
         private readonly CoveredLine _coveredLine;
         private readonly IWpfTextView _view;
-
-        public CodeMarkGlyph()
+        private TestifyContext _context;
+        public CodeMarkGlyph(TestifyContext context)
         {
+            _context = context;
             // initialize all components
             InitializeComponent();
             MouseLeftButtonDown += CodeMarkGlyphMouseLeftButtonDown;
             MouseRightButtonDown += CodeMarkGlyph_MouseRightButtonDown;
         }
 
-        public CodeMarkGlyph(IWpfTextView view, CoveredLine line, double yPosition)
-            : this()
+        public CodeMarkGlyph(IWpfTextView view, CoveredLine line, double yPosition, TestifyContext context)
+            : this(context)
         {
             YPosition = yPosition;
             this._view = view;
@@ -82,9 +83,9 @@ namespace Leem.Testify
                 glyph.YPosition);
 
             _view.GetAdornmentLayer("PostAdornmentLayer").RemoveAllAdornments();
-            if (unitTestAdornment.CoveredLine.TestMethods.Any())
+            if (unitTestAdornment.CoveredLine.IsCovered)
             {
-                manager.DisplayUnitTestSelector(unitTestAdornment);
+                manager.DisplayUnitTestSelector(unitTestAdornment, _context);
             }
 
 

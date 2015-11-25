@@ -11,7 +11,7 @@ namespace Leem.Testify
         public UnitTestSelector(UnitTestSelectorWindow parent)
         {
             InitializeComponent();
-       
+            parent.Content = "dfdsa";
         }
 
         void PopupClicked(object sender, EventArgs e)
