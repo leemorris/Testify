@@ -21,7 +21,7 @@ namespace Leem.Testify
     {
 
         private readonly ILog _log = LogManager.GetLogger(typeof(CoverageProvider));
-        private readonly ConcurrentDictionary<int, CoveredLine> _coveredLines;
+        private Dictionary<int, CoveredLine> _coveredLines;
         private readonly DTE _dte;
 
         private readonly Solution _dteSolution;
@@ -33,6 +33,8 @@ namespace Leem.Testify
         private string _documentName;
         private SVsServiceProvider _serviceProvider;
         private TestifyContext _context;
+        private bool _isContextDirty;
+
         public CoverageProvider(IWpfTextView textView, DTE dte, SVsServiceProvider serviceProvider,
             TestifyQueries testifyQueries, TestifyContext context)
         {
@@ -42,7 +44,7 @@ namespace Leem.Testify
             var coverageService = CoverageService.Instance;
 
             _dte = dte;
-            _coveredLines = new ConcurrentDictionary<int, CoveredLine>();
+            _coveredLines = new Dictionary<int, CoveredLine>();
             coverageService.DTE = _dte;
             _dteSolution = dte.Solution;
             coverageService.DTE = dte;
@@ -65,30 +67,26 @@ namespace Leem.Testify
         public string SolutionName { get; set; }
         protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
         {
+
             if (_coveredLines.Any(x => e.ChangedClasses.Contains(x.Value.Class.Name)))
             {
-                _documentName = GetFileName(_textView.TextBuffer);
-                if (_documentName != null)
-                {
-                    RecreateCoverage(_textView, _context);
-                    RebuildCoverage(_textView.TextBuffer.CurrentSnapshot, _documentName, _context);//);
+                _context = new TestifyContext(SolutionName);
+                // _isContextDirty = true;
+                _coveredLines = Queries.GetCoveredLinesForDocument(_context, _documentName).ToDictionary(x => x.LineNumber);
 
-                }
             }
         }
 
         public static string GetFileName(ITextBuffer buffer)
         {
-            IVsTextBuffer bufferAdapter;
-            buffer.Properties.TryGetProperty(typeof(IVsTextBuffer), out bufferAdapter);
-            if (bufferAdapter != null)
+            ITextDocument textDoc;
+            var rc = buffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out textDoc);
+
+            if (textDoc != null)
             {
-                var persistFileFormat = bufferAdapter as IPersistFileFormat;
-                string ppzsFilename = null;
-                uint iii;
-                if (persistFileFormat != null) persistFileFormat.GetCurFile(out ppzsFilename, out iii);
-                return ppzsFilename;
+                return textDoc.FilePath;
             }
+
             return null;
         }
 
@@ -117,11 +115,11 @@ namespace Leem.Testify
                     {
                         if (_HasCoveredLinesBeenInitialized)
                         {
-                            Task.Run(() => GetCoveredLinesFromCodeModel(fcm, context, documentName));
+                            Task.Run(() => GetCoveredLinesFromCodeModel(fcm, documentName));
                         }
                         else
                         {
-                            GetCoveredLinesFromCodeModel(fcm, context, documentName);
+                            GetCoveredLinesFromCodeModel(fcm, documentName);
                         }
 
                     }
@@ -160,7 +158,7 @@ namespace Leem.Testify
             return fcm;
         }
 
-        private void GetCoveredLinesFromCodeModel(FileCodeModel fcm, TestifyContext context, string documentName)
+        private void GetCoveredLinesFromCodeModel(FileCodeModel fcm, string documentName)
         {
             var sw = Stopwatch.StartNew();
             IList<CodeElement> classes;
@@ -180,7 +178,13 @@ namespace Leem.Testify
                 //{
                     _log.Debug("Getting CoveredLines from Database");
                     //lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
-                    lines = Queries.GetCoveredLinesForDocument(context, documentName).ToList();
+            //if(_isContextDirty)
+            //{
+            //    _context = new TestifyContext(SolutionName);
+            //    _isContextDirty = false;
+            //}
+
+                    lines = Queries.GetCoveredLinesForDocument(_context, documentName).ToList();
                 //}
                 //else
                 //{
@@ -217,8 +221,20 @@ namespace Leem.Testify
 
                         //_coveredLines.TryUpdate(line.LineNumber, line,currentValue );
 
-                        _coveredLines.AddOrUpdate(lineNumber, line, (oldKey, oldValue) => line);
+                        _coveredLines[lineNumber] = line;
                     //}
+                }
+                var linesToBeRemoved= new List<int>();
+                foreach (var line in _coveredLines)
+                { 
+                    if(!coveredLines.Any(x=>x.LineNumber== line.Value.LineNumber))
+                    {
+                        linesToBeRemoved.Add(line.Key);
+                    }
+                }
+                foreach (var line in linesToBeRemoved)
+                {
+                    _coveredLines.Remove(line);
                 }
                 _HasCoveredLinesBeenInitialized = true;
                 _IsRebuilding = false;
@@ -275,7 +291,7 @@ namespace Leem.Testify
             return projectItem;
         }
 
-        internal ConcurrentDictionary<int, CoveredLine> GetCoveredLines(IWpfTextView view, TestifyContext context)
+        internal Dictionary<int, CoveredLine> GetCoveredLines(IWpfTextView view, TestifyContext context)
         {
             _log.DebugFormat("view.TextBuffer.CurrentSnapshot.Version.VersionNumber = {0}", view.TextBuffer.CurrentSnapshot.Version.VersionNumber);
             _log.DebugFormat("_currentVersion = {0}", _currentVersion);
@@ -291,7 +307,11 @@ namespace Leem.Testify
                 || WasUpdated)
             {
                 _log.DebugFormat("Recreating Coverage " );
-                RecreateCoverage(view, context);
+                //using (var context1 = new TestifyContext(_dte.Solution.FullName))
+                //{
+                    RecreateCoverage(view, context);
+                //}
+               
                 WasClosed = false;
             }
 

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leem.Testify.Model
 {
-    static class HelperExtensions
+    internal static class HelperExtensions
     {
         public static TRet Maybe<T, TRet>(this T value, Func<T, TRet> action, TRet defValue = default(TRet))
             where T : class
@@ -23,6 +19,3 @@ namespace Leem.Testify.Model
         }
     }
 }
-
-
-

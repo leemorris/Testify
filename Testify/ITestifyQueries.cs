@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Leem.Testify.Model;
+﻿using Leem.Testify.Model;
 using Leem.Testify.Poco;
-using ICSharpCode.NRefactory.CSharp;
-using ICSharpCode.NRefactory.TypeSystem;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Leem.Testify
 {

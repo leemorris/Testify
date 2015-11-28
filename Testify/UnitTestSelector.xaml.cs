@@ -14,7 +14,7 @@ namespace Leem.Testify
             parent.Content = "dfdsa";
         }
 
-        void PopupClicked(object sender, EventArgs e)
+        private void PopupClicked(object sender, EventArgs e)
         {
             var x = 1;
             //    // call RemoveBookmark function of the manager on right mouse button down event

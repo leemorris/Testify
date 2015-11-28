@@ -16,7 +16,6 @@
         </TransformGroup>
     </UserControl.RenderTransform>
 
-
     <Popup x:Name="popup" IsOpen="False"
            PlacementTarget="{Binding ElementName=selFilesbtn}"
            Placement="Top" Width="146">
@@ -27,18 +26,17 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-
                     </Grid.RowDefinitions>
                     <GroupBox Header="Review As"
                               HorizontalAlignment="Left" VerticalAlignment="Top"
                               Grid.Row="0">
                         <StackPanel>
                             <RadioButton x:Name="currentSelectionBtn"
-                                         Content="CurrentSelection" 
-                                          Click="PopupClicked"/>
+                                         Content="CurrentSelection"
+                                          Click="PopupClicked" />
                             <RadioButton x:Name="singleFileBtn"
-                                         Content="As Single File" 
-                                          Click="PopupClicked"/>
+                                         Content="As Single File"
+                                          Click="PopupClicked" />
                         </StackPanel>
                     </GroupBox>
                     <Button x:Name="generateAsBtn" Content="Generate"
@@ -47,5 +45,4 @@
             </StackPanel>
         </Border>
     </Popup>
-
 </UserControl>

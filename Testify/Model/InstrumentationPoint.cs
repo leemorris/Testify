@@ -15,7 +15,7 @@ namespace Leem.Testify.Model
 
         static InstrumentationPoint()
         {
-            InstrumentPoints = new List<InstrumentationPoint> {null};
+            InstrumentPoints = new List<InstrumentationPoint> { null };
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Leem.Testify.Model
         /// <param name="spid">the sequence point identifier - NOTE 0 is not used</param>
         public static int GetVisitCount(uint spid)
         {
-            return InstrumentPoints[(int) spid].VisitCount;
+            return InstrumentPoints[(int)spid].VisitCount;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Leem.Testify.Model
         {
             if (spid != 0 && spid < InstrumentPoints.Count)
             {
-                InstrumentationPoint point = InstrumentPoints[(int) spid];
+                InstrumentationPoint point = InstrumentPoints[(int)spid];
                 point.VisitCount += sum;
                 if (trackedMethodId != 0)
                 {
@@ -88,7 +88,7 @@ namespace Leem.Testify.Model
                     TrackedMethodRef tracked = point._tracked.Find(x => x.UniqueId == trackedMethodId);
                     if (tracked == null)
                     {
-                        tracked = new TrackedMethodRef {UniqueId = trackedMethodId, VisitCount = sum};
+                        tracked = new TrackedMethodRef { UniqueId = trackedMethodId, VisitCount = sum };
                         point._tracked.Add(tracked);
                     }
                     else

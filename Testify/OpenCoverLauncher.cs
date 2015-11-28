@@ -31,7 +31,15 @@ namespace Leem.Testify
 
             //var args = new string[]{"",""};
             var parser = new CommandLineParser(args);
-            parser.ExtractAndValidateArguments();
+            try
+            {
+                parser.ExtractAndValidateArguments();
+            }
+            catch (Exception ex) 
+            {
+                var x = 4;
+            }
+        
 
             string outputFile;
             IPerfCounters perfCounter = new NullPerfCounter();
@@ -39,7 +47,14 @@ namespace Leem.Testify
             var filter = BuildFilter(parser);
             using (var container = new Bootstrapper(logger))
             {
-                container.Initialise(filter, parser, persistance, perfCounter);
+                try
+                {
+                    container.Initialise(filter, parser, persistance, perfCounter);
+                }
+                catch (Exception ex)
+                {
+                    var x = 4;
+                }
                 //persistance.Initialise(outputFile, parser.MergeExistingOutputFile);
                 var registered = false;
 
@@ -50,7 +65,12 @@ namespace Leem.Testify
                         ProfilerRegistration.Register(parser.Registration);
                         registered = true;
                     }
-                    var harness = container.Resolve<IProfilerManager>();
+                    try { var harness = container.Resolve<IProfilerManager>(); }
+                    catch (Exception ex)
+                    {
+                    int x = 6;
+                    }
+                   // var harness = container.Resolve<IProfilerManager>();
 
                     string serviceAccountName = GetServiceAccountName(parser.Target);
                     if (serviceAccountName.StartsWith(@".\"))
@@ -67,18 +87,18 @@ namespace Leem.Testify
                             ? new[] { serviceAccountName }
                             : new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
-                    harness.RunProcess(environment =>
-                    {
-                        returnCode = 0;
-                        //if (parser.Service)
-                        //{
-                        //    RunService(parser, environment, logger);
-                        //}
-                        //else
-                        //{
-                            returnCode = RunProcess(parser, environment);
-                        //}
-                    }, servicePrincipal);
+                    //harness.RunProcess(environment =>
+                    //{
+                    //    returnCode = 0;
+                    //    //if (parser.Service)
+                    //    //{
+                    //    //    RunService(parser, environment, logger);
+                    //    //}
+                    //    //else
+                    //    //{
+                    //        returnCode = RunProcess(parser, environment);
+                    //    //}
+                    //}, servicePrincipal);
 
                     //DisplayResults(persistance, parser, logger);
                     //var communicationManager = new OpenCover.Framework.Communication.CommunicationManager(new OpenCover.Framework.Communication.MessageHandler());

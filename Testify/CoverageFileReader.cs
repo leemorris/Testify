@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Leem.Testify.Model;
+using log4net;
+using System;
 using System.IO;
 using System.Xml.Serialization;
-using Leem.Testify.Model;
-using log4net;
 
 namespace Leem.Testify
 {
     [Serializable]
     public class CoverageFileReader
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof (CoverageFileReader));
+        private readonly ILog _log = LogManager.GetLogger(typeof(CoverageFileReader));
 
         public CoverageSession ReadCoverageFile(string path)
         {
@@ -22,9 +22,9 @@ namespace Leem.Testify
                 _log.DebugFormat("ReadCoverageFile for file name: {0}", path);
                 file = new StreamReader(path);
 
-                var reader = new XmlSerializer(typeof (CoverageSession));
+                var reader = new XmlSerializer(typeof(CoverageSession));
 
-                summary = (CoverageSession) reader.Deserialize(file);
+                summary = (CoverageSession)reader.Deserialize(file);
                 _log.DebugFormat("BranchCoverage: {0}", summary.Summary.BranchCoverage);
                 _log.DebugFormat("SequenceCoverage: {0}", summary.Summary.SequenceCoverage);
                 _log.DebugFormat("VisitedBranchPoints: {0}", summary.Summary.VisitedBranchPoints);

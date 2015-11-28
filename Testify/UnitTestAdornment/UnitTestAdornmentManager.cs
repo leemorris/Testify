@@ -11,7 +11,6 @@ namespace Leem.Testify.UnitTestAdornment
         private readonly IAdornmentLayer _layer;
         private ITextBuffer _buffer;
 
-
         private UnitTestAdornmentManager(IWpfTextView view)
         {
             _view = view;
@@ -20,15 +19,13 @@ namespace Leem.Testify.UnitTestAdornment
 
             _layer = view.GetAdornmentLayer("PostAdornmentLayer");
 
-           // this.provider = UnitTestAdornmentProvider.Create(view);
-           // this.provider.PostsChanged += OnPostsChanged;
+            // this.provider = UnitTestAdornmentProvider.Create(view);
+            // this.provider.PostsChanged += OnPostsChanged;
         }
 
         public static UnitTestAdornmentManager Create(IWpfTextView textView)
         {
-           
             return textView.Properties.GetOrCreateSingletonProperty<UnitTestAdornmentManager>(delegate { return new UnitTestAdornmentManager(textView); });
- 
         }
 
         private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
@@ -37,7 +34,7 @@ namespace Leem.Testify.UnitTestAdornment
             //Get all of the posts that intersect any of the new or reformatted lines of text.
             //List<UnitTestSelector> newPosts = new List<UnitTestSelector>();
 
-            //The event args contain a list of modified lines and a NormalizedSpanCollection of the spans of the modified lines. 
+            //The event args contain a list of modified lines and a NormalizedSpanCollection of the spans of the modified lines.
             //Use the latter to find the posts that intersect the new or reformatted lines of text.
             //foreach (Span span in e.NewOrReformattedSpans)
             //{
@@ -57,7 +54,6 @@ namespace Leem.Testify.UnitTestAdornment
             //        this.DrawPost(post);
             //    }
             //}
-            
         }
 
         private void OnClosed(object sender, EventArgs e)
@@ -67,24 +63,24 @@ namespace Leem.Testify.UnitTestAdornment
             _view.Closed -= OnClosed;
         }
 
-        public void DisplayUnitTestSelector(UnitTestAdornment coveredLineInfo,TestifyContext context)
+        public void DisplayUnitTestSelector(UnitTestAdornment coveredLineInfo, TestifyContext context)
         {
             SnapshotSpan span = coveredLineInfo.Span.GetSpan(this._view.TextSnapshot);
             //Geometry g = this.view.TextViewLines.GetMarkerGeometry(span);
 
             //if (g != null)
             //{
-                //Find the rightmost coordinate of all the lines that intersect the adornment.
-                double maxRight = 0.0;
-                foreach (ITextViewLine line in this._view.TextViewLines.GetTextViewLinesIntersectingSpan(span))
-                    maxRight = Math.Max(maxRight, line.Right);
+            //Find the rightmost coordinate of all the lines that intersect the adornment.
+            double maxRight = 0.0;
+            foreach (ITextViewLine line in this._view.TextViewLines.GetTextViewLinesIntersectingSpan(span))
+                maxRight = Math.Max(maxRight, line.Right);
 
-                var vertPos = this._view.ViewportTop + coveredLineInfo.YPosition + .5 * this._view.LineHeight;
-                 //Create the visualization.
-                var selector = new UnitTestSelector(vertPos, coveredLineInfo, this._layer, context);
+            var vertPos = this._view.ViewportTop + coveredLineInfo.YPosition + .5 * this._view.LineHeight;
+            //Create the visualization.
+            var selector = new UnitTestSelector(vertPos, coveredLineInfo, this._layer, context);
 
-                //Add it to the layer.
-                _layer.AddAdornment(span, coveredLineInfo, selector);
+            //Add it to the layer.
+            _layer.AddAdornment(span, coveredLineInfo, selector);
             //}
         }
 
@@ -97,7 +93,6 @@ namespace Leem.Testify.UnitTestAdornment
                 _buffer = null;
             }
         }
-
 
         private void OnBufferChanged(object sender, TextContentChangedEventArgs e)
         {
@@ -116,7 +111,5 @@ namespace Leem.Testify.UnitTestAdornment
 
             //this.posts = keptPosts;
         }
-
-      
     }
 }

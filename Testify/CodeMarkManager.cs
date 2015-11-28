@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using EnvDTE;
-using EnvDTE80;
 
 namespace Leem.Testify
 {
@@ -9,6 +7,7 @@ namespace Leem.Testify
     {
         // this object is passed from the Package class
         public delegate void CodeMarksEventHandler(object sender, EventArgs e);
+
         public const double CodeMarkGlyphSize = 16.0; // size of the glyph
         private Dictionary<int, CodeMark> _allCodeMarks = new Dictionary<int, CodeMark>();
 
@@ -35,7 +34,5 @@ namespace Leem.Testify
             if (CodeMarksUpdated != null)
                 CodeMarksUpdated(this, args); // fire the event
         }
-
-
     }
 }

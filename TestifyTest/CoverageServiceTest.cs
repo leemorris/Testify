@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Leem.Testify
 {
     [TestFixture]
     public class CoverageServiceTest
     {
-
-
         [TestCase("QMedPidDataWebservice.QMED_Pid.SrchByLastNameFirstAsync(System.Object)", "Object")]
         [TestCase("Services.Util.QMedSchedulingImpersonation.ExecuteAction(System.Action)", "Action")]
         [TestCase("Services.Util.QMedSchedulingImpersonation.ExecuteAction(System.Func`1<T>)", "Func<T>")]
@@ -32,12 +25,11 @@ namespace Leem.Testify
 
             //Assert.AreEqual(expected, result[0]);
         }
+
         //[Test]
         //public void ParseArguments()
         //{
-
         //    Assert.AreEqual(true, false);
         //}
-
     }
 }

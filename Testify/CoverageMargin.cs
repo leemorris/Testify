@@ -121,7 +121,7 @@ namespace Leem.Testify
 
         private List<CodeMark> GetAllCodeMarksForMargin(TestifyContext context)
         {
-            ConcurrentDictionary<int, CoveredLine> coveredLines =
+            Dictionary<int, CoveredLine> coveredLines =
                 _coverageProvider.GetCoveredLines(_textViewHost.TextView, context);
 
             var allCodeMarks = new List<CodeMark>();
@@ -232,12 +232,12 @@ namespace Leem.Testify
             }
         }
 
-        private async Task UpdateCodeMarksAsync(ConcurrentDictionary<int, CoveredLine> coveredLines)
+        private async Task UpdateCodeMarksAsync(Dictionary<int, CoveredLine> coveredLines)
         {
             UpdateCodeMarks(coveredLines);
         }
 
-        private void UpdateCodeMarks(ConcurrentDictionary<int, CoveredLine> coveredLines)
+        private void UpdateCodeMarks(Dictionary<int, CoveredLine> coveredLines)
         {
             var sw = Stopwatch.StartNew();
 

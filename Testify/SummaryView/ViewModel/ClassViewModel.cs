@@ -1,6 +1,4 @@
-﻿
-
-namespace Leem.Testify.SummaryView.ViewModel
+﻿namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ClassViewModel : TreeViewItemViewModel
     {
@@ -71,6 +69,5 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         public int Level { get { return 2; } }
-       
     }
 }

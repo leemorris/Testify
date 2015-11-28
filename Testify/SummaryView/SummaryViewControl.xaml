@@ -11,8 +11,8 @@
 
         <Grid.Resources>
             <summaryView:LevelConverter x:Key="levelConverter" />
-            <!-- 
-            This Style binds a TreeViewItem to a TreeViewItemViewModel. 
+            <!--
+            This Style binds a TreeViewItem to a TreeViewItemViewModel.
             -->
             <Style TargetType="{x:Type TreeViewItem}">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -25,7 +25,6 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-
 
             <HierarchicalDataTemplate DataType="{x:Type viewModel:TreeViewItemViewModel}"
                                       ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}">
@@ -64,12 +63,8 @@
                         Background="Red" />
                     <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"
                                Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45" />
-
                 </Grid>
-
-
             </HierarchicalDataTemplate>
-
         </Grid.Resources>
 
         <!-- Tree view with one item for the header row -->
@@ -95,7 +90,7 @@
                                               Padding="0" />
                             </TreeViewItem.Header>
 
-                            <!-- Set the width of Column 1 to the same width as the top level 
+                            <!-- Set the width of Column 1 to the same width as the top level
                                  in the data -->
                             <TreeViewItem.Width>
                                 <MultiBinding Converter="{StaticResource levelConverter}">
@@ -107,7 +102,6 @@
                         </TreeViewItem>
                         <TextBlock Grid.Column="2"
                                    Text="Coverage" />
-
                     </Grid>
                 </TreeViewItem.Header>
             </TreeViewItem>

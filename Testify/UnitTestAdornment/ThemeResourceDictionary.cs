@@ -1,10 +1,6 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.VisualStudio.Shell;
 
 namespace Leem.Testify.UnitTestAdornment
 {
@@ -12,11 +8,12 @@ namespace Leem.Testify.UnitTestAdornment
     {
         public ThemeResourceDictionary()
         {
-           // InitializeComponent();
+            // InitializeComponent();
         }
-        public ThemeResourceDictionary(List<ThemeResourceKey> themeResourceKeys):this()
+
+        public ThemeResourceDictionary(List<ThemeResourceKey> themeResourceKeys)
+            : this()
         {
-            
         }
     }
 }

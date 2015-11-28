@@ -1,5 +1,4 @@
-﻿
-namespace Leem.Testify.SummaryView.ViewModel
+﻿namespace Leem.Testify.SummaryView.ViewModel
 {
     public class SummaryInfo
     {
@@ -9,14 +8,14 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
             _summary = new Poco.Summary();
         }
+
         public SummaryInfo(Poco.Summary summary, string name)
         {
             _summary = summary;
             Name = name;
         }
 
-        public string Name{get; set;}
-
+        public string Name { get; set; }
 
         public int NumSequencePoints
         {

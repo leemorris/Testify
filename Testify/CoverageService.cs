@@ -72,7 +72,7 @@ namespace Leem.Testify
             }
         }
 
-        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, ProjectInfo projectInfo, 
+        public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, ProjectInfo projectInfo,
                                                                         List<TrackedMethodMap> methodMapper, TestifyContext context)
         {
             var coveredLines = new List<LineCoverageInfo>();
@@ -111,7 +111,10 @@ namespace Leem.Testify
 
                     var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
                         var classesFromModule = context.CodeClass.Where(x => x.CodeModule.AssemblyName == projectAssemblyName).ToList();
+
+                        // Checking for FileName is not null, prevents us from adding methods that have no covered lines like empty constructors
                         var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
+
                         var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
                         uniqueMethodsFromClasses.ForEach(x => x.Name = RemoveNamespaces(x.Name));
                         var codeMethodDictionary = new Dictionary<string,Leem.Testify.Poco.CodeMethod>();
@@ -139,7 +142,7 @@ namespace Leem.Testify
                         _log.DebugFormat("Class Name: {0}", codeClass.FullName);
                         List<Method> methods = codeClass.Methods;
 
-                        foreach (var method in methods)
+                        foreach (var method in methods.Where(x=>x.FileRef != null).ToList())
                         {
                             method.Name = RemoveNamespaces(method.Name);
                             //if ( !method.IsGetter && !method.IsSetter)
@@ -324,11 +327,12 @@ namespace Leem.Testify
                         modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
                     }
 
-// Can we use equals instead of contains, this 5.7%
+// Can we use equals instead of contains, this 4.0%
                     var codeMethods = (from clas in codeClasses
                                       join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                       where method.Name.Contains(modifiedMethodName)
                                       select method).ToList();
+                    codeMethods = context.CodeMethod.Where(x => x.Name == modifiedMethodName).ToList();
                     foreach (var method in codeMethods)
                     {
                         if (method.FileName != fileName

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Leem.Testify.Poco;
-
-namespace Leem.Testify
+﻿namespace Leem.Testify
 {
     public class CodeMark
     {

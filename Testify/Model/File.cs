@@ -32,7 +32,7 @@ namespace Leem.Testify.Model
         /// </summary>
         public File()
         {
-            UniqueId = (UInt32) Interlocked.Increment(ref _uId);
+            UniqueId = (UInt32)Interlocked.Increment(ref _uId);
         }
 
         /// <summary>

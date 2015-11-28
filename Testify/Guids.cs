@@ -13,6 +13,7 @@ namespace Leem.Testify
 
         // guid for the command set
         private const string GuidNumberedBookmarksCmdSetString = "c74fc9bd-32e1-4135-bddd-779021cc3630";
+
         public static readonly Guid GuidTestifyCmdSet = new Guid(GuidTestifyCmdSetString);
 
         // create a new Guid object with the guid string for the command string

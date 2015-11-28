@@ -13,16 +13,13 @@ namespace Leem.Testify
         public resultType ReadTestResultFile(string path)
         {
             Log.DebugFormat("ReadTestResultFile for file name: {0}", path);
-            StreamReader file;
-            resultType testOutput;
+            StreamReader file=null;
+            resultType testOutput = null;
             //testOutput = TestOutput.LoadFromFile(path);
             
             try
             {
-
                 file = new StreamReader(path);
-                //Log.DebugFormat("Created StreamReader:");
-
                 var reader = new XmlSerializer(typeof(resultType));
                 //Log.DebugFormat("Created XmlSerializer:");
                 testOutput = (resultType)reader.Deserialize(file);
@@ -34,11 +31,14 @@ namespace Leem.Testify
                 var queries = TestifyQueries.Instance;
                 queries.SetAllQueuedTestsToNotRunning();
                 queries.RemoveAllTestsFromQueue();
-                throw;
+                //throw;
             }
-            
-            file.Close();
-            File.Delete(path);
+            if(file != null)
+            {
+                file.Close();
+                File.Delete(path);
+            }
+
             Log.DebugFormat("ReadCoverageFile for file name: {0} is Complete", path);
             return testOutput;
 

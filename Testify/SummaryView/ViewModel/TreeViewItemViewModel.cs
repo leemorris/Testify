@@ -4,22 +4,22 @@ using System.ComponentModel;
 namespace Leem.Testify.SummaryView.ViewModel
 {
     /// <summary>
-    /// Base class for all ViewModel classes displayed by TreeViewItems.  
+    /// Base class for all ViewModel classes displayed by TreeViewItems.
     /// This acts as an adapter between a raw data object and a TreeViewItem.
     /// </summary>
-    public class TreeViewItemViewModel :  INotifyPropertyChanged 
+    public class TreeViewItemViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        static readonly TreeViewItemViewModel DummyChild = new TreeViewItemViewModel();
+        private static readonly TreeViewItemViewModel DummyChild = new TreeViewItemViewModel();
 
-        readonly ObservableCollection<TreeViewItemViewModel> _children;
-        readonly TreeViewItemViewModel _parent;
+        private readonly ObservableCollection<TreeViewItemViewModel> _children;
+        private readonly TreeViewItemViewModel _parent;
 
-        bool _isExpanded;
-        bool _isSelected;
+        private bool _isExpanded;
+        private bool _isSelected;
 
-        #endregion // Data
+        #endregion Data
 
         #region Constructors
 
@@ -38,13 +38,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
         }
 
-        #endregion // Constructors
-   
-
-
-
-
-
+        #endregion Constructors
 
         #region Presentation Members
 
@@ -58,7 +52,7 @@ namespace Leem.Testify.SummaryView.ViewModel
             get { return _children; }
         }
 
-        #endregion // Children
+        #endregion Children
 
         #region HasLoadedChildren
 
@@ -70,12 +64,12 @@ namespace Leem.Testify.SummaryView.ViewModel
             get { return this.Children.Count == 1 && this.Children[0] == DummyChild; }
         }
 
-        #endregion // HasLoadedChildren
+        #endregion HasLoadedChildren
 
         #region IsExpanded
 
         /// <summary>
-        /// Gets/sets whether the TreeViewItem 
+        /// Gets/sets whether the TreeViewItem
         /// associated with this object is expanded.
         /// </summary>
         public bool IsExpanded
@@ -102,12 +96,12 @@ namespace Leem.Testify.SummaryView.ViewModel
             }
         }
 
-        #endregion // IsExpanded
+        #endregion IsExpanded
 
         #region IsSelected
 
         /// <summary>
-        /// Gets/sets whether the TreeViewItem 
+        /// Gets/sets whether the TreeViewItem
         /// associated with this object is selected.
         /// </summary>
         public bool IsSelected
@@ -123,7 +117,7 @@ namespace Leem.Testify.SummaryView.ViewModel
             }
         }
 
-        #endregion // IsSelected
+        #endregion IsSelected
 
         #region LoadChildren
 
@@ -135,7 +129,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
         }
 
-        #endregion // LoadChildren
+        #endregion LoadChildren
 
         #region Parent
 
@@ -144,11 +138,9 @@ namespace Leem.Testify.SummaryView.ViewModel
             get { return _parent; }
         }
 
-        #endregion // Parent
+        #endregion Parent
 
-
-
-        #endregion // Presentation Members
+        #endregion Presentation Members
 
         #region INotifyPropertyChanged Members
 
@@ -160,7 +152,6 @@ namespace Leem.Testify.SummaryView.ViewModel
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged Members
-
+        #endregion INotifyPropertyChanged Members
     }
 }

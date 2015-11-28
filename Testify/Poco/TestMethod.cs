@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Leem.Testify.Poco
 {
@@ -13,27 +10,26 @@ namespace Leem.Testify.Poco
             CoveredLines = new HashSet<CoveredLine>();
         }
 
-
-////        public TestMethod(Model.TrackedMethod trackedMethod, UnitTest unitTest) : this()
-////        {
-////            //CodeModule = trackedMethod.CodeModule;
-////            UniqueId = (int)trackedMethod.UniqueId;
-////            Name = trackedMethod.Name;
-//////CoveredLines = trackedMethod.CoveredLines;
-////            TestProjectUniqueName = unitTest.TestProjectUniqueName;
-////            FilePath = unitTest.FilePath;
-////            IsSuccessful = unitTest.IsSuccessful;
-////            TestMethodName = unitTest.TestMethodName;
-////            NumberOfAsserts = unitTest.NumberOfAsserts;
-////            Executed = unitTest.Executed;
-////            Result = unitTest.Result;
-////            AssemblyName = unitTest.AssemblyName;
-////            LastRunDatetime = unitTest.LastRunDatetime;
-////            LastSuccessfulRunDatetime = unitTest.LastSuccessfulRunDatetime;
-////            TestDuration = unitTest.TestDuration;
-////            LineNumber = unitTest.LineNumber;
-////            TestProject = unitTest.TestProject;
-////        }
+        ////        public TestMethod(Model.TrackedMethod trackedMethod, UnitTest unitTest) : this()
+        ////        {
+        ////            //CodeModule = trackedMethod.CodeModule;
+        ////            UniqueId = (int)trackedMethod.UniqueId;
+        ////            Name = trackedMethod.Name;
+        //////CoveredLines = trackedMethod.CoveredLines;
+        ////            TestProjectUniqueName = unitTest.TestProjectUniqueName;
+        ////            FilePath = unitTest.FilePath;
+        ////            IsSuccessful = unitTest.IsSuccessful;
+        ////            TestMethodName = unitTest.TestMethodName;
+        ////            NumberOfAsserts = unitTest.NumberOfAsserts;
+        ////            Executed = unitTest.Executed;
+        ////            Result = unitTest.Result;
+        ////            AssemblyName = unitTest.AssemblyName;
+        ////            LastRunDatetime = unitTest.LastRunDatetime;
+        ////            LastSuccessfulRunDatetime = unitTest.LastSuccessfulRunDatetime;
+        ////            TestDuration = unitTest.TestDuration;
+        ////            LineNumber = unitTest.LineNumber;
+        ////            TestProject = unitTest.TestProject;
+        ////        }
 
         public int TestMethodId { get; set; }
         public CodeModule CodeModule { get; set; }
@@ -44,7 +40,7 @@ namespace Leem.Testify.Poco
         public string FileName { get; set; }
 
         public virtual ICollection<CoveredLine> CoveredLines { get; set; }
-        
+
         public int MetadataToken { get; set; }
         public string TestProjectUniqueName { get; set; }
         public string FilePath { get; set; }

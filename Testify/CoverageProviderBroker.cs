@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.Text;
+﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
-using System.ComponentModel.Composition;
-using EnvDTE;
 using Microsoft.VisualStudio.Text.Editor;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 
 namespace Leem.Testify.VSEvents
 {
-
     [Export(typeof(ICoverageProviderBroker))]
     public class CoverageProviderBroker : ICoverageProviderBroker
     {
-
         private Dictionary<string, CoverageProvider> dictionary;
         private TestifyQueries _testifyQueries;
 
@@ -22,9 +18,10 @@ namespace Leem.Testify.VSEvents
             dictionary = new Dictionary<string, CoverageProvider>();
             var dte = (DTE)serviceProvider.GetService(typeof(DTE));
             _testifyQueries = TestifyQueries.Instance;
-    
         }
-        ICoverageService coverageService = new CoverageService();
+
+        private ICoverageService coverageService = new CoverageService();
+
         public CoverageProvider GetCoverageProvider(IWpfTextView textView, EnvDTE.DTE dte, SVsServiceProvider serviceProvider, TestifyContext context)
         {
             CoverageProvider provider;
@@ -35,9 +32,8 @@ namespace Leem.Testify.VSEvents
             }
             else
             {
-                    provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries, context);
-                    dictionary.Add(filename, provider);
-
+                provider = new CoverageProvider(textView, dte, serviceProvider, _testifyQueries, context);
+                dictionary.Add(filename, provider);
             }
 
             return provider;

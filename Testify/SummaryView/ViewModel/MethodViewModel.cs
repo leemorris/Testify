@@ -5,7 +5,7 @@ namespace Leem.Testify.SummaryView.ViewModel
 {
     public class MethodViewModel : TreeViewItemViewModel
     {
-        readonly Poco.CodeMethod _method;
+        private readonly Poco.CodeMethod _method;
         private readonly ClassViewModel parent;
 
         public MethodViewModel(Poco.CodeMethod method, ClassViewModel parentClass)
@@ -53,19 +53,18 @@ namespace Leem.Testify.SummaryView.ViewModel
                 result.Append(String.Join(", ", outputArgumentArray));
                 result.Append(")");
 
-
-
                 return result.ToString();
             }
         }
+
         public string FullName
         {
             get
             {
-
                 return _method.Name;
             }
         }
+
         public string FileName
         {
             get { return _method.FileName; }
@@ -100,7 +99,6 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
             get { return _method.Summary.BranchCoverage; }
         }
-        
 
         public int Line
         {
@@ -111,7 +109,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
             get { return _method.Column; }
         }
+
         public int Level { get { return 1; } }
- 
     }
 }

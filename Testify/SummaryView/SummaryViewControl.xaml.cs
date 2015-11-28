@@ -2,7 +2,6 @@
 using EnvDTE80;
 using Leem.Testify.SummaryView.ViewModel;
 using System;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,41 +21,36 @@ namespace Leem.Testify.SummaryView
             _parent = parent;
             _queries = TestifyQueries.Instance;
 
-
-
             if (TestifyQueries.SolutionName != null)
             {
                 //Todo make this async
                 Task<CoverageViewModel> coverageViewModel = GetSummariesAsync();
                 coverageViewModel.Wait();
-                base.DataContext =  coverageViewModel.Result;
+                base.DataContext = coverageViewModel.Result;
                 if (coverageViewModel.Result.Modules.Count > 0)
                 {
                     treeGrid.DataContext = coverageViewModel.Result;
                 }
-                else 
+                else
                 {
                     base.Content = "Waiting for Solution to be Built";
                 }
-
             }
             else
             {
                 base.DataContext = new SummaryViewModel();
             }
-           
         }
 
-        private  async Task<CoverageViewModel> GetSummariesAsync()
+        private async Task<CoverageViewModel> GetSummariesAsync()
         {
-            Poco.CodeModule[] modules =  _queries.GetModules();
+            Poco.CodeModule[] modules = _queries.GetModules();
             var coverageViewModel = new CoverageViewModel(modules);
-
 
             return coverageViewModel;
         }
 
-        void ItemDoubleClicked(object sender, RoutedEventArgs e)
+        private void ItemDoubleClicked(object sender, RoutedEventArgs e)
         {
             // This event is raised multiple times, if the user double -clicks on a Method, this is fired for Method, Class and Module
             // if the user double-clicks on a Class, this is fired for the Class and Module
@@ -71,14 +65,12 @@ namespace Leem.Testify.SummaryView
 
             var dte = TestifyPackage.GetGlobalService(typeof(DTE)) as DTE2;
 
-
             if (dte.ActiveDocument != null)
             {
-
                 if (type == "Leem.Testify.SummaryView.ViewModel.MethodViewModel")
                 {
                     wasCalledForMethod = true; // set flag so we know this event fired for a Method
-                    clickedMethodName =((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
+                    clickedMethodName = ((MethodViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).FullName;
 
                     filePath = ((MethodViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
                     if (filePath == null)
@@ -96,7 +88,7 @@ namespace Leem.Testify.SummaryView
                     clickedMethodName = ((ClassViewModel)(((System.Windows.Controls.HeaderedItemsControl)(e.Source)).Header)).Name;
 
                     filePath = ((ClassViewModel)(((HeaderedItemsControl)(e.Source)).Header)).FileName;
-                    line = ((ClassViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line -1;
+                    line = ((ClassViewModel)(((HeaderedItemsControl)(e.Source)).Header)).Line - 1;
                     column = 1;
                 }
                 if (type == "Leem.Testify.SummaryView.ViewModel.ModuleViewModel")
@@ -106,8 +98,7 @@ namespace Leem.Testify.SummaryView
                 }
             }
 
-
-            if (!string.IsNullOrEmpty(filePath)  && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
+            if (!string.IsNullOrEmpty(filePath) && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
                 openDocumentWindow = dte.ItemOperations.OpenFile(filePath);
                 if (openDocumentWindow != null)
@@ -125,27 +116,25 @@ namespace Leem.Testify.SummaryView
                     }
                 }
             }
-
             else
             {
                 for (var i = 1; i <= dte.Windows.Count; i++)
                 {
                     var window = dte.Windows.Item(i);
-                    if (window.Document != null && window.Document.FullName.Equals(filePath,StringComparison.OrdinalIgnoreCase))
+                    if (window.Document != null && window.Document.FullName.Equals(filePath, StringComparison.OrdinalIgnoreCase))
                     {
                         openDocumentWindow = window;
                         openDocumentWindow.Activate();
                         var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
                         selection.StartOfDocument();
-                        selection.MoveToLineAndOffset(line, column,true);
-                       
+                        selection.MoveToLineAndOffset(line, column, true);
+
                         selection.SelectLine();
 
                         continue;
                     }
                 }
             }
-
         }
 
         public void Connect(int connectionId, object target)

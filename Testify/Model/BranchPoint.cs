@@ -1,10 +1,11 @@
+using System.Linq;
+
 //
 // OpenCover - S Wilde
 //
 // This source code is released under the MIT License; see the accompanying license file.
 //
 using System.Xml.Serialization;
-using System.Linq;
 
 namespace Leem.Testify.Model
 {
@@ -48,7 +49,7 @@ namespace Leem.Testify.Model
         public int EndOffset { get; set; }
 
         /// <summary>
-        /// The file associated with the supplied startline 
+        /// The file associated with the supplied startline
         /// </summary>
         [XmlAttribute("fileid")]
         public uint FileId { get; set; }

@@ -1,14 +1,15 @@
-﻿
-namespace Leem.Testify.SummaryView.ViewModel
+﻿namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ModuleViewModel : TreeViewItemViewModel
     {
-        readonly Poco.CodeModule _module;
+        private readonly Poco.CodeModule _module;
         private readonly ITestifyQueries _queries;
+
         public ModuleViewModel()
         {
-            _module = new Poco.CodeModule {Summary = new Poco.Summary()};
+            _module = new Poco.CodeModule { Summary = new Poco.Summary() };
         }
+
         public ModuleViewModel(Poco.CodeModule module)
             : base(null, true)
         {
@@ -19,7 +20,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         public string Name
         {
             get { return _module.Name; }
-           set { _module.Name = value; }
+            set { _module.Name = value; }
         }
 
         public int NumSequencePoints
@@ -65,11 +66,10 @@ namespace Leem.Testify.SummaryView.ViewModel
         protected override void LoadChildren()
         {
             var codeClasses = _queries.GetClasses(_module);
-            foreach ( var codeClass in codeClasses )
+            foreach (var codeClass in codeClasses)
                 base.Children.Add(new ClassViewModel(codeClass, this));
         }
 
         public int Level { get { return 3; } }
-        
     }
 }

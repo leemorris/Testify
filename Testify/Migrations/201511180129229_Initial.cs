@@ -1,8 +1,7 @@
 namespace Leem.Testify.Migrations
 {
-    using System;
     using System.Data.Entity.Migrations;
-    
+
     public partial class Initial : DbMigration
     {
         public override void Up()
@@ -24,7 +23,7 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.Summary", t => t.Summary_SummaryId)
                 .Index(t => t.CodeModule_CodeModuleId)
                 .Index(t => t.Summary_SummaryId);
-            
+
             CreateTable(
                 "dbo.CodeModule",
                 c => new
@@ -38,7 +37,7 @@ namespace Leem.Testify.Migrations
                 .PrimaryKey(t => t.CodeModuleId)
                 .ForeignKey("dbo.Summary", t => t.Summary_SummaryId)
                 .Index(t => t.Summary_SummaryId);
-            
+
             CreateTable(
                 "dbo.Summary",
                 c => new
@@ -54,7 +53,7 @@ namespace Leem.Testify.Migrations
                         MinCyclomaticComplexity = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.SummaryId);
-            
+
             CreateTable(
                 "dbo.TestMethod",
                 c => new
@@ -87,7 +86,7 @@ namespace Leem.Testify.Migrations
                 .Index(t => t.TestProjectUniqueName)
                 .Index(t => t.CodeModule_CodeModuleId)
                 .Index(t => t.Project_UniqueName);
-            
+
             CreateTable(
                 "dbo.CoveredLine",
                 c => new
@@ -112,7 +111,7 @@ namespace Leem.Testify.Migrations
                 .Index(t => t.Class_CodeClassId)
                 .Index(t => t.Method_CodeMethodId)
                 .Index(t => t.Module_CodeModuleId);
-            
+
             CreateTable(
                 "dbo.CodeMethod",
                 c => new
@@ -130,7 +129,7 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.Summary", t => t.Summary_SummaryId)
                 .Index(t => t.CodeClassId)
                 .Index(t => t.Summary_SummaryId);
-            
+
             CreateTable(
                 "dbo.TestProject",
                 c => new
@@ -145,7 +144,7 @@ namespace Leem.Testify.Migrations
                 .PrimaryKey(t => t.UniqueName)
                 .ForeignKey("dbo.Project", t => t.ProjectUniqueName)
                 .Index(t => t.ProjectUniqueName);
-            
+
             CreateTable(
                 "dbo.Project",
                 c => new
@@ -157,7 +156,7 @@ namespace Leem.Testify.Migrations
                         SourceControlVersion = c.String(maxLength: 4000),
                     })
                 .PrimaryKey(t => t.UniqueName);
-            
+
             CreateTable(
                 "dbo.TestQueue",
                 c => new
@@ -174,7 +173,7 @@ namespace Leem.Testify.Migrations
                 .PrimaryKey(t => t.TestQueueId)
                 .ForeignKey("dbo.TestMethod", t => t.TestMethod_TestMethodId)
                 .Index(t => t.TestMethod_TestMethodId);
-            
+
             CreateTable(
                 "dbo.CoveredLineTestMethod",
                 c => new
@@ -187,9 +186,8 @@ namespace Leem.Testify.Migrations
                 .ForeignKey("dbo.TestMethod", t => t.TestMethod_TestMethodId, cascadeDelete: true)
                 .Index(t => t.CoveredLine_CoveredLineId)
                 .Index(t => t.TestMethod_TestMethodId);
-            
         }
-        
+
         public override void Down()
         {
             DropForeignKey("dbo.TestQueue", "TestMethod_TestMethodId", "dbo.TestMethod");

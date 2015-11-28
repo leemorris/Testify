@@ -3,7 +3,6 @@ using System.Linq;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
-
     /// <summary>
     /// The ViewModel for the LoadOnDemand demo.  This simply
     /// exposes a read-only collection of regions.
@@ -11,6 +10,7 @@ namespace Leem.Testify.SummaryView.ViewModel
     public class SummaryViewModel : TreeViewItemViewModel
     {
         private ITestifyQueries queries;
+
         public SummaryViewModel()
         {
             var module = new Poco.CodeModule
@@ -20,30 +20,35 @@ namespace Leem.Testify.SummaryView.ViewModel
                 Summary = new Poco.Summary()
             };
 
-            var moduleArray = new Poco.CodeModule[]{module};
+            var moduleArray = new Poco.CodeModule[] { module };
             Items = new ObservableCollection<SummaryViewModel>();
             Items.Add(new SummaryViewModel(moduleArray));
         }
-        readonly ReadOnlyCollection<ModuleViewModel> _modules;  
+
+        private readonly ReadOnlyCollection<ModuleViewModel> _modules;
+
         public ReadOnlyCollection<ModuleViewModel> Modules
         {
             get { return _modules; }
         }
 
-        ObservableCollection<SummaryViewModel> _items;
+        private ObservableCollection<SummaryViewModel> _items;
 
         public SummaryViewModel(Poco.CodeModule[] modules)
         {
             var numSequencePoints = modules.Sum(x => x.Summary.NumSequencePoints);
             var numBranchPoints = modules.Sum(x => x.Summary.NumBranchPoints);
-            var visitedSequencePoints  = modules.Sum(x => x.Summary.VisitedSequencePoints);
+            var visitedSequencePoints = modules.Sum(x => x.Summary.VisitedSequencePoints);
             var visitedBranchPoints = modules.Sum(x => x.Summary.VisitedBranchPoints);
 
-            Summary = new SummaryInfo { Name="Look at me",
-                                        NumBranchPoints=numBranchPoints,
-                                        NumSequencePoints = numSequencePoints,
-                                        VisitedBranchPoints = visitedBranchPoints,
-                                        VisitedSequencePoints=visitedSequencePoints};
+            Summary = new SummaryInfo
+            {
+                Name = "Look at me",
+                NumBranchPoints = numBranchPoints,
+                NumSequencePoints = numSequencePoints,
+                VisitedBranchPoints = visitedBranchPoints,
+                VisitedSequencePoints = visitedSequencePoints
+            };
             if (visitedSequencePoints > 0 && visitedBranchPoints > 0)
             {
                 decimal branchCoverage = numBranchPoints / visitedBranchPoints;
@@ -59,30 +64,27 @@ namespace Leem.Testify.SummaryView.ViewModel
                 (from module in modules
                  select new ModuleViewModel(module))
                 .ToList());
-
         }
 
         public SummaryViewModel(Poco.CodeModule module)
         {
-           Summary = new SummaryInfo(module.Summary, module.Name);
-           _items = new ObservableCollection<SummaryViewModel>(
-                (from clas in module.Classes
-                 select new SummaryViewModel(clas))
-                .ToList());
-
+            Summary = new SummaryInfo(module.Summary, module.Name);
+            _items = new ObservableCollection<SummaryViewModel>(
+                 (from clas in module.Classes
+                  select new SummaryViewModel(clas))
+                 .ToList());
         }
 
         public SummaryViewModel(Poco.CodeClass clas)
         {
-            
-            var className =  clas.Name.Substring(clas.Name.LastIndexOf(".") + 1);
+            var className = clas.Name.Substring(clas.Name.LastIndexOf(".") + 1);
             Summary = new SummaryInfo(clas.Summary, className);
             _items = new ObservableCollection<SummaryViewModel>(
                 (from method in clas.Methods
                  select new SummaryViewModel(method))
                 .ToList());
-
         }
+
         public SummaryViewModel(Poco.CodeMethod method)
         {
             var methodName = method.Name.ToString();
@@ -90,13 +92,15 @@ namespace Leem.Testify.SummaryView.ViewModel
             var end = methodName.IndexOf("(") - start;
             Summary = new SummaryInfo(method.Summary, methodName.Substring(start, end));
         }
-        public ObservableCollection<SummaryViewModel> Items 
+
+        public ObservableCollection<SummaryViewModel> Items
         {
             get { return _items; }
             set { _items = value; }
         }
 
         public SummaryInfo Summary { get; set; }
+
         #region Level
 
         // Returns the number of nodes in the longest path to a leaf
@@ -128,6 +132,6 @@ namespace Leem.Testify.SummaryView.ViewModel
             }
         }
 
-        #endregion
+        #endregion Level
     }
 }

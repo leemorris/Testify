@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Leem.Testify.Model;
+﻿using Leem.Testify.Model;
 
 namespace Leem.Testify.Poco
 {
