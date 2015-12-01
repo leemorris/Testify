@@ -684,7 +684,10 @@ namespace Leem.Testify
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("<>"));
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.RemoveAll(x => x.FullName.Contains("__"));
             coverageSession.Modules.FirstOrDefault(x => x.ModuleName.Equals(projectInfo.TestProject.AssemblyName)).Classes.ForEach(c => c.Methods.RemoveAll(x => x.Name.Contains("__")));
-
+            coverageSession.Modules.ForEach(m => m.Classes.ForEach(c => c.Methods.ForEach(me => me.Name = me.Name.Replace("::", ".")
+                                                                                                                .Replace("..", ".")
+                                                                                                                .Replace("cctor.", string.Empty)
+                                                                                                                .Replace("ctor.", string.Empty))));
             coverageSession.Modules.ForEach(module => module.Classes.ForEach(clas => clas.Methods.ForEach(method => method.Name = CoverageService.Instance.RemoveNamespaces(method.Name))));
 
             foreach (var module in coverageSession.Modules)
@@ -961,11 +964,12 @@ namespace Leem.Testify
                                     context.SaveChanges();
                                 }
                             }
-
+// this uses 3 percent
                             var trackedMethodFromContext = context.TestMethods.FirstOrDefault(x => x.Name.Equals(trackedMethodUnitTestMap.MethodName));
 
                             if (trackedMethodFromContext != null)
                             {
+// and so does this, can we combine
                                 var existingTest = context.TestMethods.FirstOrDefault(y => y.TestMethodName.Equals(test.TestMethodName));
                                 test.LastRunDatetime = runDate + " " + runTime;
                                 var className = test.TestMethodName.Substring(0, test.TestMethodName.LastIndexOf("."));
@@ -1094,13 +1098,16 @@ namespace Leem.Testify
                 codeMethodDictionary.TryGetValue(methodInfo.RawMethodName, out matchingMethod);
                 //context.CodeMethod.FirstOrDefault(x => x.Name.Contains(methodInfo.RawMethodName));
                 //var matchingMethodByEquals = context.CodeMethod.FirstOrDefault(x => x.Name.Equals(methodInfo.RawMethodName));
-                if (matchingMethod != null)
+                if (matchingMethod != null
+                    && matchingMethod.FileName != methodInfo.FileName
+                    && matchingMethod.Line != methodInfo.Line
+                    && matchingMethod.Column != methodInfo.Column)
                 {
                     matchingMethod.FileName = methodInfo.FileName;
                     matchingMethod.Line = methodInfo.Line;
                     matchingMethod.Column = methodInfo.Column;
                 }
-                else
+                else if (matchingMethod == null)
                 {
                     int x = 1;
                 }
@@ -1320,38 +1327,71 @@ namespace Leem.Testify
                 context.SaveChanges();
                 Log.DebugFormat("Changes Saved for Batch:");
             }
-
-            // Remove lines that no longer exist
-            var lines = GetCoveredLines(context, "UnitTestExperiment.Domain.ThingsToDo").ToList();
-            var methodsTested = newCoveredLineList.Select(x => x.MethodName).Distinct();
-            List<CoveredLine> linesToBeDeleted = new List<CoveredLine>();
-            var coveredLinesLookup = context.CoveredLines.Where(x => methodsTested.Contains(x.Method.Name)).ToLookup(item => item.Method.Name);
-            foreach (var method in methodsTested)
-            {
-                var currentLineNumbers = newCoveredLineList.Where(m => m.MethodName == method).Select(x => x.LineNumber).Distinct();
-                var coveredLines = coveredLinesLookup[method];
-                var linesFromThisMethodToBeDeleted = coveredLines.Where(x => x.Method.Name == method && !currentLineNumbers.Contains(x.LineNumber));//1.6%
-                linesToBeDeleted.AddRange(linesFromThisMethodToBeDeleted);
-            }
-            var testMethodLinesToBeDeleted = context.CoveredLines.Where(x => x.Module.AssemblyName.Contains(".Test")).ToList();
-            foreach (var line in linesToBeDeleted)
-            {
-                Log.DebugFormat("Deleting covered line for Method: {0}, Line number: {1} ", line.Method.Name, line.LineNumber);
-                context.CoveredLines.Remove(line);
-            }
-            var methodsToDelete = new List<CodeMethod>();
-            foreach (var method in methodLookup)
-            {
-                if (!methodsTested.ToList().Contains(method.Key))
-                {
-                    Log.DebugFormat("Deleting Method: {0}", method.Key);
-                    var orphanedMethod = context.CodeMethod.FirstOrDefault(x => x.Name == method.Key);
-                    context.CodeMethod.Remove(orphanedMethod);
-                }
-            }
             context.SaveChanges();
+            RemoveLinesThatNoLongerExist(newCoveredLineList, context, methodLookup, module);
             Log.DebugFormat("Leaving AddOrUpdateCoveredLine:");
             return modifiedLineCoverageInfos;
+        }
+
+        private void RemoveLinesThatNoLongerExist(IList<LineCoverageInfo> newCoveredLineList, TestifyContext context, ILookup<string, CodeMethod> methodLookup,CodeModule module)
+        {
+            try
+            {
+                var lines = GetCoveredLines(context, "UnitTestExperiment.Domain.ThingsToDo").ToList();
+                var methodsTested = newCoveredLineList.Select(x => x.MethodName).Distinct();
+                List<CoveredLine> linesToBeDeleted = new List<CoveredLine>();
+
+
+                  var ListOfLines = new List<CoveredLine>();
+                foreach(var line in context.CoveredLines.Where(x=>x.Module.AssemblyName == module.AssemblyName))
+                {
+                    ListOfLines.Add(line);
+                    try {
+                        var lookup = ListOfLines.ToLookup(item => item.Method.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.ErrorFormat("Error in RemoveLinesThatNoLongerExist {0} , {1}", ex, line.Method.Name);
+                    }
+                }
+
+
+
+                var coveredLinesLookup = context.CoveredLines.Where(y => y.Module.AssemblyName == module.AssemblyName).Where(x => methodsTested.Contains(x.Method.Name)).ToLookup(item => item.Method.Name);
+
+                //var coveredLinesLookup = context.CoveredLines.Where( methodsTested.Contains(x.Method.Name)).ToLookup(item => item.Method.Name);
+                foreach (var method in methodsTested)
+                {
+                    var currentLineNumbers = newCoveredLineList.Where(m => m.MethodName == method).Select(x => x.LineNumber).Distinct();
+                    var coveredLines = coveredLinesLookup[method];
+                    var linesFromThisMethodToBeDeleted = coveredLines.Where(x => x.Method.Name == method && !currentLineNumbers.Contains(x.LineNumber));//1.6%
+                    linesToBeDeleted.AddRange(linesFromThisMethodToBeDeleted);
+                }
+                var testMethodLinesToBeDeleted = context.CoveredLines.Where(x => x.Module.AssemblyName.Contains(".Test")).ToList();
+                foreach (var line in linesToBeDeleted)
+                {
+                    Log.DebugFormat("Deleting covered line for Method: {0}, Line number: {1} ", line.Method.Name, line.LineNumber);
+                    context.CoveredLines.Remove(line);
+                }
+                var methodsToDelete = new List<CodeMethod>();
+                foreach (var method in methodLookup)
+                {
+                    if (!methodsTested.ToList().Contains(method.Key))
+                    {
+                        Log.DebugFormat("Deleting Method: {0}", method.Key);
+                        var orphanedMethod = context.CodeMethod.FirstOrDefault(x => x.Name == method.Key);
+                        context.CodeMethod.Remove(orphanedMethod);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorFormat("Error in RemoveLinesThatNoLongerExist {0}", ex);
+
+            }
+
+         
+            context.SaveChanges();
         }
 
         private List<TrackedMethodMap> CheckClassForTestCaseAttribute(SyntaxTree syntaxTree, TypeDeclaration typeDeclarationNode)
@@ -1375,7 +1415,7 @@ namespace Leem.Testify
         private TrackedMethodMap CheckMethodForTestCaseAttribute(SyntaxTree syntaxTree, MethodDeclaration methodDeclarationNode)
         {
             var arguments = string.Empty;
-            var parameters = "(";
+            var parameters = string.Empty; 
 
             IProjectContent project = new CSharpProjectContent();
             var unresolvedFile = syntaxTree.ToTypeSystem();
@@ -1390,129 +1430,16 @@ namespace Leem.Testify
             var memberDefinition = member.Member;
 
             var unresolvedParameters = ((ICSharpCode.NRefactory.TypeSystem.Implementation.DefaultUnresolvedMethod)(memberDefinition.UnresolvedMember)).Parameters;
-            if (unresolvedParameters.Any())
-            {
-                foreach (var parameter in unresolvedParameters)
-                {
-                    try
-                    {
-                        var extractedParameter = string.Empty;
-                        if (parameters.Length > 1)
-                        {
-                            parameters = parameters + ",";
-                        }
-                        if (parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.TypeSystem.Implementation.DefaultUnresolvedParameter)
-                            || parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
-                        {
-                            var typeArguments = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).TypeArguments.FirstOrDefault();
-                            var identifier = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).Identifier;
-                            if ((identifier == "List" || identifier == "IDictionary")
-                                && typeArguments != null
-                                && typeArguments.GetType() == typeof(KnownTypeReference))
-                            {
-                                var abbreviatedName = typeArguments.ToString();
-                                var fullName = ((KnownTypeReference)(typeArguments)).Name;
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).ToString().Replace(abbreviatedName, fullName);
-                            }
-                            else
-                            {
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).ToString();
-                            }
-                        }
-                        else if (parameter.Type.GetType() == typeof(KnownTypeCode))
-                        {
-                            extractedParameter = parameter.Name;
-                        }
-                        else if (parameter.Type.GetType() == typeof(KnownTypeReference))
-                        {
-                            extractedParameter = ((KnownTypeReference)(parameter.Type)).Name;
-                        }
-                        else if (parameter.Type.GetType() == typeof(ParameterizedTypeReference)
-                            || parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference))
-                        {
-                            var parameterType = parameter.Type.ToString();
-                            parameterType = parameterType.Replace("System.Nullable[[int]]", "Nullable<Int32>");
-                            extractedParameter = parameterType;
-                        }
-                        else if (parameter.Type.GetType() == typeof(ArrayTypeReference))
-                        {
-                            if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
-                            {
-                                extractedParameter = ((KnownTypeReference)(((ArrayTypeReference)(parameter.Type)).ElementType)).Name + "[]";
-                            }
-                            else if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
-                            {
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)parameter.Type).ElementType).Identifier + "[]";
-                            }
-                        }
-                        else if (parameter.Type.GetType() == typeof(ByReferenceTypeReference))
-                        {
-                            var elementType = (((ByReferenceTypeReference)(parameter.Type)).ElementType);
-                            if (elementType.GetType() == typeof(KnownTypeReference))
-                            {
-                                extractedParameter = ((KnownTypeReference)(((ByReferenceTypeReference)(parameter.Type)).ElementType)).Name;
-                            }
-                            else if (elementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
-                            {
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ByReferenceTypeReference)parameter.Type).ElementType).Identifier;
-                            }
-                            else if (elementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference))
-                            {
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).Identifier;
-                                if (((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).TypeArguments.Any())
-                                {
-                                    extractedParameter = extractedParameter + "<" + ((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)(((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).TypeArguments.FirstOrDefault())).Identifier + ">";
-                                }
-                            }
-                            else if (elementType.GetType() == typeof(ArrayTypeReference))
-                            {
-                                if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
-                                {
-                                    extractedParameter = ((KnownTypeReference)((ArrayTypeReference)elementType).ElementType).Name + "[]";
-                                }
-                                else if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
-                                {
-                                    extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
-                                }
-                                else if (((ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ArrayTypeReference))
-                                {
-                                    if (((((ArrayTypeReference)elementType).ElementType)).GetType() == typeof(KnownTypeReference))
-                                    {
-                                        extractedParameter = ((KnownTypeReference)((ArrayTypeReference)elementType).ElementType).Name + "[]";
-                                    }
-                                    else
-                                    {
-                                        extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)((ByReferenceTypeReference)parameter.Type).ElementType).ElementType).Identifier;
-                            }
-                        }
-                        else
-                        {
-                            Log.ErrorFormat("Error Can't handle parameter of type: {0} ", parameter.Type.GetType().ToString());
-                        }
 
-                        extractedParameter = CoverageService.Instance.ConvertNameToCSharpName(extractedParameter);
-                        parameters = parameters + extractedParameter;
-                    }
-                    catch
-                    {
-                        Log.ErrorFormat("Could not extract parameter type from {0}", parameter.Type);
-                    }
-                }
-            }
+            parameters = GetParameterList(unresolvedParameters);
 
-            parameters = parameters + ")";
-            var modifiedMemberDefinitionName = memberDefinition.ReflectionName.ReplaceAt(memberDefinition.ReflectionName.LastIndexOf("."), "::");
+
+            //var modifiedMemberDefinitionName = memberDefinition.ReflectionName.ReplaceAt(memberDefinition.ReflectionName.LastIndexOf("."), "::");
 
             string returnType = memberDefinition.UnresolvedMember.ReturnType.ToString();
             returnType = CoverageService.Instance.ConvertNameToCSharpName(returnType);
 
-            var trackedMethodName = returnType + " " + modifiedMemberDefinitionName.Trim() + parameters;
+            var trackedMethodName = returnType + " " + memberDefinition.ReflectionName.Trim() + parameters;
             var unitTestCases = new TrackedMethodMap
             {
                 MethodName = CoverageService.Instance.RemoveNamespaces(trackedMethodName),
@@ -1561,6 +1488,125 @@ namespace Leem.Testify
             }
 
             return unitTestCases;
+        }
+
+        public string GetParameterList( IList<IUnresolvedParameter> unresolvedParameters)
+        {
+           string parameters= "(";
+
+            foreach (var parameter in unresolvedParameters)
+            {
+                try
+                {
+                    var extractedParameter = string.Empty;
+                    if (parameters.Length > 1)
+                    {
+                        parameters = parameters + ",";
+                    }
+                    if (parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.TypeSystem.Implementation.DefaultUnresolvedParameter)
+                        || parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
+                    {
+                        var typeArguments = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).TypeArguments.FirstOrDefault();
+                        var identifier = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).Identifier;
+                        if ((identifier == "List" || identifier == "IDictionary")
+                            && typeArguments != null
+                            && typeArguments.GetType() == typeof(KnownTypeReference))
+                        {
+                            var abbreviatedName = typeArguments.ToString();
+                            var fullName = ((KnownTypeReference)(typeArguments)).Name;
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).ToString().Replace(abbreviatedName, fullName);
+                        }
+                        else
+                        {
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)(parameter.Type)).ToString();
+                        }
+                    }
+                    else if (parameter.Type.GetType() == typeof(KnownTypeCode))
+                    {
+                        extractedParameter = parameter.Name;
+                    }
+                    else if (parameter.Type.GetType() == typeof(KnownTypeReference))
+                    {
+                        extractedParameter = ((KnownTypeReference)(parameter.Type)).Name;
+                    }
+                    else if (parameter.Type.GetType() == typeof(ParameterizedTypeReference)
+                        || parameter.Type.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference))
+                    {
+                        var parameterType = parameter.Type.ToString();
+                        parameterType = parameterType.Replace("System.Nullable[[int]]", "Nullable<Int32>");
+                        extractedParameter = parameterType;
+                    }
+                    else if (parameter.Type.GetType() == typeof(ArrayTypeReference))
+                    {
+                        if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
+                        {
+                            extractedParameter = ((KnownTypeReference)(((ArrayTypeReference)(parameter.Type)).ElementType)).Name + "[]";
+                        }
+                        else if (((ArrayTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
+                        {
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)parameter.Type).ElementType).Identifier + "[]";
+                        }
+                    }
+                    else if (parameter.Type.GetType() == typeof(ByReferenceTypeReference))
+                    {
+                        var elementType = (((ByReferenceTypeReference)(parameter.Type)).ElementType);
+                        if (elementType.GetType() == typeof(KnownTypeReference))
+                        {
+                            extractedParameter = ((KnownTypeReference)(((ByReferenceTypeReference)(parameter.Type)).ElementType)).Name;
+                        }
+                        else if (elementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
+                        {
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ByReferenceTypeReference)parameter.Type).ElementType).Identifier;
+                        }
+                        else if (elementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference))
+                        {
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).Identifier;
+                            if (((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).TypeArguments.Any())
+                            {
+                                extractedParameter = extractedParameter + "<" + ((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)(((ICSharpCode.NRefactory.CSharp.TypeSystem.MemberTypeOrNamespaceReference)elementType).TypeArguments.FirstOrDefault())).Identifier + ">";
+                            }
+                        }
+                        else if (elementType.GetType() == typeof(ArrayTypeReference))
+                        {
+                            if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(KnownTypeReference))
+                            {
+                                extractedParameter = ((KnownTypeReference)((ArrayTypeReference)elementType).ElementType).Name + "[]";
+                            }
+                            else if (((ICSharpCode.NRefactory.TypeSystem.ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference))
+                            {
+                                extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
+                            }
+                            else if (((ByReferenceTypeReference)parameter.Type).ElementType.GetType() == typeof(ArrayTypeReference))
+                            {
+                                if (((((ArrayTypeReference)elementType).ElementType)).GetType() == typeof(KnownTypeReference))
+                                {
+                                    extractedParameter = ((KnownTypeReference)((ArrayTypeReference)elementType).ElementType).Name + "[]";
+                                }
+                                else
+                                {
+                                    extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)elementType).ElementType).Identifier + "[]";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            extractedParameter = ((ICSharpCode.NRefactory.CSharp.TypeSystem.SimpleTypeOrNamespaceReference)((ArrayTypeReference)((ByReferenceTypeReference)parameter.Type).ElementType).ElementType).Identifier;
+                        }
+                    }
+                    else
+                    {
+                        Log.ErrorFormat("Error Can't handle parameter of type: {0} ", parameter.Type.GetType().ToString());
+                    }
+
+                    extractedParameter = CoverageService.Instance.ConvertNameToCSharpName(extractedParameter);
+                    parameters = parameters + extractedParameter;
+                }
+                catch
+                {
+                    Log.ErrorFormat("Could not extract parameter type from {0}", parameter.Type);
+                }
+            }
+            return  parameters + ")"; ;
         }
 
         private List<TrackedMethodMap> CheckNamespaceForTestCaseMethods(SyntaxTree syntaxTree, NamespaceDeclaration namespaceDeclarationNode)

@@ -251,24 +251,24 @@ namespace Leem.Testify
 
 
 
-        public void VerifyProjects(EnvDTE.Project project)
-        {
-            var projects = new List<Poco.Project>();
-            var outputPath = GetProjectOutputBuildFolder(project);
-            var assemblyName = GetProjectPropertyByName(project.Properties, "AssemblyName");
+        //public void VerifyProjects(EnvDTE.Project project)
+        //{
+        //    var projects = new List<Poco.Project>();
+        //    var outputPath = GetProjectOutputBuildFolder(project);
+        //    var assemblyName = GetProjectPropertyByName(project.Properties, "AssemblyName");
 
-            projects.Add(new Poco.Project
-            {
-                Name = project.Name,
-                AssemblyName = assemblyName,
-                UniqueName = project.UniqueName,
-                Path = outputPath
-            });
-            _queries = TestifyQueries.Instance;
-            TestifyQueries.SolutionName = _dte.Solution.FullName;
+        //    projects.Add(new Poco.Project
+        //    {
+        //        Name = project.Name,
+        //        AssemblyName = assemblyName,
+        //        UniqueName = project.UniqueName,
+        //        Path = outputPath
+        //    });
+        //    _queries = TestifyQueries.Instance;
+        //    TestifyQueries.SolutionName = _dte.Solution.FullName;
 
-            _queries.MaintainProjects(projects);
-        }
+        //    _queries.MaintainProjects(projects);
+        //}
 
         private void ConfigureLogging(FileInfo file)
         {

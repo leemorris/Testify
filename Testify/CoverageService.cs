@@ -190,6 +190,11 @@ namespace Leem.Testify
                                         if (trackedMethodUnitTestMap != null)
                                         {
                                             trackedMethodUnitTestMap.MethodName = method.Name;
+                                            CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap, typeDefinitions);
+
+                                            Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
+                                            //method.Name = methodNameWithoutNamespaces;
+                                            ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
                                         }
 
                                         if (trackedMethodUnitTestMap == null && method.Name.Contains(".ctor") == false && method.Name.Contains(".cctor") == false)
@@ -197,11 +202,7 @@ namespace Leem.Testify
                                             _log.ErrorFormat("Did not find Map object for: <{0}>", method.Name);
                                         }
 
-                                        CodeMethodInfo methodInfo = UpdateMethodLocation(method, fileName, trackedMethodUnitTestMap, typeDefinitions);
 
-                                        Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
-                                        //method.Name = methodNameWithoutNamespaces;
-                                        ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
 
                                     }
 
@@ -209,10 +210,10 @@ namespace Leem.Testify
                                 }
                            // }
 
-
+                            
                         }
-
-                       context.SaveChanges();//12.4%
+                        context.SaveChanges();//20.8%
+                      
                     }
                     }
                     catch (Exception ex)
@@ -289,10 +290,10 @@ namespace Leem.Testify
             using (var context = new TestifyContext(_solutionName))
             {
                 var codeClasses = from clas in context.CodeClass
-                                  join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-                                  where clas.Name.Equals(fileClass.UnresolvedFile.FileName)
+                                  //join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                  where clas.FileName.Equals(fileClass.UnresolvedFile.FileName)
                                   select clas;
-                foreach (var codeClass in codeClasses)
+                foreach (var codeClass in codeClasses.Distinct())
                 {
                     if (codeClass.FileName != fileName
                         || codeClass.Line != fileClass.BodyRegion.BeginLine
@@ -306,34 +307,40 @@ namespace Leem.Testify
 
                 }
 
+
+                // This uses 12 percent
+                var codeMethods = (from clas in codeClasses
+                                   join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
+                                  // where method.Name.Contains(modifiedMethodName)
+                                   select method).ToList();
+
+
                 string modifiedMethodName;
                 foreach (var fileMethod in methods)
                 {
-                    var rawMethodName = fileMethod.ReflectionName;
-                    if (fileMethod.IsConstructor)
-                    {
-                        rawMethodName = rawMethodName.Replace("..", ".");
-                        modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-                        modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
-                    }
-                    else
-                    {
-                        modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
-                    }
+                    var parameterList= Queries.GetParameterList(fileMethod.Parameters);
 
-                    if (modifiedMethodName.EndsWith(")"))
-                    {
-                        // remove closing paren
-                        modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
-                    }
+                    var rawMethodName = fileMethod.ReflectionName + parameterList;
+                    //if (fileMethod.IsConstructor)
+                    //{
+                    //    rawMethodName = rawMethodName.Replace("..", ".");
+                    //    modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                    //    modifiedMethodName = modifiedMethodName.Replace("::ctor", "::.ctor");
+                    //}
+                    //else
+                    //{
+                    //    modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(rawMethodName);
+                    //}
 
-// Can we use equals instead of contains, this 4.0%
-                    var codeMethods = (from clas in codeClasses
-                                      join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
-                                      where method.Name.Contains(modifiedMethodName)
-                                      select method).ToList();
-                    codeMethods = context.CodeMethod.Where(x => x.Name == modifiedMethodName).ToList();
-                    foreach (var method in codeMethods)
+                    //if (modifiedMethodName.EndsWith(")"))
+                    //{
+                    //    // remove closing paren
+                    //    modifiedMethodName = modifiedMethodName.Substring(0, modifiedMethodName.Length - 1);
+                    //}
+
+
+
+                    foreach (var method in codeMethods.Where(x => x.Name.Contains(rawMethodName)))
                     {
                         if (method.FileName != fileName
                            || method.Line != fileMethod.BodyRegion.BeginLine
@@ -350,11 +357,11 @@ namespace Leem.Testify
 
 
                 }
-                var hasChanges = context.ChangeTracker.HasChanges();
-                if (hasChanges)
-                {
-                    _log.DebugFormat("UpdateMethods - Changes were made = {0} in FileName {1}", hasChanges, fileName);
-                }
+                //var hasChanges = context.ChangeTracker.HasChanges();
+                //if (hasChanges)
+                //{
+                //    _log.DebugFormat("UpdateMethods - Changes were made = {0} in FileName {1}", hasChanges, fileName);
+                //}
                
 
                 context.SaveChanges();
@@ -477,12 +484,12 @@ namespace Leem.Testify
                                 codeMethodInfo.Column = method.BodyRegion.BeginColumn;
                             }
                         }
-                        else 
-                        {
-                            // Code Module
-                            var modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(codeMethod.Name);
-                            var methodRegular = typeDef.Methods.FirstOrDefault(x => x.Name == modifiedMethodName);
-                        }
+                        //else 
+                        //{
+                        //    // Code Module
+                        //    var modifiedMethodName = Queries.ConvertUnitTestFormatToFormatTrackedMethod(codeMethod.Name);
+                        //    var methodRegular = typeDef.Methods.FirstOrDefault(x => x.Name == modifiedMethodName);
+                        //}
 
 
                         return codeMethodInfo;

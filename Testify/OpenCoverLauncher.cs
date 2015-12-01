@@ -68,9 +68,9 @@ namespace Leem.Testify
                     try { var harness = container.Resolve<IProfilerManager>(); }
                     catch (Exception ex)
                     {
-                    int x = 6;
+                        int x = 6;
                     }
-                   // var harness = container.Resolve<IProfilerManager>();
+                    
 
                     string serviceAccountName = GetServiceAccountName(parser.Target);
                     if (serviceAccountName.StartsWith(@".\"))

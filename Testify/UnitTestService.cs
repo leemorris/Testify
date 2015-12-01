@@ -104,7 +104,7 @@ namespace Leem.Testify
                                     // @"-hideskipped: Domain",
                                      @"-filter:+[MyProduct.Domain]* +[Domain.Test]*",
                                      @"-register:Path64"  };
-            var launcher = new OpenCoverLauncher(args);
+            //var launcher = new OpenCoverLauncher(args);
 
 
 

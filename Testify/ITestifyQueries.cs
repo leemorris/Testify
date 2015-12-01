@@ -1,4 +1,5 @@
-﻿using Leem.Testify.Model;
+﻿using ICSharpCode.NRefactory.TypeSystem;
+using Leem.Testify.Model;
 using Leem.Testify.Poco;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,5 +50,6 @@ namespace Leem.Testify
         void AddTestsCoveringFileToTestQueue(string fileName, EnvDTE.Project project);
 
         void RemoveAllTestsFromQueue();
+        string GetParameterList(IList<IUnresolvedParameter> unresolvedParameters);
     }
 }
