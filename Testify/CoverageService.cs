@@ -73,7 +73,8 @@ namespace Leem.Testify
         }
 
         public List<LineCoverageInfo> GetCoveredLinesFromCoverageSession(CoverageSession codeCoverage, ProjectInfo projectInfo,
-                                                                        List<TrackedMethodMap> methodMapper, TestifyContext context)
+                                                                        List<TrackedMethodMap> methodMapper, TestifyContext context,
+                                                                        Dictionary<string,TestMethod> testMethodDictionary)
         {
             var coveredLines = new List<LineCoverageInfo>();
             var projectAssemblyName = string.Empty;
@@ -89,6 +90,7 @@ namespace Leem.Testify
             foreach (Module sessionModule in sessionModules)
             {
                 _log.DebugFormat("Module Name: {0}", sessionModule.ModuleName);
+                //Dictionary<string, Poco.TestMethod> testMethodDictionary = new Dictionary<string, TestMethod>();
                 if(sessionModule.ModuleName.EndsWith(".Test"))
                 {
                     projectAssemblyName = projectInfo.TestProject.AssemblyName;
@@ -96,6 +98,7 @@ namespace Leem.Testify
                 else
                 {
                     projectAssemblyName = projectInfo.ProjectAssemblyName;
+                   // testMethodDictionary = context.TestMethods.ToDictionary(x => x.Name);
                 }
                 IEnumerable<TrackedMethod> tests =
                     sessionModules.Where(x => x.TrackedMethods.Any()).SelectMany(y => y.TrackedMethods);
@@ -110,28 +113,7 @@ namespace Leem.Testify
                     _log.DebugFormat("Number of Classes: {0}", classes.Count());
 
                     var fileDictionary = sessionModule.Files.ToDictionary(file => file.UniqueId);
-                        var classesFromModule = context.CodeClass.Where(x => x.CodeModule.AssemblyName == projectAssemblyName).ToList();
-
-                        // Checking for FileName is not null, prevents us from adding methods that have no covered lines like empty constructors
-                        var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
-
-                        var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
-                        uniqueMethodsFromClasses.ForEach(x => x.Name = RemoveNamespaces(x.Name));
-                        var codeMethodDictionary = new Dictionary<string,Leem.Testify.Poco.CodeMethod>();
-                        foreach (var method in uniqueMethodsFromClasses)
-                        {
-                           
-
-                            try
-                            {
-                                codeMethodDictionary.Add(method.Name, method);
-                                //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
-                            }
-                            catch (Exception ex) 
-                            {
-                                _log.ErrorFormat("Error creating CodeMethodDictionary Class: {0}, Method: {1}", method.CodeClass.Name, method.Name);
-                        }
-                        }
+                    var codeMethodDictionary = GetCodeMethodDictionary(context, projectAssemblyName);
                     //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
 
                     var typeDefinitions = GetTypeDefinitionsFromRefactory(sessionModule.AssemblyName, fileDictionary);
@@ -194,7 +176,7 @@ namespace Leem.Testify
 
                                             Queries.UpdateCodeMethodPath(context, methodInfo, codeMethodDictionary);
                                             //method.Name = methodNameWithoutNamespaces;
-                                            ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap);
+                                            ProcessSequencePoints(coveredLines, sessionModule, tests, codeClass, method, fileName, trackedMethodUnitTestMap, context, testMethodDictionary);
                                         }
 
                                         if (trackedMethodUnitTestMap == null && method.Name.Contains(".ctor") == false && method.Name.Contains(".cctor") == false)
@@ -224,6 +206,33 @@ namespace Leem.Testify
 
             }
             return coveredLines;
+        }
+
+        private Dictionary<string, CodeMethod> GetCodeMethodDictionary(TestifyContext context, string projectAssemblyName)
+        {
+            var classesFromModule = context.CodeClass.Where(x => x.CodeModule.AssemblyName == projectAssemblyName).ToList();
+
+            // Checking for FileName is not null, prevents us from adding methods that have no covered lines like empty constructors
+            var methodsFromClasses = classesFromModule.SelectMany(y => y.Methods).ToList();
+
+            var uniqueMethodsFromClasses = methodsFromClasses.GroupBy(x => x.Name).Select(y => y.FirstOrDefault()).ToList();
+            uniqueMethodsFromClasses.ForEach(x => x.Name = RemoveNamespaces(x.Name));
+            var codeMethodDictionary = new Dictionary<string, Leem.Testify.Poco.CodeMethod>();
+            foreach (var method in uniqueMethodsFromClasses)
+            {
+
+
+                try
+                {
+                    codeMethodDictionary.Add(method.Name, method);
+                    //var codeMethodDictionary = uniqueMethodsFromClasses.ToDictionary(item => string.Concat(item.CodeClass.Name, ".", item.Name));
+                }
+                catch (Exception ex)
+                {
+                    _log.ErrorFormat("Error creating CodeMethodDictionary Class: {0}, Method: {1}", method.CodeClass.Name, method.Name);
+                }
+            }
+            return codeMethodDictionary;
         }
 
         public List<string> UpdateMethodsAndClassesFromCodeFile(List<Module> modules,List<TrackedMethodMap> trackedMethodUnitTestMapper)
@@ -388,13 +397,20 @@ namespace Leem.Testify
 
             var testMethodName = trackedMethodName.Substring(locationOfSpace);
 
-            testMethodName = testMethodName.Replace("::", ".");
+           // testMethodName = testMethodName.Replace("::", ".");
 
             return testMethodName;
         }
 
-        private void ProcessSequencePoints(List<LineCoverageInfo> coveredLines, Module module,
-            IEnumerable<TrackedMethod> tests, Class modelClass, Method method, string fileName,TrackedMethodMap trackedMethodMap)
+        private void ProcessSequencePoints( List<LineCoverageInfo> coveredLines, 
+                                            Module module,
+                                            IEnumerable<TrackedMethod> tests, 
+                                            Class modelClass, 
+                                            Method method, 
+                                            string fileName, 
+                                            TrackedMethodMap trackedMethodMap, 
+                                            TestifyContext context, 
+                                            Dictionary<string, Poco.TestMethod> testMethodDictionary)
         {
             List<SequencePoint> sequencePoints = method.SequencePoints;
             List<BranchPoint> branchPoints = method.BranchPoints;
@@ -406,7 +422,7 @@ namespace Leem.Testify
                 if (branchPointForThisLine.Any(x => x.VisitCount > 0)) 
                 {
                     branchCoverage = ((decimal)branchPointForThisLine.Count(x => x.VisitCount > 0) / (decimal)branchPointForThisLine.Count) * 100;
-                    _log.DebugFormat("Method :{0}, LineNumber {1}, branchCoverage: {2}%", method.Name, sequencePoint.StartLine, branchCoverage.ToString("G"));
+                   // _log.DebugFormat("Method :{0}, LineNumber {1}, branchCoverage: {2}%", method.Name, sequencePoint.StartLine, branchCoverage.ToString("G"));
                 }
                 
                
@@ -436,14 +452,30 @@ namespace Leem.Testify
                         coveredLine.IsCovered = (sequencePoint.VisitCount > 0);
                         coveredLine.FileName = fileName;
                         
-                        coveredLine.TestMethods.Add(new Poco.TestMethod
+                        //coveredLine.TestMethods.Add(new Poco.TestMethod
+                        //{
+                        //    UniqueId = (int) trackedMethod.UniqueId,
+                        //    Strategy = trackedMethod.Strategy,
+                        //    Name = trackedMethod.Name,
+                        //    MetadataToken = trackedMethod.MetadataToken,
+                        //    TestMethodName = trackedMethod.Name
+                        //});
+                        //var testMethod = context.TestMethods.FirstOrDefault(x => x.Name == trackedMethod.Name);
+                        Poco.TestMethod testMethod = null;
+                        testMethodDictionary.TryGetValue(trackedMethod.Name, out testMethod);
+                        if (testMethod != null)
                         {
-                            UniqueId = (int) trackedMethod.UniqueId,
-                            Strategy = trackedMethod.Strategy,
-                            Name = trackedMethod.Name,
-                            MetadataToken = trackedMethod.MetadataToken,
-                            TestMethodName = trackedMethod.Name
-                        });
+                            coveredLine.TestMethods.Add(testMethod);
+                        }
+                       
+                        //new Poco.TestMethod
+                        //{
+                        //    UniqueId = (int)trackedMethod.UniqueId,
+                        //    Strategy = trackedMethod.Strategy,
+                        //    Name = trackedMethod.Name,
+                        //    MetadataToken = trackedMethod.MetadataToken,
+                        //    TestMethodName = trackedMethod.Name
+                        //});
                     }
                 }
 

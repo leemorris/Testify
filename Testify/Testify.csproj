@@ -222,9 +222,9 @@
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="Migrations\201511180129229_Initial.cs" />
-    <Compile Include="Migrations\201511180129229_Initial.Designer.cs">
-      <DependentUpon>201511180129229_Initial.cs</DependentUpon>
+    <Compile Include="Migrations\201512061446029_Initial.cs" />
+    <Compile Include="Migrations\201512061446029_Initial.Designer.cs">
+      <DependentUpon>201512061446029_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -299,8 +299,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201511180129229_Initial.resx">
-      <DependentUpon>201511180129229_Initial.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201512061446029_Initial.resx">
+      <DependentUpon>201512061446029_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

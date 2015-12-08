@@ -90,10 +90,9 @@ namespace Leem.Testify.UnitTestAdornment
             Grid.SetRow(header, 0);
             Grid.SetColumn(header, 1);
             Grid.SetColumnSpan(header, 3);
-            header.Content = string.Format("Unit tests covering Line # {0}, double-click test below to navigate", coveredLineInfo.CoveredLine.LineNumber);
+            header.Content = string.Format("Unit tests covering Line # {0}, double-click test below to navigate to the Unit test", coveredLineInfo.CoveredLine.LineNumber);
             postGrid.Children.Add(header);
-            //var x = coveredLineInfo.CoveredLine.TestMethods;
-            //var coveredLine = context.CoveredLines.Attach(coveredLineInfo.CoveredLine);
+
             var testMethods = coveredLineInfo.CoveredLine.TestMethods;
             var sortedTestMethods = testMethods.OrderByDescending(x => x.IsSuccessful ? 0 : 1).ToList();
             for (int i = 0; i < sortedTestMethods.Count; i++)

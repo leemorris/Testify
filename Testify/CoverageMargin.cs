@@ -311,18 +311,13 @@ namespace Leem.Testify
 
             Canvas.SetLeft(glyph, 0);
 
-
-            var tooltip = new StringBuilder();
-
-            tooltip.AppendFormat("Click to see Tests \nCovering Tests:\t {0}\n", line.TestMethods.Count);
-
-            foreach (TestMethod test in line.TestMethods.OrderBy(x=>x.IsSuccessful))
+            if (line.TestMethods.Any())
             {
-                tooltip.AppendFormat("{0}\n", test.TestMethodName);
+                var tooltip = new StringBuilder();
+                tooltip.AppendFormat("Click to see Tests \nCovering Tests:\t {0}", line.TestMethods.Count);
+                glyph.ToolTip = tooltip.ToString();
             }
-
-            glyph.ToolTip = tooltip.ToString();
-
+    
             return glyph; // so we have the glyph now
         }
 

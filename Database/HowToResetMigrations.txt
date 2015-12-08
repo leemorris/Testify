@@ -14,35 +14,6 @@ Then create the script for SQL CE
 Update-Database -script
 
 
-ALTER TABLE [CodeClass] DROP CONSTRAINT [FK_dbo.CodeClass_dbo.Summary_Summary_SummaryId];
-GO
-ALTER TABLE [CodeClass] DROP CONSTRAINT [FK_dbo.CodeClass_dbo.CodeModule_CodeModule_CodeModuleId];
-GO
-ALTER TABLE [CodeMethod] DROP CONSTRAINT [FK_dbo.CodeMethod_dbo.Summary_Summary_SummaryId];
-GO
-ALTER TABLE [CodeMethod] DROP CONSTRAINT [FK_dbo.CodeMethod_dbo.CodeClass_CodeClassId];
-GO
-ALTER TABLE [CodeModule] DROP CONSTRAINT [FK_dbo.CodeModule_dbo.Summary_Summary_SummaryId];
-GO
-ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeClass_Class_CodeClassId];
-GO
-ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeMethod_Method_CodeMethodId];
-GO
-ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.CodeModule_Module_CodeModuleId];
-GO
-ALTER TABLE [CoveredLine] DROP CONSTRAINT [FK_dbo.CoveredLine_dbo.TestMethod_TestMethod_TestMethodId];
-GO
-ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.CodeModule_CodeModule_CodeModuleId];
-GO
-ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.CoveredLine_TestMethodId];
-GO
-ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.Project_Project_UniqueName];
-GO
-ALTER TABLE [TestMethod] DROP CONSTRAINT [FK_dbo.TestMethod_dbo.TestProject_TestProjectUniqueName];
-GO
-
-DROP TABLE [__MigrationHistory];
-GO
 DROP TABLE [TestQueue];
 GO
 DROP TABLE [CodeClass];

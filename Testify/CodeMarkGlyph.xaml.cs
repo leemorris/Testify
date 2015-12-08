@@ -83,7 +83,7 @@ namespace Leem.Testify
                 glyph.YPosition);
 
             _view.GetAdornmentLayer("PostAdornmentLayer").RemoveAllAdornments();
-            if (unitTestAdornment.CoveredLine.IsCovered)
+            if (unitTestAdornment.CoveredLine.IsCovered && unitTestAdornment.CoveredLine.TestMethods.Any())
             {
                 manager.DisplayUnitTestSelector(unitTestAdornment, _context);
             }

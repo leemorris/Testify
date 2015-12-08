@@ -65,6 +65,8 @@ namespace Leem.Testify.Poco
 
         public int LineNumber { get; set; }
 
+        public int FailureLineNumber { get; set; }
+        public string FailureMessage { get; set; }
         public virtual TestProject TestProject { get; set; }
     }
 }
