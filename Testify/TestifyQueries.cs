@@ -59,13 +59,14 @@ namespace Leem.Testify
         {
             set
             {
-                _solutionName = value;
+                _solutionName = value.Replace(".sln", string.Empty);
 
                 var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-                var hashcode = _solutionName.GetHashCode();
-                Log.DebugFormat("The hashcode for {0} is {1}", _solutionName, hashcode);
-                var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(value), hashcode.ToString(), "TestifyCE.sdf;password=lactose");
+                var hashCode = _solutionName.GetHashCode();
+                hashCode = hashCode > 0 ? hashCode : -hashCode;
+                Log.DebugFormat("The hashcode for {0} is {1}", _solutionName, hashCode);
+                var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(value), hashCode.ToString(), "TestifyCE.sdf;password=lactose");
 
                 // Set connection string
                 _connectionString = string.Format("Data Source={0}", path);
@@ -1691,11 +1692,12 @@ namespace Leem.Testify
                 var testCaseItem = (Leem.Testify.failureType)testcase.Item;
                 var message = testCaseItem.message;
                 int lineNumberFromStackTrace;
-                var lineNumberLocation = message.IndexOf(":line ");
+                const string lineMarker = ":line ";
+                var lineNumberLocation = testCaseItem.stacktrace.IndexOf(lineMarker);
                 if (lineNumberLocation > 0)
                 {
-                    testCaseItem.message.Substring(lineNumberLocation);
-                    var lineNumberString = Int32.TryParse(testCaseItem.message.Substring(message.IndexOf(":line ")), out lineNumberFromStackTrace);
+                    var linenumberstring = testCaseItem.stacktrace.Substring(lineNumberLocation + lineMarker.Length).Replace("\n",string.Empty);
+                    var lineNumberString = Int32.TryParse(linenumberstring, out lineNumberFromStackTrace);
                     unitTest.FailureLineNumber = lineNumberFromStackTrace;
                 }
 

@@ -66,7 +66,7 @@ namespace Leem.Testify
             get { return _solutionName; }
             set
             {
-                _solutionName = value;
+                _solutionName = value.Replace(".sln", string.Empty);
 
                 _solutionDirectory = Path.GetDirectoryName(_solutionName);
             }

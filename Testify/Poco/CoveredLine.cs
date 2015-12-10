@@ -39,5 +39,7 @@ namespace Leem.Testify.Poco
 
         public decimal BranchCoverage { get; set; }
         public bool IsBranch { get; set; }
+        public int FailureLineNumber { get; set; }
+        public string FailureMessage { get; set; }
     }
 }

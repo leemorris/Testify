@@ -342,11 +342,10 @@ namespace Leem.Testify
 
         private string GetOutputFolder()
         {
-            var hashCode = Path.Combine(_solutionDirectory, _solutionName).GetHashCode().ToString();
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Testify", _solutionName, hashCode);
-
-
-      
+            var hashCode = Path.Combine(_solutionDirectory, _solutionName).GetHashCode();
+            hashCode = hashCode > 0 ? hashCode : -hashCode;
+           
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Testify", _solutionName, hashCode.ToString());
 
             return string.Concat(path, "\\");
         }

@@ -103,6 +103,8 @@ namespace Leem.Testify.Migrations
                         FileName = c.String(maxLength: 4000),
                         BranchCoverage = c.Decimal(nullable: false, precision: 18, scale: 2),
                         IsBranch = c.Boolean(nullable: false),
+                        FailureLineNumber = c.Int(nullable: false),
+                        FailureMessage = c.String(maxLength: 4000),
                         Class_CodeClassId = c.Int(),
                         Method_CodeMethodId = c.Int(nullable: false),
                         Module_CodeModuleId = c.Int(),

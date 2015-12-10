@@ -50,6 +50,7 @@ namespace Leem.Testify
         private string _solutionName;
         private volatile int _testRunId;
         private bool _isFirstBuild = true;
+        private bool isDatabaseValid = false;
         private readonly ILog _log = LogManager.GetLogger(typeof(TestifyPackage));
 
 
@@ -83,31 +84,63 @@ namespace Leem.Testify
 
         public delegate void CoverageChangedEventHandler(string className, string methodName);
 
+        //private void CheckForDatabase(string databasePath)
+        //{
+        //    _log.DebugFormat("CheckForDatabase: {0}", databasePath);
+        //    if (!File.Exists(databasePath))
+        //    {
+        //        _log.ErrorFormat("Database was not found");
+
+        //        // Get copy of blank database from the VSIX folder
+        //        string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
+        //        try
+        //        {
+        //            _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
+        //            File.Copy(initialDatabasePath.ToString(), databasePath);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _log.ErrorFormat("Error Copying database " + ex.Message);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _log.DebugFormat("Database was found");
+        //    }
+        //}
+
         private void CheckForDatabase(string databasePath)
         {
-            _log.DebugFormat("CheckForDatabase: {0}", databasePath);
-            if (!File.Exists(databasePath))
+            using (var context = new TestifyContext(_solutionName))
             {
-                _log.ErrorFormat("Database was not found");
-
-                // Get copy of blank database from the VSIX folder
-                string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
-                try
+                bool isCompatible;
+                _log.DebugFormat("CheckForDatabase: {0}", databasePath);
+                if (context.Database.Exists())
                 {
+                    try
+                    {
+                        if (context.Database.CompatibleWithModel(throwIfNoMetadata: true))
+                        {
+                             _log.DebugFormat("Database was found and is compatible");
+                             isDatabaseValid = true;
+                            return; 
+                        }
+                    }
+                    catch
+                    {
+                         _log.DebugFormat("Database was found and but is not compatible");
+                    }
+                }
+                
+                    // Write new database
+                    string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
                     _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-                    File.Copy(initialDatabasePath.ToString(), databasePath);
-                }
-                catch (Exception ex)
-                {
-                    _log.ErrorFormat("Error Copying database " + ex.Message);
-                }
+                    File.Copy(initialDatabasePath.ToString(), databasePath,true);
+                    isDatabaseValid = true;
+ 
             }
-            else
-            {
-                _log.DebugFormat("Database was found");
-            }
-        }
 
+        }
 
         private string GetProjectOutputBuildFolder(EnvDTE.Project proj)
         {
@@ -180,7 +213,7 @@ namespace Leem.Testify
 
         private void ProcessTestQueue(object source, ElapsedEventArgs e)
         {
-            if (_service != null)
+            if (_service != null &&  isDatabaseValid )
             {
 
                 _service.ProcessTestQueue(++_testRunId);
@@ -632,8 +665,9 @@ namespace Leem.Testify
             _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
             var appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var fullPath = Path.Combine(_solutionDirectory,_solutionName);
-            var hashcode = fullPath.GetHashCode();
-            var databasePath = GetDatabasePath(appDataDirectory, hashcode);
+            var hashCode = fullPath.GetHashCode();
+            hashCode = hashCode > 0 ? hashCode : -hashCode;
+            var databasePath = GetDatabasePath(appDataDirectory, hashCode);
            
             CheckForDatabase(databasePath);
 
@@ -683,7 +717,7 @@ namespace Leem.Testify
 
         private string GetDatabasePath(string directory, int hashcode)
         {
-            var path = Path.Combine(directory, "Testify", _solutionName, hashcode.ToString());
+            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(_solutionName), hashcode.ToString());
 
             var appDataExists = Directory.Exists(Path.Combine(path));
             if (!appDataExists)
@@ -728,7 +762,7 @@ namespace Leem.Testify
             string solutionFile;
             pSolution.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionOptions);
             _solutionDirectory = solutionDirectory;
-            _solutionName = Path.GetFileNameWithoutExtension(solutionFile);
+            _solutionName = solutionFile.Replace(".sln", string.Empty);// Path.GetFileNameWithoutExtension(solutionFile);
             return pSolution;
         }
         #endregion Interface Methods
