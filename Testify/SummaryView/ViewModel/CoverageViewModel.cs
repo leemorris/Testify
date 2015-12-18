@@ -5,13 +5,13 @@ namespace Leem.Testify.SummaryView.ViewModel
 {
     public class CoverageViewModel : TreeViewItemViewModel
     {
-        private readonly ReadOnlyCollection<ModuleViewModel> _modules;
+        private readonly ObservableCollection<ModuleViewModel> _modules;
 
-        public CoverageViewModel(Leem.Testify.Poco.CodeModule[] modules)
+        public CoverageViewModel(Leem.Testify.Poco.CodeModule[] modules,TestifyContext context)
         {
-            _modules = new ReadOnlyCollection<ModuleViewModel>(
+            _modules = new ObservableCollection<ModuleViewModel>(
                 (from module in modules
-                 select new ModuleViewModel(module))
+                 select new ModuleViewModel(module,context))
                 .ToList());
         }
 
@@ -20,7 +20,7 @@ namespace Leem.Testify.SummaryView.ViewModel
 
         public int Level { get; set; }
 
-        public ReadOnlyCollection<ModuleViewModel> Modules
+        public ObservableCollection<ModuleViewModel> Modules
         {
             get { return _modules; }
         }

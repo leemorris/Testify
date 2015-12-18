@@ -1,5 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using EnvDTE;
+using EnvDTE80;
+using Leem.Testify.Poco;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Editor;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,14 +11,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using EnvDTE;
-using EnvDTE80;
-using Leem.Testify.Poco;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text.Editor;
 using Window = EnvDTE.Window;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Leem.Testify.UnitTestAdornment
 {
@@ -26,34 +23,27 @@ namespace Leem.Testify.UnitTestAdornment
         private readonly IAdornmentLayer _layer;
         private ITestifyQueries _queries;
 
-
         public UnitTestSelector(double ypos, UnitTestAdornment coveredLineInfo, IAdornmentLayer layer, TestifyContext context)
         {
             _layer = layer;
-            string HeavyCheckMark = ((char) (0x2714)).ToString();
-            string HeavyMultiplicationSign = ((char) (0x2716)).ToString();
+            string HeavyCheckMark = ((char)(0x2714)).ToString();
+            string HeavyMultiplicationSign = ((char)(0x2716)).ToString();
 
             var myResourceDictionary = new ResourceDictionary();
             myResourceDictionary.Source =
                 new Uri("/Testify;component/UnitTestAdornment/ResourceDictionary.xaml",
                     UriKind.RelativeOrAbsolute);
 
-            var backgroundBrush = (Brush) myResourceDictionary["BackgroundBrush"];
-            var borderBrush = (Brush) myResourceDictionary["BorderBrush"];
-            var textBrush = (Brush) myResourceDictionary["TextBrush"];
+            var backgroundBrush = (Brush)myResourceDictionary["BackgroundBrush"];
+            var borderBrush = (Brush)myResourceDictionary["BorderBrush"];
+            var textBrush = (Brush)myResourceDictionary["TextBrush"];
             if (brush == null)
             {
-                brush = (Brush) myResourceDictionary["BackgroundBrush"];
-                //brush.Freeze();
-                var penBrush = (Brush) myResourceDictionary["BorderBrush"];
-                //penBrush.Freeze(); Can't be frozen because it is a Dynamic Resource
+                brush = (Brush)myResourceDictionary["BackgroundBrush"];
+                var penBrush = (Brush)myResourceDictionary["BorderBrush"];
                 solidPen = new Pen(penBrush, 0.5);
-                //solidPen.Freeze(); Can't be frozen because it is a Dynamic Resource
                 dashPen = new Pen(penBrush, 0.5);
-                //dashPen.DashStyle = DashStyles.Dash;
-                //dashPen.Freeze(); Can't be frozen because it is a Dynamic Resource
             }
-
 
             var tb = new TextBlock();
             tb.Text = " ";
@@ -66,14 +56,14 @@ namespace Leem.Testify.UnitTestAdornment
             postGrid.RowDefinitions.Add(new RowDefinition());
             var cEdge = new ColumnDefinition();
             cEdge.Width = new GridLength(1, GridUnitType.Auto);
-            var cEdge2 = new ColumnDefinition {Width = new GridLength(19, GridUnitType.Star)};
+            var cEdge2 = new ColumnDefinition { Width = new GridLength(19, GridUnitType.Star) };
             postGrid.ColumnDefinitions.Add(cEdge);
             postGrid.ColumnDefinitions.Add(new ColumnDefinition());
             postGrid.ColumnDefinitions.Add(cEdge2);
             var rect = new Rectangle();
 
             rect.Fill = brush;
-            rect.Stroke = (Brush) myResourceDictionary["BorderBrush"];
+            rect.Stroke = (Brush)myResourceDictionary["BorderBrush"];
 
             var inf = new Size(double.PositiveInfinity, double.PositiveInfinity);
             tb.Measure(inf);
@@ -85,7 +75,7 @@ namespace Leem.Testify.UnitTestAdornment
             postGrid.Children.Add(rect);
             double desiredSize = 0;
 
-            var header = new Label {Foreground = textBrush, Background = backgroundBrush, BorderBrush = borderBrush};
+            var header = new Label { Foreground = textBrush, Background = backgroundBrush, BorderBrush = borderBrush };
 
             Grid.SetRow(header, 0);
             Grid.SetColumn(header, 1);
@@ -99,7 +89,7 @@ namespace Leem.Testify.UnitTestAdornment
             {
                 TestMethod test = sortedTestMethods.ElementAt(i);
                 postGrid.RowDefinitions.Add(new RowDefinition());
-                var icon = new Label {Background = backgroundBrush, BorderBrush = borderBrush, FocusVisualStyle = null};
+                var icon = new Label { Background = backgroundBrush, BorderBrush = borderBrush, FocusVisualStyle = null };
                 if (test.IsSuccessful)
                 {
                     icon.Content = HeavyCheckMark;
@@ -163,10 +153,9 @@ namespace Leem.Testify.UnitTestAdornment
             _layer.RemoveAllAdornments();
         }
 
-
         private void TestName_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            string unitTestMethodName = ((TextBox) sender).Text;
+            string unitTestMethodName = ((TextBox)sender).Text;
             _queries = TestifyQueries.Instance;
             int line = 0;
             const int column = 1;
@@ -177,7 +166,7 @@ namespace Leem.Testify.UnitTestAdornment
             var unitTest = _queries.GetUnitTestByName(unitTestMethodName).FirstOrDefault();
             string filePath = unitTest.FilePath;
             line = unitTest.LineNumber;
-            var dte = Package.GetGlobalService(typeof (DTE)) as DTE2;
+            var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
 
             if (!string.IsNullOrEmpty(filePath) && filePath != string.Empty && !dte.ItemOperations.IsFileOpen(filePath))
             {
@@ -198,7 +187,6 @@ namespace Leem.Testify.UnitTestAdornment
                     }
                 }
             }
-
             else
             {
                 for (int i = 1; i <= dte.Windows.Count; i++)
@@ -219,7 +207,7 @@ namespace Leem.Testify.UnitTestAdornment
             window.Activate();
             var selection = window.Document.DTE.ActiveDocument.Selection as TextSelection;
             var adjustedLineNumber = line - 1;
-            adjustedLineNumber = adjustedLineNumber < 1 ? 1: adjustedLineNumber;
+            adjustedLineNumber = adjustedLineNumber < 1 ? 1 : adjustedLineNumber;
             selection.MoveToLineAndOffset(adjustedLineNumber, column, true);
 
             selection.SelectLine();

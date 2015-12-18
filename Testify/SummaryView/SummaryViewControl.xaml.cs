@@ -14,6 +14,7 @@ namespace Leem.Testify.SummaryView
         private TestifyCoverageWindow _parent;
         private bool wasCalledForMethod;
         //private readonly ILog Log = LogManager.GetLogger(typeof(SummaryViewControl));
+        private TestifyContext _context;
 
         public SummaryViewControl(TestifyCoverageWindow parent)
         {
@@ -21,33 +22,61 @@ namespace Leem.Testify.SummaryView
             _parent = parent;
             _queries = TestifyQueries.Instance;
 
+
             if (TestifyQueries.SolutionName != null)
             {
-                //Todo make this async
-                Task<CoverageViewModel> coverageViewModel = GetSummariesAsync();
-                coverageViewModel.Wait();
-                base.DataContext = coverageViewModel.Result;
-                if (coverageViewModel.Result.Modules.Count > 0)
-                {
-                    treeGrid.DataContext = coverageViewModel.Result;
-                }
-                else
-                {
-                    base.Content = "Waiting for Solution to be Built";
-                }
+                _context = new TestifyContext(TestifyQueries.SolutionName);
+                _queries.ClassChanged += ClassChanged;
+                //using (var context = new TestifyContext(TestifyQueries.SolutionName))
+                //{
+                      //Todo make this async
+                BuildCoverageViewModel();
+                //}
+              
             }
             else
             {
-                base.DataContext = new SummaryViewModel();
+                base.DataContext = new SummaryViewModel(_context);
             }
         }
 
-        private async Task<CoverageViewModel> GetSummariesAsync()
+        private void BuildCoverageViewModel()
         {
-            Poco.CodeModule[] modules = _queries.GetModules();
-            var coverageViewModel = new CoverageViewModel(modules);
+            var coverageViewModel = GetSummaries(_context);
+  
+            
+            if (coverageViewModel.Modules.Count > 0)
+            {
+                //treeGrid.DataContext = null;
+                this.Dispatcher.Invoke((Action)(() =>
+                {
+                    base.DataContext = coverageViewModel;
+                    treeGrid.DataContext = coverageViewModel;
+                }));
+            }
+            else
+            {
+                base.Content = "Waiting for Solution to be Built";
+            }
+        }
+
+        private CoverageViewModel GetSummaries(TestifyContext context)
+        {
+            Poco.CodeModule[] modules = _queries.GetModules(context);
+            var coverageViewModel = new CoverageViewModel(modules,context);
 
             return coverageViewModel;
+        }
+
+        protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
+        {
+            _context = new TestifyContext(TestifyQueries.SolutionName);
+            if(e.ChangedClasses.Count>0)
+            {
+                 BuildCoverageViewModel();
+
+            }
+           
         }
 
         private void ItemDoubleClicked(object sender, RoutedEventArgs e)

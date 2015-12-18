@@ -4,17 +4,19 @@
     {
         private readonly Poco.CodeModule _module;
         private readonly ITestifyQueries _queries;
+        private TestifyContext _context;
 
         public ModuleViewModel()
         {
             _module = new Poco.CodeModule { Summary = new Poco.Summary() };
         }
 
-        public ModuleViewModel(Poco.CodeModule module)
+        public ModuleViewModel(Poco.CodeModule module, TestifyContext context)
             : base(null, true)
         {
             _module = module;
             _queries = TestifyQueries.Instance;
+            _context = context;
         }
 
         public string Name
@@ -65,9 +67,9 @@
 
         protected override void LoadChildren()
         {
-            var codeClasses = _queries.GetClasses(_module);
+            var codeClasses = _queries.GetClasses(_module, _context);
             foreach (var codeClass in codeClasses)
-                base.Children.Add(new ClassViewModel(codeClass, this));
+                base.Children.Add(new ClassViewModel(codeClass, this, _context));
         }
 
         public int Level { get { return 3; } }

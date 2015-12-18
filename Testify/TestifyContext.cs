@@ -1,16 +1,20 @@
-﻿using System;
-using System.Data.Entity;
-using System.IO;
-using Leem.Testify.Poco;
-using System.Data.SqlServerCe;
-using System.Data.Entity.ModelConfiguration.Conventions;
+﻿using Leem.Testify.Poco;
 using log4net;
+using System;
+using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration.Conventions;
+using System.Data.SqlServerCe;
+using System.IO;
 
 namespace Leem.Testify
 {
     public class TestifyContext : DbContext
     {
-        public TestifyContext() : base("name=TestifyDb") { }
+        public TestifyContext()
+            : base("name=TestifyDb")
+        {
+        }
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(TestifyContext));
 
         public TestifyContext(string solutionName)
@@ -36,15 +40,7 @@ namespace Leem.Testify
 
         public DbSet<TestQueue> TestQueue { get; set; }
 
-        //public DbSet<TrackedMethod> TrackedMethods { get; set; }
-
-        //public DbSet<UnitTest> UnitTests { get; set; }
-
-
         public DbSet<TestMethod> TestMethods { get; set; }
-
-
-        //public DbSet<Config> Configuration { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -63,7 +59,7 @@ namespace Leem.Testify
                 .HasKey(x => x.CodeClassId);
 
             modelBuilder.Entity<CodeMethod>()
-                .HasKey(x => x.CodeMethodId);  
+                .HasKey(x => x.CodeMethodId);
 
             modelBuilder.Entity<Project>()
                 .HasKey(x => x.UniqueName);
@@ -73,35 +69,32 @@ namespace Leem.Testify
 
             modelBuilder.Entity<CoveredLine>()
                 .HasKey(y => y.CoveredLineId)
-                .HasRequired(m=>m.Method)
+                .HasRequired(m => m.Method)
                 .WithMany()
                 .WillCascadeOnDelete(true);
-
-  
         }
 
-        private static string GetConnectionString(string solutionName) 
+        private static string GetConnectionString(string solutionName)
         {
             var hashCode = solutionName.GetHashCode();
             hashCode = hashCode > 0 ? hashCode : -hashCode;
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName),hashCode.ToString(), "TestifyCE.sdf;password=lactose");
+            var path = Path.Combine(directory, "Testify", Path.GetFileNameWithoutExtension(solutionName), hashCode.ToString(), "TestifyCE.sdf;password=lactose");
 
             // Set connection string
-           string connectionString = string.Format("Data Source={0}", path);
-           return connectionString;
+            string connectionString = string.Format("Data Source={0}", path);
+            Log.DebugFormat("ConnectionString = {0}", connectionString);
+            return connectionString;
         }
 
         public class MyConfiguration : DbConfiguration
         {
             public MyConfiguration()
             {
-
                 SetProviderServices(
                     System.Data.Entity.SqlServerCompact.SqlCeProviderServices.ProviderInvariantName,
                     System.Data.Entity.SqlServerCompact.SqlCeProviderServices.Instance);
             }
         }
     }
-
 }

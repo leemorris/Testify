@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using log4net;
 using OpenCover.Framework;
-using OpenCover.Framework.Utility;
-using log4net;
-using System.ServiceProcess;
-using System.IO;
-using System.Diagnostics;
 using OpenCover.Framework.Manager;
+using OpenCover.Framework.Utility;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using OpenCover;
-
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Leem.Testify
 {
@@ -21,7 +16,7 @@ namespace Leem.Testify
         public string ProjectName { get; set; }
         public string TestProjectName { get; set; }
     }
-    
+
     public class OpenCoverLauncher
     {
         public OpenCoverLauncher(string[] args)
@@ -35,11 +30,10 @@ namespace Leem.Testify
             {
                 parser.ExtractAndValidateArguments();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 var x = 4;
             }
-        
 
             string outputFile;
             IPerfCounters perfCounter = new NullPerfCounter();
@@ -70,7 +64,6 @@ namespace Leem.Testify
                     {
                         int x = 6;
                     }
-                    
 
                     string serviceAccountName = GetServiceAccountName(parser.Target);
                     if (serviceAccountName.StartsWith(@".\"))
@@ -114,7 +107,6 @@ namespace Leem.Testify
                     //ar servicePrincipal =
                     //profilerManager.RunProcess(args, servicePrincipal);
                     //DisplayResults(persistance, parser, logger);
-
                 }
                 catch (Exception ex)
                 {
@@ -127,14 +119,10 @@ namespace Leem.Testify
                         ProfilerRegistration.Unregister(parser.Registration);
                 }
             }
-
-
-
         }
 
         //private static void RunService(CommandLineParser parser, Action<StringDictionary> environment, ILog logger)
         //{
-
         //    var entry = GetServiceKey(parser.Target);
         //    var isServiceDisabled =  (int)entry.GetValue("Start") == 4;
 
@@ -148,7 +136,6 @@ namespace Leem.Testify
         //    var service = new ServiceController(parser.Target);
         //    try
         //    {
-
         //        if (service.Status != ServiceControllerStatus.Stopped)
         //        {
         //            logger.ErrorFormat(
@@ -310,9 +297,6 @@ namespace Leem.Testify
         //    logger.InfoFormat("Service stopped '{0}'", parser.Target);
         //}
 
-
-
-
         public int LaunchCoverage(string[] args)
         {
             var returnCode = 0;
@@ -330,7 +314,6 @@ namespace Leem.Testify
 
                 using (var container = new Bootstrapper(logger))
                 {
-
                     var persistance = new CoverageSessionPersistance(parser, logger);
                     container.Initialise(filter, parser, persistance, perfCounter);
                     //persistance.Initialise(outputFile);
@@ -364,7 +347,6 @@ namespace Leem.Testify
                         //                       }, servicePrincipal);
 
                         //DisplayResults(persistance, parser, logger);
-
                     }
                     catch (Exception ex)
                     {
@@ -464,7 +446,6 @@ namespace Leem.Testify
                 filter.AddFilter("-[Microsoft.VisualBasic]*");
             }
 
-
             if (parser.Filters.Count == 0 && string.IsNullOrEmpty(parser.FilterFile))
             {
                 filter.AddFilter("+[*]*");
@@ -507,5 +488,4 @@ namespace Leem.Testify
                     GetSearchPaths(expandedTargetDir).Select(dir => Path.Combine(dir.Trim('"'), expandedTargetName)).FirstOrDefault(File.Exists) ?? expandedTargetName;
         }
     }
-
 }

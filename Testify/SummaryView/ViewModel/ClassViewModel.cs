@@ -4,12 +4,14 @@
     {
         internal readonly Poco.CodeClass _class;
         private readonly ITestifyQueries _queries;
+        private TestifyContext _context;
 
-        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule)
-            : base(parentModule, true)
+        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule,TestifyContext context)
+            : base(parentModule, (codeClass.Methods.Count > 0))
         {
             _class = codeClass;
             _queries = TestifyQueries.Instance;
+            _context = context;
         }
 
         public string Name
@@ -64,7 +66,7 @@
 
         protected override void LoadChildren()
         {
-            foreach (Poco.CodeMethod method in _queries.GetMethods(_class))
+            foreach (Poco.CodeMethod method in _queries.GetMethods(_class, _context))
                 base.Children.Add(new MethodViewModel(method, this));
         }
 

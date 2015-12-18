@@ -1,6 +1,5 @@
 ﻿using EnvDTE;
 using EnvDTE80;
-using ICSharpCode.NRefactory.TypeSystem;
 using Leem.Testify.SummaryView;
 using log4net;
 using log4net.Appender;
@@ -13,11 +12,8 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Timers;
-
 
 namespace Leem.Testify
 {
@@ -32,7 +28,6 @@ namespace Leem.Testify
     // This attribute registers a tool window exposed by this package.
     [ProvideToolWindow(typeof(TestifyCoverageWindow))]
     [ProvideToolWindow(typeof(UnitTestSelectorWindow), Style = VsDockStyle.AlwaysFloat, Window = "9197e117-9175-482a-9a0a-44f9af4f11f1")]
-
     [ProvideToolWindowVisibility(typeof(TestifyCoverageWindow), /*UICONTEXT_SolutionExists*/"f1536ef8-92ec-443c-9ed7-fdadf150da82")]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
     [Guid(GuidList.GuidTestifyPkgString)]
@@ -53,7 +48,6 @@ namespace Leem.Testify
         private bool isDatabaseValid = false;
         private readonly ILog _log = LogManager.GetLogger(typeof(TestifyPackage));
 
-
         public TestifyPackage()
         {
             _log.DebugFormat(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString());
@@ -72,9 +66,8 @@ namespace Leem.Testify
 
                 AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
                 _log.DebugFormat("DataDirectory = {0}", AppDomain.CurrentDomain.GetData("DataDirectory"));
-                _timer = new System.Timers.Timer {Interval = 10000, Enabled = true, AutoReset = true};
+                _timer = new System.Timers.Timer { Interval = 10000, Enabled = true, AutoReset = true };
                 _timer.Elapsed += new ElapsedEventHandler(ProcessTestQueue);
- 
             }
             catch (Exception ex)
             {
@@ -83,31 +76,6 @@ namespace Leem.Testify
         }
 
         public delegate void CoverageChangedEventHandler(string className, string methodName);
-
-        //private void CheckForDatabase(string databasePath)
-        //{
-        //    _log.DebugFormat("CheckForDatabase: {0}", databasePath);
-        //    if (!File.Exists(databasePath))
-        //    {
-        //        _log.ErrorFormat("Database was not found");
-
-        //        // Get copy of blank database from the VSIX folder
-        //        string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
-        //        try
-        //        {
-        //            _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-        //            File.Copy(initialDatabasePath.ToString(), databasePath);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _log.ErrorFormat("Error Copying database " + ex.Message);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _log.DebugFormat("Database was found");
-        //    }
-        //}
 
         private void CheckForDatabase(string databasePath)
         {
@@ -121,25 +89,23 @@ namespace Leem.Testify
                     {
                         if (context.Database.CompatibleWithModel(throwIfNoMetadata: true))
                         {
-                             _log.DebugFormat("Database was found and is compatible");
-                             isDatabaseValid = true;
-                            return; 
+                            _log.DebugFormat("Database was found and is compatible");
+                            isDatabaseValid = true;
+                            return;
                         }
                     }
                     catch
                     {
-                         _log.DebugFormat("Database was found and but is not compatible");
+                        _log.DebugFormat("Database was found and but is not compatible");
                     }
                 }
-                
-                    // Write new database
-                    string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
-                    _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
-                    File.Copy(initialDatabasePath.ToString(), databasePath,true);
-                    isDatabaseValid = true;
- 
-            }
 
+                // Write new database
+                string initialDatabasePath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location) + @"\TestifyCE.sdf";
+                _log.ErrorFormat("Copying database from {0} to {1}", initialDatabasePath, databasePath);
+                File.Copy(initialDatabasePath.ToString(), databasePath, true);
+                isDatabaseValid = true;
+            }
         }
 
         private string GetProjectOutputBuildFolder(EnvDTE.Project proj)
@@ -213,19 +179,14 @@ namespace Leem.Testify
 
         private void ProcessTestQueue(object source, ElapsedEventArgs e)
         {
-            if (_service != null &&  isDatabaseValid )
+            if (_service != null && isDatabaseValid)
             {
-
                 _service.ProcessTestQueue(++_testRunId);
             }
-
         }
-
-
 
         private async void VerifyProjects(IVsSolution solution, string projectName)
         {
-            //List<EnvDTE.Project> vsProjects = new List<EnvDTE.Project>();
             if (_queries == null)
             {
                 object solutionName;
@@ -235,19 +196,17 @@ namespace Leem.Testify
                 TestifyQueries.SolutionName = Path.Combine(Path.GetDirectoryName(_solutionName), Path.GetFileNameWithoutExtension(_solutionName));
             }
 
-
             var pocoProjects = new List<Poco.Project>();
 
             foreach (EnvDTE.Project project in _dte.Solution.Projects)
             {
                 if (projectName == string.Empty || project.UniqueName.Equals(projectName))
                 {
-
                     _documentEvents = _dte.Events.DocumentEvents;
                     _documentEvents.DocumentSaved += new _dispDocumentEvents_DocumentSavedEventHandler(this.OnDocumentSaved);
                     _documentEvents.DocumentOpening += new _dispDocumentEvents_DocumentOpeningEventHandler(this.OnDocumentOpening);
                     var outputPath = GetProjectOutputBuildFolder(project);
-                    var assemblyName = GetProjectPropertyByName(project.Properties,"AssemblyName");
+                    var assemblyName = GetProjectPropertyByName(project.Properties, "AssemblyName");
 
                     _log.DebugFormat("Verify project name: {0}", project.Name);
                     _log.DebugFormat("  outputPath: {0}", outputPath);
@@ -260,48 +219,17 @@ namespace Leem.Testify
                         UniqueName = project.UniqueName,
                     };
 
-
-                    if (!string.IsNullOrWhiteSpace(outputPath)) 
+                    if (!string.IsNullOrWhiteSpace(outputPath))
                     {
                         // don't overwrite Path with Empty string
                         newProject.Path = outputPath;
                     }
                     pocoProjects.Add(newProject);
-
-
                 }
             }
 
-
-
             _queries.MaintainProjects(pocoProjects);
         }
-
-
-
-
-
-
-
-
-        //public void VerifyProjects(EnvDTE.Project project)
-        //{
-        //    var projects = new List<Poco.Project>();
-        //    var outputPath = GetProjectOutputBuildFolder(project);
-        //    var assemblyName = GetProjectPropertyByName(project.Properties, "AssemblyName");
-
-        //    projects.Add(new Poco.Project
-        //    {
-        //        Name = project.Name,
-        //        AssemblyName = assemblyName,
-        //        UniqueName = project.UniqueName,
-        //        Path = outputPath
-        //    });
-        //    _queries = TestifyQueries.Instance;
-        //    TestifyQueries.SolutionName = _dte.Solution.FullName;
-
-        //    _queries.MaintainProjects(projects);
-        //}
 
         private void ConfigureLogging(FileInfo file)
         {
@@ -459,15 +387,15 @@ namespace Leem.Testify
         {
             var project = document.ProjectItem;
             _queries.AddTestsCoveringFileToTestQueue(document.FullName, project.ContainingProject);
-
         }
-        private void OnDocumentOpening(string documentPath,bool isReadOnly)
+
+        private void OnDocumentOpening(string documentPath, bool isReadOnly)
         {
-            _log.DebugFormat("OnDocumentOpening fired for {0}",documentPath);
+            _log.DebugFormat("OnDocumentOpening fired for {0}", documentPath);
             //var project = document.ProjectItem;
             //_queries.AddToTestQueue(project.ContainingProject.UniqueName);
-
         }
+
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the
         /// tool window. See the Initialize method to see how the menu item is associated to
@@ -483,17 +411,15 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-             window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
-
         public void ShowUnitTestToolWindow(object sender, EventArgs e)
         {
-           
-            TEST(sender,e);
+            TEST(sender, e);
             //// Get the instance number 0 of this tool window. This window is single instance so this instance
             //// is actually the only one.
             //// The last flag is set to true so that if the tool window does not exists it will be created.
@@ -507,10 +433,10 @@ namespace Leem.Testify
             //IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             //Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
-        public void TEST(object sender, EventArgs e)
-         {
 
-                  IVsUIShell vsUIShell = (IVsUIShell)Package.GetGlobalService(typeof(SVsUIShell));
+        public void TEST(object sender, EventArgs e)
+        {
+            IVsUIShell vsUIShell = (IVsUIShell)Package.GetGlobalService(typeof(SVsUIShell));
 
             IVsWindowFrame frame;
 
@@ -519,13 +445,9 @@ namespace Leem.Testify
             vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref guidToolWindow2, out frame);
 
             frame.SetProperty((int)__VSFPROPID.VSFPROPID_FrameMode, VSFRAMEMODE.VSFM_Float);
-          
 
             frame.Show();
         }
-
-
-
 
         /////////////////////////////////////////////////////////////////////////////
         // Overridden Package Implementation
@@ -566,8 +488,6 @@ namespace Leem.Testify
                 CommandID toolwndCommandID = new CommandID(GuidList.GuidTestifyCmdSet, (int)PkgCmdIDList.cmdidTestTool);
                 MenuCommand menuToolWin = new MenuCommand(ShowCoverageToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
-
-  
             }
         }
 
@@ -610,6 +530,7 @@ namespace Leem.Testify
         }
 
         #endregion Package Members
+
         #region Interface Methods
 
         public Project GetProject(string projectUniqueName)
@@ -664,11 +585,11 @@ namespace Leem.Testify
             _log.DebugFormat("Solution Opened: {0}", _solutionName);
             _service = new UnitTestService(_dte, _solutionDirectory, _solutionName);
             var appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var fullPath = Path.Combine(_solutionDirectory,_solutionName);
+            var fullPath = Path.Combine(_solutionDirectory, _solutionName);
             var hashCode = fullPath.GetHashCode();
             hashCode = hashCode > 0 ? hashCode : -hashCode;
             var databasePath = GetDatabasePath(appDataDirectory, hashCode);
-           
+
             CheckForDatabase(databasePath);
 
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -679,11 +600,11 @@ namespace Leem.Testify
             projectTestsMenuCommand.Enabled = true;
 
             // Setup Project Build Event Handler
- 
+
             var projectEvents = ((Events2)_dte.Events).BuildEvents;
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
 
-            VerifyProjects(solution,string.Empty);
+            VerifyProjects(solution, string.Empty);
             _queries.SetAllQueuedTestsToNotRunning();
             return VSConstants.S_OK;
         }
@@ -748,10 +669,8 @@ namespace Leem.Testify
                 _log.DebugFormat("Project Build Successful for project name: {0}", project);
 
                 _queries.AddToTestQueue(project);
-
             }
             sw.Stop();
-
         }
 
         private IVsSolution SetSolutionValues()
@@ -765,6 +684,7 @@ namespace Leem.Testify
             _solutionName = solutionFile.Replace(".sln", string.Empty);// Path.GetFileNameWithoutExtension(solutionFile);
             return pSolution;
         }
+
         #endregion Interface Methods
     }
 }

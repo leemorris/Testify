@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using EnvDTE;
+using Leem.Testify.Poco;
+using log4net;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using EnvDTE;
-using Leem.Testify.Poco;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Formatting;
 using Task = System.Threading.Tasks.Task;
-using log4net;
-using System.Threading.Tasks;
 
 namespace Leem.Testify
 {
@@ -40,34 +37,30 @@ namespace Leem.Testify
         private bool _isDisposed;
         private const int _marginWidth = 18;
         private TestifyContext _context;
-
+        private bool _isTestClass;
 
         public CoverageMargin(IWpfTextViewHost textViewHost, SVsServiceProvider serviceProvider,
             ICoverageProviderBroker coverageProviderBroker)
         {
-           
             ITextDocument document;
             _textViewHost = textViewHost;
 
             //create a canvas to hold the margin UI and set its properties
             _marginCanvas = new Canvas();
 
-            _dte = (DTE) serviceProvider.GetService(typeof (DTE));
+            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
             Task.Run(() => CreateCoverageMargin(serviceProvider, coverageProviderBroker));
-
-
         }
 
         private void CreateCoverageMargin(SVsServiceProvider serviceProvider, ICoverageProviderBroker coverageProviderBroker)
         {
-
             _documentName = CoverageProvider.GetFileName(_textViewHost.TextView.TextBuffer);
 
             _codeMarkManager = new CodeMarkManager();
 
             _coverageProvider = coverageProviderBroker.GetCoverageProvider(_textViewHost.TextView, _dte, serviceProvider, _context);
 
-            _context = new TestifyContext(_coverageProvider.SolutionName.Replace(".sln",string.Empty));
+            _context = new TestifyContext(_coverageProvider.SolutionName.Replace(".sln", string.Empty));
             _coverageProvider.Context = _context;
             _textViewHost.TextView.LayoutChanged += TextViewLayoutChanged;
 
@@ -96,28 +89,23 @@ namespace Leem.Testify
                 _codeMarks = GetAllCodeMarksForMargin(_context);
 
                 UpdateCodeMarks(_coverageProvider.GetCoveredLines(_textViewHost.TextView, _context));
-
-                
-
             }));
-
         }
+
         private void TextViewClosed(object sender, EventArgs e)
         {
             _coverageProvider.WasClosed = true;
         }
 
-        public void Subscribe(TestifyQueries queries)
-        {
-            queries.ClassChanged += CoverageChanged;
-        }
+        //public void Subscribe(TestifyQueries queries)
+        //{
+        //    queries.ClassChanged += CoverageChanged;
+        //}
 
         private void CoverageChanged(object sender, ClassChangedEventArgs e)
         {
             throw new NotImplementedException();
         }
-        
-
 
         private List<CodeMark> GetAllCodeMarksForMargin(TestifyContext context)
         {
@@ -149,7 +137,7 @@ namespace Leem.Testify
         private void TextViewGotAggregateFocus(object sender, EventArgs e)
         {
             _log.DebugFormat("TextViewGotAggregateFocus - FIRED");
-            _coverageProvider.RecreateCoverage((IWpfTextView) sender,_context);
+            _coverageProvider.RecreateCoverage((IWpfTextView)sender, _context);
 
             UpdateCodeMarks();
         }
@@ -161,8 +149,8 @@ namespace Leem.Testify
 
         private void TextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            // Only add to Queue when the File is SAVED, not when the 
-           // TextBuffer changes. Otherwise, I have to SAVE the file and I'm not sure this is the right thing to do.
+            // Only add to Queue when the File is SAVED, not when the
+            // TextBuffer changes. Otherwise, I have to SAVE the file and I'm not sure this is the right thing to do.
             // If the TextBuffer isn't saved, the Build and Test won't actually test the changes the user just made.
 
             //if (e.Changes.IncludesLineChanges)
@@ -179,7 +167,7 @@ namespace Leem.Testify
             TextPoint textPoint = GetCursorTextPoint();
 
             CodeElement codeElement = GetMethodFromTextPoint(textPoint);
-            
+
             ProjectItem projectItem = _dte.ActiveDocument.ProjectItem;
 
             BuildAndRunTests(textPoint, codeElement, projectItem);
@@ -199,7 +187,7 @@ namespace Leem.Testify
                         IndividualTest = codeElement.FullName,
                         QueuedDateTime = DateTime.Now
                     };
-                    RunTestsThatCoverElement( textPoint, codeElement, projectItem);
+                    RunTestsThatCoverElement(textPoint, codeElement, projectItem);
                 }
                 else
                 {
@@ -208,9 +196,6 @@ namespace Leem.Testify
                 }
             }
         }
-
-
-
 
         private void ThrowIfDisposed()
         {
@@ -261,37 +246,31 @@ namespace Leem.Testify
                             x => x.LineNumber.Equals(lineNumber));
 
                     bool isCovered = coveredLines.TryGetValue(lineNumber + 1, out coveredLine);
-                    //if (coveredLine != null)
-                    //{
-                    //    var isSuccessfulFromDatabase = coveredLine.IsSuccessful;
-                    //    //coveredLine.IsCovered = coveredLine.TestMethods.Any();
-                    //    var isSuccessful = coveredLine.IsCovered && coveredLine.TestMethods.All(x => x.IsSuccessful);
-                    //    coveredLine.IsSuccessful = isSuccessful;
-                       
-                    //}
 
                     var text = g.Extent.GetText();
 
-                    if (text.Trim().StartsWith("[Test")) 
+                    if (text.Trim().StartsWith("[Test"))
                     {
                         //apparentLineNumber--;
                     }
-                    if (g.Extent.IsEmpty == false && isCovered && text != "\t\t#endregion" )
+                    if (g.Extent.IsEmpty == false && isCovered && text != "\t\t#endregion")
                     {
-
                         Debug.WriteLine("Text for Line # " + (lineNumber + 1) + " = " + text);
 
-                        //double yPos = (_textViewHost.TextView.ZoomLevel / 100) * (apparentLineNumber - 1) * _textViewHost.TextView.LineHeight + (.1 * _textViewHost.TextView.LineHeight); // GetYCoordinateForBookmark(coveredLine);
                         double yPos = (_textViewHost.TextView.ZoomLevel / 100) * ((accumulatedHeight - minLineHeight) + (.1 * _textViewHost.TextView.LineHeight)); // GetYCoordinateForBookmark(coveredLine);
 
-                        if (coveredLine.Class.CodeModule.AssemblyName.EndsWith(".Test") || text.Contains("=>"))
+                        if (coveredLine.Class.CodeModule.AssemblyName.EndsWith(".Test"))
+                        {
+                            _isTestClass = true;
+                        }
+                        if (_isTestClass || text.Contains("=>"))
                         {
                             // remove the branch icon from Unit Tests, the icon doesn't make sense
                             // lines containing Linq expressions are marked as Branches, lets remove that
                             coveredLine.IsBranch = false;
                         }
-                            
-                        var glyph = CreateCodeMarkGlyph(coveredLine, yPos, _context);
+
+                        var glyph = CreateCodeMarkGlyph(coveredLine, yPos, _context, _isTestClass);
 
                         _marginCanvas.Children.Add(glyph);
                     }
@@ -301,10 +280,10 @@ namespace Leem.Testify
             _log.DebugFormat("UpdateCodeMarks = {0} ms", sw.ElapsedMilliseconds);
         }
 
-        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos, TestifyContext context)
+        private CodeMarkGlyph CreateCodeMarkGlyph(CoveredLine line, double yPos, TestifyContext context, bool isTestClass)
         {
             // create a glyph
-            var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos, context);
+            var glyph = new CodeMarkGlyph(_textViewHost.TextView, line, yPos, context, isTestClass);
 
             // position it
             Canvas.SetTop(glyph, yPos);
@@ -317,10 +296,9 @@ namespace Leem.Testify
                 tooltip.AppendFormat("Click to see Tests \nCovering Tests:\t {0}", line.TestMethods.Count);
                 glyph.ToolTip = tooltip.ToString();
             }
-    
+
             return glyph; // so we have the glyph now
         }
-
 
         // adjust y position for boundaries
         private double AdjustYCoordinateForBoundaries(double position)
@@ -343,7 +321,6 @@ namespace Leem.Testify
             return GetYCoordinateFromLineNumber(line.LineNumber);
         }
 
-
         // calculate y position from the line number
         private double GetYCoordinateFromLineNumber(int lineNumber)
         {
@@ -351,7 +328,7 @@ namespace Leem.Testify
 
             double lineHeight = _textViewHost.TextView.LineHeight;
 
-            double yPosition = (lineNumber - firstLineNumber)*lineHeight;
+            double yPosition = (lineNumber - firstLineNumber) * lineHeight;
 
             return Math.Max(yPosition, 0); // final position and return it
         }
@@ -401,7 +378,6 @@ namespace Leem.Testify
             return null;
         }
 
-
         private TextPoint GetCursorTextPoint()
         {
             TextPoint textPoint = null;
@@ -417,23 +393,21 @@ namespace Leem.Testify
             return textPoint;
         }
 
-
         private CodeElements GetCodeElementMembers(CodeElement objCodeElement)
         {
             CodeElements colCodeElements = default(CodeElements);
 
-
             if (objCodeElement is CodeNamespace)
             {
-                colCodeElements = ((CodeNamespace) objCodeElement).Members;
+                colCodeElements = ((CodeNamespace)objCodeElement).Members;
             }
             else if (objCodeElement is CodeType)
             {
-                colCodeElements = ((CodeType) objCodeElement).Members;
+                colCodeElements = ((CodeType)objCodeElement).Members;
             }
             else if (objCodeElement is CodeFunction)
             {
-                colCodeElements = ((CodeFunction) objCodeElement).Parameters;
+                colCodeElements = ((CodeFunction)objCodeElement).Parameters;
             }
 
             return colCodeElements;
@@ -456,7 +430,7 @@ namespace Leem.Testify
             }
         }
 
-        #endregion
+        #endregion IWpfTextViewMargin Members
 
         #region ITextViewMargin Members
 
@@ -500,6 +474,6 @@ namespace Leem.Testify
             }
         }
 
-        #endregion
+        #endregion ITextViewMargin Members
     }
 }

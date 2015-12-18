@@ -6,7 +6,6 @@
              mc:Ignorable="d"
              d:DesignHeight="16" d:DesignWidth="16" Background="Transparent">
     <UserControl.Resources>
-
     </UserControl.Resources>
     <Canvas x:Name="LayoutRoot">
         <Grid>
@@ -19,7 +18,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
             </Ellipse>
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top"  FontWeight="SemiBold" x:Name="GlyphCharacter"/>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top"  FontWeight="SemiBold" x:Name="GlyphCharacter" />
         </Grid>
     </Canvas>
 </UserControl>

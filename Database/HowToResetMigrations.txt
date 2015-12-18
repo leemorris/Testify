@@ -16,25 +16,21 @@ Update-Database -script
 
 DROP TABLE [TestQueue];
 GO
-DROP TABLE [CodeClass];
-GO
-DROP TABLE [CodeMethod];
-GO
-DROP TABLE [Summary];
-GO
-
 DROP TABLE [CoveredLineTestMethod];
 GO
 DROP TABLE [CoveredLine];
 GO
 DROP TABLE [TestMethod];
 GO
-
-DROP TABLE [CodeModule];
-GO
-
 DROP TABLE [TestProject];
 GO
 DROP TABLE [Project];
 GO
-
+DROP TABLE [CodeMethod];
+GO
+DROP TABLE [CodeClass];
+GO
+DROP TABLE [CodeModule];
+GO
+DROP TABLE [Summary];
+GO

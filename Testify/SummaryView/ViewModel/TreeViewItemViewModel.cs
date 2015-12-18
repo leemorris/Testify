@@ -36,6 +36,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         // This is used to create the DummyChild instance.
         internal TreeViewItemViewModel()
         {
+            _children = new ObservableCollection<TreeViewItemViewModel>();
         }
 
         #endregion Constructors

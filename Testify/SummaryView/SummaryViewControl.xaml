@@ -37,7 +37,7 @@
                         <ColumnDefinition SharedSizeGroup="column1" />
                         <ColumnDefinition SharedSizeGroup="column2" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Name}" />
+                    <!--<TextBlock Text="{Binding Name}" />-->
 
                     <Rectangle Grid.Column="1">
                         <Rectangle.Width>

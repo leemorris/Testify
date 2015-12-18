@@ -3,11 +3,13 @@ using Leem.Testify.Model;
 using Leem.Testify.Poco;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace Leem.Testify
 {
     public interface ITestifyQueries
     {
+        event EventHandler<ClassChangedEventArgs> ClassChanged;
         void AddToTestQueue(string projectName);
 
         QueuedTest GetIndividualTestQueue(int testRunId);
@@ -29,19 +31,15 @@ namespace Leem.Testify
 
         void SetAllQueuedTestsToNotRunning();
 
-        CodeModule[] GetModules();
+        CodeModule[] GetModules(TestifyContext context);
 
-        IEnumerable<CodeClass> GetClasses(CodeModule module);
+        IEnumerable<CodeClass> GetClasses(CodeModule module, TestifyContext context);
 
-        IEnumerable<CodeMethod> GetMethods(CodeClass _class);
+        IEnumerable<CodeMethod> GetMethods(CodeClass _class, TestifyContext context);
 
         void UpdateCodeMethodPath(TestifyContext context, CodeMethodInfo methodInfo, Dictionary<string, CodeMethod> codeMethodDictionary);
 
         string ConvertUnitTestFormatToFormatTrackedMethod(string testMethodName);
-
-        //void RemoveMissingClasses(Module moduleModule, List<string> currentClassNames, List<TrackedMethodMap> trackedMethodUnitTestMapper);
-
-        //void RemoveMissingMethods(Module moduleModule, List<string> currentMethodNames, List<TrackedMethodMap> trackedMethodUnitTestMapper);
 
         CodeMethod GetMethod(string clickedMethodName);
 

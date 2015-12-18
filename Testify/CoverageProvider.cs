@@ -2,13 +2,10 @@
 using Leem.Testify.Poco;
 using log4net;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,7 +16,6 @@ namespace Leem.Testify
 {
     public class CoverageProvider
     {
-
         private readonly ILog _log = LogManager.GetLogger(typeof(CoverageProvider));
         private Dictionary<int, CoveredLine> _coveredLines;
         private readonly DTE _dte;
@@ -58,22 +54,21 @@ namespace Leem.Testify
 
             _log.DebugFormat("Creating CoverageProvider - For First Time");
             _documentName = GetFileName(textView.TextBuffer);
-
-            //RebuildCoverage(textView.TextBuffer.CurrentSnapshot, _documentName, context);
         }
-        public TestifyContext Context {  set { _context = value; } }
+
+        public TestifyContext Context { set { _context = value; } }
         public TestifyQueries Queries { get; private set; }
+
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
         public string SolutionName { get; set; }
+
         protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
         {
-
             if (_coveredLines.Any(x => e.ChangedClasses.Contains(x.Value.Class.Name)))
             {
-                _context = new TestifyContext(SolutionName);
-                // _isContextDirty = true;
+                _context = new TestifyContext(SolutionName.Replace(".sln", string.Empty));
                 _coveredLines = Queries.GetCoveredLinesForDocument(_context, _documentName).ToDictionary(x => x.LineNumber);
-
             }
         }
 
@@ -90,7 +85,6 @@ namespace Leem.Testify
             return null;
         }
 
-
         private void RebuildCoverage(ITextSnapshot snapshotObject, string documentName, TestifyContext context)
         {
             var sw = Stopwatch.StartNew();
@@ -99,7 +93,7 @@ namespace Leem.Testify
             {
                 _IsRebuilding = true;
                 _documentName = documentName;
-                //_log.DebugFormat("RebuildCoverage - Document: {0}", documentName);
+
                 ITextSnapshot snapshot = snapshotObject;
 
                 if (_dte != null && _dte.ActiveDocument != null)
@@ -121,12 +115,10 @@ namespace Leem.Testify
                         {
                             GetCoveredLinesFromCodeModel(fcm, documentName);
                         }
-
                     }
 
                     _currentVersion = snapshot.Version.VersionNumber;
                 }
-
             }
             catch (Exception ex)
             {
@@ -138,11 +130,9 @@ namespace Leem.Testify
 
         public FileCodeModel GetFileCodeModel(string documentName)
         {
-            
             FileCodeModel fcm = null;
             if (_dte.ActiveDocument != null && _dte.ActiveDocument.ProjectItem != null)
             {
-
                 var projectItem = FindProjectItemInProject(_dte.ActiveDocument.ProjectItem.ContainingProject,
                     documentName, true);
 
@@ -165,45 +155,21 @@ namespace Leem.Testify
             IList<CodeElement> methods;
             var getCodeBlocksSw = Stopwatch.StartNew();
 
-           // CodeModelService.GetCodeBlocks(fcm, out classes, out methods);
-            //CodeModelService.GetCodeBlocks(fcm, out classes);
             _log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
             var coveredLines = new List<CoveredLine>();
 
             IEnumerable<CoveredLine> lines;
             var solutionName = fcm.DTE.Solution.FullName;
-            //using (var context = new TestifyContext(solutionName))
-            //{
-                //if (classes.Count > 0)
-                //{
-                    _log.Debug("Getting CoveredLines from Database");
-                    //lines = Queries.GetCoveredLines(context, classes.First().FullName).ToList();
-            //if(_isContextDirty)
-            //{
-            //    _context = new TestifyContext(SolutionName);
-            //    _isContextDirty = false;
-            //}
 
-                    lines = Queries.GetCoveredLinesForDocument(_context, documentName).ToList();
-                //}
-                //else
-                //{
-                //    // the count of "classes' will be zero if the user closed the Solution and the FileCodeModel was disposed
-                //    // just return an empty list because we are essentially terminated.
-                //    lines = new List<CoveredLine>();
-                //}
+            _log.Debug("Getting CoveredLines from Database");
 
-            //}
-
-            //_log.DebugFormat("Queries.GetCoveredLines Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
+            lines = Queries.GetCoveredLinesForDocument(_context, documentName).ToList();
 
             var addRangeSw = Stopwatch.StartNew();
             coveredLines.AddRange(lines);
 
             sw.Stop();
 
-            //_log.DebugFormat("Get Covered lines from Classes Elapsed Time {0} Number of Classes {1}",
-            //    sw.ElapsedMilliseconds, classes.Count());
             var lockAndLoadSw = Stopwatch.StartNew();
             lock (_coveredLines)
             {
@@ -211,23 +177,14 @@ namespace Leem.Testify
                 {
                     int lineNumber = line.LineNumber;
 
-                    //bool isAdded = _coveredLines.TryAdd(lineNumber, line);
+                    CoveredLine currentValue;
 
-                   // if (!isAdded)
-                   // {
-                        CoveredLine currentValue;
-
-                        //_coveredLines.TryGetValue(lineNumber, out currentValue);
-
-                        //_coveredLines.TryUpdate(line.LineNumber, line,currentValue );
-
-                        _coveredLines[lineNumber] = line;
-                    //}
+                    _coveredLines[lineNumber] = line;
                 }
-                var linesToBeRemoved= new List<int>();
+                var linesToBeRemoved = new List<int>();
                 foreach (var line in _coveredLines)
-                { 
-                    if(!coveredLines.Any(x=>x.LineNumber== line.Value.LineNumber))
+                {
+                    if (!coveredLines.Any(x => x.LineNumber == line.Value.LineNumber))
                     {
                         linesToBeRemoved.Add(line.Key);
                     }
@@ -239,7 +196,6 @@ namespace Leem.Testify
                 _HasCoveredLinesBeenInitialized = true;
                 _IsRebuilding = false;
             }
-            //_log.DebugFormat("Update _coveredLInes Elapsed Time {0}", lockAndLoadSw.ElapsedMilliseconds);
         }
 
         private ProjectItem FindProjectItemInProject(Project project, string name, bool recursive)
@@ -306,12 +262,8 @@ namespace Leem.Testify
                 || WasClosed
                 || WasUpdated)
             {
-                _log.DebugFormat("Recreating Coverage " );
-                //using (var context1 = new TestifyContext(_dte.Solution.FullName))
-                //{
-                    RecreateCoverage(view, context);
-                //}
-               
+                _log.DebugFormat("Recreating Coverage ");
+                RecreateCoverage(view, context);
                 WasClosed = false;
             }
 

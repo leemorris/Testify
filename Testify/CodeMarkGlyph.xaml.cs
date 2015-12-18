@@ -1,21 +1,21 @@
-﻿using System;
+﻿using Leem.Testify.Poco;
+using Leem.Testify.UnitTestAdornment;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using System;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Leem.Testify.Poco;
-using Leem.Testify.UnitTestAdornment;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Leem.Testify
 {
     public partial class CodeMarkGlyph : UserControl
     {
-
         private readonly CoveredLine _coveredLine;
         private readonly IWpfTextView _view;
         private TestifyContext _context;
+
         public CodeMarkGlyph(TestifyContext context)
         {
             _context = context;
@@ -25,14 +25,17 @@ namespace Leem.Testify
             MouseRightButtonDown += CodeMarkGlyph_MouseRightButtonDown;
         }
 
-        public CodeMarkGlyph(IWpfTextView view, CoveredLine line, double yPosition, TestifyContext context)
+        public CodeMarkGlyph(IWpfTextView view, CoveredLine line, double yPosition, TestifyContext context, bool isTestClass)
             : this(context)
         {
             YPosition = yPosition;
+            var lineHeight = (view.LineHeight * view.ZoomLevel / 100);
+            var largeGlyphHeight = lineHeight * .4;
+            var glyphHeight = isTestClass ? largeGlyphHeight : lineHeight * .6;
+
             this._view = view;
             _coveredLine = line;
-            Ellipse.Height = (view.LineHeight * view.ZoomLevel/100) * .8;
-            Ellipse.Width = Ellipse.Height;
+
             if ((!line.IsCovered && line.IsCode) || (line.IsBranch && line.IsSuccessful && line.BranchCoverage < 100))
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Orange);
@@ -47,6 +50,11 @@ namespace Leem.Testify
             {
                 Ellipse.Fill = new SolidColorBrush(Colors.Red);
                 Ellipse.Stroke = new SolidColorBrush(Colors.Red);
+                if (line.FailureLineNumber == line.LineNumber)
+                {
+                    glyphHeight = lineHeight * .8;
+                    this.ToolTip = line.FailureMessage;
+                }
             }
             if (line.IsBranch)
             {
@@ -54,14 +62,12 @@ namespace Leem.Testify
                 GlyphCharacter.Height = 1.25 * Ellipse.Height;
                 GlyphCharacter.FontSize = Math.Round(Ellipse.Height) + 1;
 
-
                 GlyphCharacter.Margin = new System.Windows.Thickness(GlyphCharacter.Height / 10, -GlyphCharacter.Height / 4, 0, 0);
-
-
             }
 
+            Ellipse.Height = glyphHeight;
+            Ellipse.Width = glyphHeight;
         }
-
 
         private double YPosition { get; set; }
 
@@ -72,7 +78,7 @@ namespace Leem.Testify
 
         private void CodeMarkGlyphMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var glyph = (CodeMarkGlyph) sender;
+            var glyph = (CodeMarkGlyph)sender;
             UnitTestAdornmentManager manager = UnitTestAdornmentManager.Create(_view);
 
             //var provider  = Leem.Testify.UnitTestAdornment.UnitTestAdornmentProvider.Create(view);
@@ -87,11 +93,7 @@ namespace Leem.Testify
             {
                 manager.DisplayUnitTestSelector(unitTestAdornment, _context);
             }
-
-
-           
         }
-
 
         private void CodeMarkGlyph_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -99,7 +101,5 @@ namespace Leem.Testify
             //    // call RemoveBookmark function of the manager on right mouse button down event
             //    _coverageManager.RemoveBookmark(BookmarkNumber);
         }
-
-
     }
 }

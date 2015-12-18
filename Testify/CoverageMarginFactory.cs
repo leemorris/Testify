@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System.ComponentModel.Composition;
 
 namespace Leem.Testify
 {
-    [Export(typeof (IWpfTextViewMarginProvider))]
+    [Export(typeof(IWpfTextViewMarginProvider))]
     [Name(CoverageMargin.MarginName)]
     [Order(After = PredefinedMarginNames.Glyph)]
     [MarginContainer(PredefinedMarginNames.Left)]
@@ -13,10 +13,11 @@ namespace Leem.Testify
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class MarginFactory : IWpfTextViewMarginProvider
     {
-        [Import] internal ICoverageProviderBroker CoverageProviderBroker;
+        [Import]
+        internal ICoverageProviderBroker CoverageProviderBroker;
 
-        [Import] internal SVsServiceProvider ServiceProvider;
-
+        [Import]
+        internal SVsServiceProvider ServiceProvider;
 
         public IWpfTextViewMargin CreateMargin(IWpfTextViewHost textViewHost, IWpfTextViewMargin containerMargin)
         {

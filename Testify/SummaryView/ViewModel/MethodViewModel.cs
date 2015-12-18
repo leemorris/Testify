@@ -20,40 +20,40 @@ namespace Leem.Testify.SummaryView.ViewModel
             get
             {
                 var methodName = _method.Name.ToString();
-                string name = methodName.Substring(methodName.LastIndexOf("::") + 2);
+                string name = methodName.Substring(methodName.LastIndexOf(".") + 1);
                 name = name.Replace(".ctor", parent.Name)
                            .Replace(".cctor", parent.Name);
 
-                int startOfParameters = name.IndexOf("(");
-                var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
-                var originalArgumentArray = arguments.Split(',');
-                var outputArgumentArray = new string[originalArgumentArray.Length];
-                for (int i = 0; i < originalArgumentArray.Length; i++)
-                {
-                    var arg = originalArgumentArray[i];
-                    int positionOfLastPeriod = arg.LastIndexOf(".");
-                    string modifiedArgument;
-                    if (positionOfLastPeriod > 0)
-                    {
-                        modifiedArgument = arg.Substring(positionOfLastPeriod + 1, arg.Length - positionOfLastPeriod - 1);
-                    }
-                    else
-                    {
-                        modifiedArgument = arg;
-                    }
+                //int startOfParameters = name.IndexOf("(");
+                //var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
+                //var originalArgumentArray = arguments.Split(',');
+                //var outputArgumentArray = new string[originalArgumentArray.Length];
+                //for (int i = 0; i < originalArgumentArray.Length; i++)
+                //{
+                //    var arg = originalArgumentArray[i];
+                //    int positionOfLastPeriod = arg.LastIndexOf(".");
+                //    string modifiedArgument;
+                //    if (positionOfLastPeriod > 0)
+                //    {
+                //        modifiedArgument = arg.Substring(positionOfLastPeriod + 1, arg.Length - positionOfLastPeriod - 1);
+                //    }
+                //    else
+                //    {
+                //        modifiedArgument = arg;
+                //    }
 
-                    outputArgumentArray[i] = modifiedArgument.Replace(">", string.Empty)
-                                                             .Replace("`1<", " ")
-                                                             .Replace("Int32", "int");
-                }
+                //    outputArgumentArray[i] = modifiedArgument.Replace(">", string.Empty)
+                //                                             .Replace("`1<", " ")
+                //                                             .Replace("Int32", "int");
+                //}
 
-                var result = new StringBuilder();
-                result.Append(name.Substring(0, startOfParameters));
-                result.Append("(");
-                result.Append(String.Join(", ", outputArgumentArray));
-                result.Append(")");
+                //var result = new StringBuilder();
+                //result.Append(name.Substring(0, startOfParameters));
+                //result.Append("(");
+                //result.Append(String.Join(", ", outputArgumentArray));
+                //result.Append(")");
 
-                return result.ToString();
+                return name;
             }
         }
 

@@ -1,29 +1,28 @@
-﻿//using Microsoft.VisualStudio.Text.Editor;
+﻿using EnvDTE;
+using log4net;
+
+//using Microsoft.VisualStudio.Text.Editor;
 //using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
-using System.Linq;
-using EnvDTE;
-using EnvDTE80;
 using System.Diagnostics;
-using log4net;
+using System.Linq;
 
 namespace Leem.Testify
 {
     public static class CodeModelService
     {
         private static ILog _log = LogManager.GetLogger(typeof(CodeModelService));
+
         public static void GetCodeBlocks(FileCodeModel fcm, out IList<CodeElement> classes)
         {
             var sw = Stopwatch.StartNew();
 
-   
             var _classes = new List<CodeElement>();
 
             try
             {
                 foreach (CodeElement element in fcm.CodeElements)
                 {
-
                     if (element.Kind == vsCMElement.vsCMElementNamespace)
                     {
                         foreach (CodeElement classElement in element.Children)
@@ -32,7 +31,6 @@ namespace Leem.Testify
                             {
                                 _classes.Add(classElement);
                             }
-
                         }
                     }
                 }
@@ -43,10 +41,8 @@ namespace Leem.Testify
             }
             _log.DebugFormat("GetCodeBlocks = {0} ms", sw.ElapsedMilliseconds);
 
-
             classes = _classes != null ? _classes.ToList() : new List<CodeElement>();
         }
-
 
         public static void GetCodeBlocks(FileCodeModel fcm, out IList<CodeElement> classes,
             out IList<CodeElement> methods)
@@ -60,7 +56,6 @@ namespace Leem.Testify
             {
                 foreach (CodeElement element in fcm.CodeElements)
                 {
-
                     if (element.Kind == vsCMElement.vsCMElementNamespace)
                     {
                         foreach (CodeElement classElement in element.Children)
@@ -77,7 +72,6 @@ namespace Leem.Testify
                                     _methods.Add(method);
                                 }
                             }
-
                         }
                     }
                 }
@@ -91,7 +85,5 @@ namespace Leem.Testify
 
             classes = _classes != null ? _classes.ToList() : new List<CodeElement>();
         }
-
-      
     }
 }

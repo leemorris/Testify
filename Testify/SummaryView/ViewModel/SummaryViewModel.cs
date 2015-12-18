@@ -11,7 +11,7 @@ namespace Leem.Testify.SummaryView.ViewModel
     {
         private ITestifyQueries queries;
 
-        public SummaryViewModel()
+        public SummaryViewModel( TestifyContext context)
         {
             var module = new Poco.CodeModule
             {
@@ -22,19 +22,19 @@ namespace Leem.Testify.SummaryView.ViewModel
 
             var moduleArray = new Poco.CodeModule[] { module };
             Items = new ObservableCollection<SummaryViewModel>();
-            Items.Add(new SummaryViewModel(moduleArray));
+            Items.Add(new SummaryViewModel(moduleArray,context));
         }
 
-        private readonly ReadOnlyCollection<ModuleViewModel> _modules;
+        private readonly ObservableCollection<ModuleViewModel> _modules;
 
-        public ReadOnlyCollection<ModuleViewModel> Modules
+        public ObservableCollection<ModuleViewModel> Modules
         {
             get { return _modules; }
         }
 
         private ObservableCollection<SummaryViewModel> _items;
 
-        public SummaryViewModel(Poco.CodeModule[] modules)
+        public SummaryViewModel(Poco.CodeModule[] modules, TestifyContext context)
         {
             var numSequencePoints = modules.Sum(x => x.Summary.NumSequencePoints);
             var numBranchPoints = modules.Sum(x => x.Summary.NumBranchPoints);
@@ -60,9 +60,9 @@ namespace Leem.Testify.SummaryView.ViewModel
                 (from module in modules
                  select new SummaryViewModel(module))
                 .ToList());
-            _modules = new ReadOnlyCollection<ModuleViewModel>(
+            _modules = new ObservableCollection<ModuleViewModel>(
                 (from module in modules
-                 select new ModuleViewModel(module))
+                 select new ModuleViewModel(module, context))
                 .ToList());
         }
 
