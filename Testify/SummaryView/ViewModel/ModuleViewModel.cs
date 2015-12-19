@@ -1,22 +1,27 @@
-﻿namespace Leem.Testify.SummaryView.ViewModel
+﻿using System.Threading;
+using System.Linq;
+
+namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ModuleViewModel : TreeViewItemViewModel
     {
-        private readonly Poco.CodeModule _module;
+        private Poco.CodeModule _module;
         private readonly ITestifyQueries _queries;
         private TestifyContext _context;
+        private SynchronizationContext _uiContext;
 
         public ModuleViewModel()
         {
             _module = new Poco.CodeModule { Summary = new Poco.Summary() };
         }
 
-        public ModuleViewModel(Poco.CodeModule module, TestifyContext context)
+        public ModuleViewModel(Poco.CodeModule module, TestifyContext context, SynchronizationContext uiContext)
             : base(null, true)
         {
             _module = module;
             _queries = TestifyQueries.Instance;
             _context = context;
+            _uiContext = uiContext;
         }
 
         public string Name
@@ -69,9 +74,16 @@
         {
             var codeClasses = _queries.GetClasses(_module, _context);
             foreach (var codeClass in codeClasses)
-                base.Children.Add(new ClassViewModel(codeClass, this, _context));
+                base.Children.Add(new ClassViewModel(codeClass, this, _context,_uiContext));
         }
 
         public int Level { get { return 3; } }
+
+        internal void UpdateCoverage()
+        {
+            _module = _context.CodeModule.FirstOrDefault(x => x.Name.EndsWith(this.Name));
+            _uiContext.Send(x => base.OnPropertyChanged("SequenceCoverage"), null);
+            _uiContext.Send(x => base.OnPropertyChanged("BranchCoverage"), null);
+        }
     }
 }

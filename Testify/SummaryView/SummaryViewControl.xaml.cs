@@ -2,6 +2,7 @@
 using EnvDTE80;
 using Leem.Testify.SummaryView.ViewModel;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,18 +16,20 @@ namespace Leem.Testify.SummaryView
         private bool wasCalledForMethod;
         //private readonly ILog Log = LogManager.GetLogger(typeof(SummaryViewControl));
         private TestifyContext _context;
+        private CoverageViewModel _coverageViewModel;
+        private SynchronizationContext _uiContext;
 
         public SummaryViewControl(TestifyCoverageWindow parent)
         {
             InitializeComponent();
             _parent = parent;
             _queries = TestifyQueries.Instance;
-
+            _uiContext = SynchronizationContext.Current;
 
             if (TestifyQueries.SolutionName != null)
             {
                 _context = new TestifyContext(TestifyQueries.SolutionName);
-                _queries.ClassChanged += ClassChanged;
+
                 //using (var context = new TestifyContext(TestifyQueries.SolutionName))
                 //{
                       //Todo make this async
@@ -42,16 +45,17 @@ namespace Leem.Testify.SummaryView
 
         private void BuildCoverageViewModel()
         {
-            var coverageViewModel = GetSummaries(_context);
-  
-            
-            if (coverageViewModel.Modules.Count > 0)
+            _coverageViewModel = GetSummaries(_context);
+            _coverageViewModel.UiContext = _uiContext;
+
+
+            if (_coverageViewModel.Modules.Count > 0)
             {
                 //treeGrid.DataContext = null;
                 this.Dispatcher.Invoke((Action)(() =>
                 {
-                    base.DataContext = coverageViewModel;
-                    treeGrid.DataContext = coverageViewModel;
+                    base.DataContext = _coverageViewModel;
+                    treeGrid.DataContext = _coverageViewModel;
                 }));
             }
             else
@@ -63,21 +67,12 @@ namespace Leem.Testify.SummaryView
         private CoverageViewModel GetSummaries(TestifyContext context)
         {
             Poco.CodeModule[] modules = _queries.GetModules(context);
-            var coverageViewModel = new CoverageViewModel(modules,context);
+            var coverageViewModel = new CoverageViewModel(modules,context,_uiContext);
 
             return coverageViewModel;
         }
 
-        protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
-        {
-            _context = new TestifyContext(TestifyQueries.SolutionName);
-            if(e.ChangedClasses.Count>0)
-            {
-                 BuildCoverageViewModel();
 
-            }
-           
-        }
 
         private void ItemDoubleClicked(object sender, RoutedEventArgs e)
         {

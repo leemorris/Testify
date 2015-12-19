@@ -62,7 +62,7 @@ namespace Leem.Testify.SummaryView.ViewModel
                 .ToList());
             _modules = new ObservableCollection<ModuleViewModel>(
                 (from module in modules
-                 select new ModuleViewModel(module, context))
+                 select new ModuleViewModel(module, context,base.UiContext))
                 .ToList());
         }
 

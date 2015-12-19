@@ -154,5 +154,6 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         #endregion INotifyPropertyChanged Members
+        public System.Threading.SynchronizationContext UiContext { get; set; }
     }
 }

@@ -1,17 +1,25 @@
-﻿namespace Leem.Testify.SummaryView.ViewModel
+﻿using System;
+using System.Threading;
+using System.Linq;
+
+namespace Leem.Testify.SummaryView.ViewModel
 {
     public class ClassViewModel : TreeViewItemViewModel
     {
-        internal readonly Poco.CodeClass _class;
+        internal Poco.CodeClass _class;
         private readonly ITestifyQueries _queries;
         private TestifyContext _context;
-
-        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule,TestifyContext context)
+        private SynchronizationContext _uiContext;
+        private ModuleViewModel _parent;
+        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule, TestifyContext context, SynchronizationContext uiContext)
             : base(parentModule, (codeClass.Methods.Count > 0))
         {
             _class = codeClass;
             _queries = TestifyQueries.Instance;
             _context = context;
+            _queries.ClassChanged += ClassChanged;
+            _uiContext = uiContext;
+            _parent = parentModule;
         }
 
         public string Name
@@ -71,5 +79,33 @@
         }
 
         public int Level { get { return 2; } }
+
+        protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
+        {
+            foreach (var entity in _context.ChangeTracker.Entries())
+            {
+                entity.Reload();
+            }
+            foreach (var clas in e.ChangedClasses)
+            {
+                if (clas.EndsWith(this.Name))
+                {
+                    if(base.Children.Count>0)
+                    {
+                        _uiContext.Send(x => base.Children.Clear(), null); 
+                    }
+                    _uiContext.Send(x => LoadChildren(), null);
+                    _class = _context.CodeClass.FirstOrDefault(x => x.Name.EndsWith(this.Name));
+                    _uiContext.Send(x => base.OnPropertyChanged("SequenceCoverage"), null);
+                    _uiContext.Send(x => base.OnPropertyChanged("BranchCoverage"), null);
+                    _parent.UpdateCoverage();
+                   
+                 
+                }
+            }
+            
+
+
+        }
     }
 }
