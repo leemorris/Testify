@@ -1015,9 +1015,9 @@ namespace Leem.Testify
                 codeMethodDictionary.TryGetValue(methodInfo.RawMethodName, out matchingMethod);
 
                 if (matchingMethod != null
-                    && matchingMethod.FileName != methodInfo.FileName
-                    && matchingMethod.Line != methodInfo.Line
-                    && matchingMethod.Column != methodInfo.Column)
+                    && (matchingMethod.FileName != methodInfo.FileName
+                    || matchingMethod.Line != methodInfo.Line
+                    || matchingMethod.Column != methodInfo.Column))
                 {
                     matchingMethod.FileName = methodInfo.FileName;
                     matchingMethod.Line = methodInfo.Line;

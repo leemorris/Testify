@@ -76,7 +76,7 @@ namespace Leem.Testify
         }
 
         public delegate void CoverageChangedEventHandler(string className, string methodName);
-
+        public delegate void NewSolutionOpenedEventHandler();
         private void CheckForDatabase(string databasePath)
         {
             using (var context = new TestifyContext(_solutionName))
@@ -411,8 +411,16 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
+            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+
+            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+                   
+            var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey) ;
+            var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
+            
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, colorBrush);
+            
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
@@ -549,7 +557,27 @@ namespace Leem.Testify
         }
 
         public int OnAfterCloseSolution(object pUnkReserved)
-        { return VSConstants.E_NOTIMPL; }
+        {
+            // Get the instance number 0 of this tool window. This window is single instance so this instance
+            // is actually the only one.
+            // The last flag is set to true so that if the tool window does not exists it will be created.
+            ToolWindowPane window = FindToolWindow(typeof(TestifyCoverageWindow), 0, true);
+            if ((null == window) || (null == window.Frame))
+            {
+                throw new NotSupportedException(Resources.CanNotCreateWindow);
+            }
+            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+
+            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+
+            var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey);
+            var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
+
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, colorBrush);
+
+           
+            return VSConstants.S_OK;
+        }
 
         public int OnAfterClosingChildren(IVsHierarchy pHierarchy)
         { return VSConstants.E_NOTIMPL; }

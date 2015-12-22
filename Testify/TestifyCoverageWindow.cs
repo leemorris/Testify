@@ -2,6 +2,8 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.ComponentModel.Composition;
 
 namespace Leem.Testify
 {
@@ -17,12 +19,15 @@ namespace Leem.Testify
     [Guid("36c4a332-1b9b-49ce-9e45-da8bd399092c")]
     public class TestifyCoverageWindow : ToolWindowPane
     {
+        private IVsUIShell5 _shell5;
+
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary>
         public TestifyCoverageWindow() :
             base(null)
         {
+            Initialize();
             // Set the window title reading it from the resources.
             this.Caption = Resources.ToolWindowCodeCoverage;
             // Set the image that will appear on the tab of the window frame
@@ -33,10 +38,24 @@ namespace Leem.Testify
             this.BitmapResourceID = 301;
             this.BitmapIndex = 1;
 
+
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
-            base.Content = new SummaryViewControl(this);
+
+            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+
+            var themeColor = VsColors.GetThemedWPFColor(_shell5, themeRespourceKey);
+            var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
+
+            base.Content = new SummaryViewControl(this, colorBrush);
+           
+        }
+
+        protected override void Initialize()
+        {
+            _shell5 = Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell5;
+
         }
     }
 }

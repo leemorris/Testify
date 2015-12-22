@@ -2,14 +2,18 @@
 using EnvDTE80;
 using Leem.Testify.SummaryView.ViewModel;
 using System;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
+using System.Windows.Media;
 
 namespace Leem.Testify.SummaryView
 {
-    public partial class SummaryViewControl : UserControl
+    public partial class SummaryViewControl// : UserControl
     {
         private ITestifyQueries _queries;
         private TestifyCoverageWindow _parent;
@@ -18,23 +22,42 @@ namespace Leem.Testify.SummaryView
         private TestifyContext _context;
         private CoverageViewModel _coverageViewModel;
         private SynchronizationContext _uiContext;
+        private System.Windows.Media.SolidColorBrush _brush;
+        private string _backgroundColor;
+        //private IVsUIShell5 shell5;
+        //public SummaryViewControl(TestifyCoverageWindow parent, System.Windows.Media.SolidColorBrush brush)
+        //    : this(parent)
+        //{
+        //    InitializeComponent();
+        //    _parent = parent;
+        //    //_brush = brush;
+        //    BuildCoverageViewModel();
+        //}
 
-        public SummaryViewControl(TestifyCoverageWindow parent)
+        public SummaryViewControl(TestifyCoverageWindow parent, SolidColorBrush brush)
         {
             InitializeComponent();
             _parent = parent;
             _queries = TestifyQueries.Instance;
             _uiContext = SynchronizationContext.Current;
+            _brush = brush;
+        
+            if(_brush == null)
+            {
+                var myResourceDictionary = new ResourceDictionary();
+                myResourceDictionary.Source =
+                new Uri("/Testify;component/TestifyResourceDictionary.xaml",
+                    UriKind.RelativeOrAbsolute);
+                _brush = (System.Windows.Media.SolidColorBrush)myResourceDictionary["BackgroundBrush"];
+            }
+
 
             if (TestifyQueries.SolutionName != null)
             {
                 _context = new TestifyContext(TestifyQueries.SolutionName);
 
-                //using (var context = new TestifyContext(TestifyQueries.SolutionName))
-                //{
-                      //Todo make this async
                 BuildCoverageViewModel();
-                //}
+ 
               
             }
             else
@@ -42,25 +65,29 @@ namespace Leem.Testify.SummaryView
                 base.DataContext = new SummaryViewModel(_context);
             }
         }
-
+      
         private void BuildCoverageViewModel()
         {
             _coverageViewModel = GetSummaries(_context);
             _coverageViewModel.UiContext = _uiContext;
-
-
+          
             if (_coverageViewModel.Modules.Count > 0)
             {
-                //treeGrid.DataContext = null;
                 this.Dispatcher.Invoke((Action)(() =>
                 {
+                    this.Background = _brush;
+                    base.Background = _brush;
+                    //treeGrid.Background = _brush;
                     base.DataContext = _coverageViewModel;
-                    treeGrid.DataContext = _coverageViewModel;
+                   
+                    //treeGrid.DataContext = _coverageViewModel;
+
+                  
                 }));
             }
             else
             {
-                base.Content = "Waiting for Solution to be Built";
+               // base.Content = "Waiting for Solution to be Built";
             }
         }
 

@@ -31,7 +31,7 @@ namespace Leem.Testify.UnitTestAdornment
 
             var myResourceDictionary = new ResourceDictionary();
             myResourceDictionary.Source =
-                new Uri("/Testify;component/UnitTestAdornment/ResourceDictionary.xaml",
+                new Uri("/Testify;component/TestifyResourceDictionary.xaml",
                     UriKind.RelativeOrAbsolute);
 
             var backgroundBrush = (Brush)myResourceDictionary["BackgroundBrush"];

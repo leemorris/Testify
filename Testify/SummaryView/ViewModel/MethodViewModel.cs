@@ -21,11 +21,16 @@ namespace Leem.Testify.SummaryView.ViewModel
             {
                 var methodName = _method.Name.ToString();
                 string name = methodName.Substring(methodName.LastIndexOf(".") + 1);
-                name = name.Replace(".ctor", parent.Name)
-                           .Replace(".cctor", parent.Name);
+                name = name.Replace("ctor(", parent.Name + "(")
+                           .Replace("cctor(", parent.Name + "(");
 
-                //int startOfParameters = name.IndexOf("(");
-                //var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
+                int startOfParameters = name.IndexOf("(");
+                var arguments = name.Substring(startOfParameters + 1, name.IndexOf(")") - name.IndexOf("(") - 1);
+                if (arguments.Length > 30)
+                {
+                    var truncatedArguments = arguments.Substring(0, 27) + "...";
+                    name = name.Replace(arguments, truncatedArguments);
+                }
                 //var originalArgumentArray = arguments.Split(',');
                 //var outputArgumentArray = new string[originalArgumentArray.Length];
                 //for (int i = 0; i < originalArgumentArray.Length; i++)

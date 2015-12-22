@@ -4,32 +4,61 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Leem.Testify"
     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+    xmlns:vs_shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.12.0"
+
     xmlns:summaryView="clr-namespace:Leem.Testify.SummaryView"
-    xmlns:viewModel="clr-namespace:Leem.Testify.SummaryView.ViewModel">
+    xmlns:viewModel="clr-namespace:Leem.Testify.SummaryView.ViewModel"
+  
+  
+    >
+
+    <!--<UserControl.Resources>
+        <ResourceDictionary Source="../TestifyResourceDictionary.xaml" />
+        
+    </UserControl.Resources>-->
+
     <Grid Grid.IsSharedSizeScope="True"
-          Name="treeGrid">
+          Name="treeGrid"
+          Background="{DynamicResource BackgroundBrush}">
+
+
 
         <Grid.Resources>
+            <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../TestifyResourceDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
             <summaryView:LevelConverter x:Key="levelConverter" />
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="FontWeight" Value="Normal" />
+                    <EventSetter Event="MouseDoubleClick" Handler="ItemDoubleClicked" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+
+
             <!--
             This Style binds a TreeViewItem to a TreeViewItemViewModel.
             -->
-            <Style TargetType="{x:Type TreeViewItem}">
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                <Setter Property="FontWeight" Value="Normal" />
-                <EventSetter Event="MouseDoubleClick" Handler="ItemDoubleClicked" />
-                <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="FontWeight" Value="Bold" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
 
-            <HierarchicalDataTemplate DataType="{x:Type viewModel:TreeViewItemViewModel}"
+
+
+            <HierarchicalDataTemplate   DataType="{x:Type viewModel:TreeViewItemViewModel}"
                                       ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}">
 
-                <Grid ShowGridLines="False">
+                <Grid x:Name="treeViewGrid" ShowGridLines="False">
+
+
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="rowHeaderColumn" />
@@ -37,7 +66,8 @@
                         <ColumnDefinition SharedSizeGroup="column1" />
                         <ColumnDefinition SharedSizeGroup="column2" />
                     </Grid.ColumnDefinitions>
-                    <!--<TextBlock Text="{Binding Name}" />-->
+
+
 
                     <Rectangle Grid.Column="1">
                         <Rectangle.Width>
@@ -64,11 +94,32 @@
                     <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"
                                Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45" />
                 </Grid>
+
+                <HierarchicalDataTemplate.Triggers>
+                    <!--<Trigger SourceName="tsssg" Property="IsChecked" Value="True">
+                        <Setter TargetName="pbCoverage" Property="Value" Value="{Binding SequenceCoverage, Mode=OneWay}" />
+                    </Trigger>
+                    <Trigger SourceName="tsssg" Property="IsChecked" Value="False">
+                        <Setter TargetName="pbCoverage" Property="Value" Value="{Binding BranchCoverage, Mode=OneWay}"/>
+                    </Trigger>-->
+                </HierarchicalDataTemplate.Triggers>
             </HierarchicalDataTemplate>
+            </ResourceDictionary>
         </Grid.Resources>
 
-        <!-- Tree view with one item for the header row -->
 
+        <ToggleButton Name="tsssg"
+                Height="20"
+                Width="80"
+                Grid.Column="1"
+                Margin="2,38,79,49"
+                      Visibility="Visible"
+                      Content="dfjalsjf"
+                >
+                    </ToggleButton>
+
+        <!-- Tree view with one item for the header row -->
+        
         <TreeView BorderThickness="0"
 
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -112,4 +163,5 @@
                   BorderThickness="0"
                   ItemsSource="{Binding Modules}" />
     </Grid>
+
 </UserControl>
