@@ -27,6 +27,8 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
 
-      
+
+
+        public System.Windows.Media.SolidColorBrush BackgroundBrush { get; set; }
     }
 }

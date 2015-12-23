@@ -412,14 +412,14 @@ namespace Leem.Testify
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
 
-            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+            //IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
 
-            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+            //var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
                    
-            var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey) ;
-            var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
-            
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, colorBrush);
+            //var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey) ;
+            //var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
+
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
             
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -566,14 +566,14 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+            //IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
 
-            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+            //var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
 
-            var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey);
-            var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
+            //var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey);
+            //var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
 
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, colorBrush);
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
 
            
             return VSConstants.S_OK;

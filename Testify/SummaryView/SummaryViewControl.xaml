@@ -8,18 +8,19 @@
 
     xmlns:summaryView="clr-namespace:Leem.Testify.SummaryView"
     xmlns:viewModel="clr-namespace:Leem.Testify.SummaryView.ViewModel"
-  
-  
     >
 
-    <!--<UserControl.Resources>
+    <UserControl.Resources>
         <ResourceDictionary Source="../TestifyResourceDictionary.xaml" />
         
-    </UserControl.Resources>-->
+    </UserControl.Resources>
 
     <Grid Grid.IsSharedSizeScope="True"
-          Name="treeGrid"
-          Background="{DynamicResource BackgroundBrush}">
+          Name="treeGrid">
+          <!--Background="{Binding BackgroundBrush}"-->
+    
+          <!--Background=="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"-->
+           <!--Background="{DynamicResource ScrollBarBackgroundBrush}">-->
 
 
 
@@ -32,7 +33,7 @@
             <summaryView:LevelConverter x:Key="levelConverter" />
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource ScrollBarBackgroundBrush}"/>
 
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
@@ -108,7 +109,7 @@
         </Grid.Resources>
 
 
-        <ToggleButton Name="tsssg"
+        <!--<ToggleButton Name="tsssg"
                 Height="20"
                 Width="80"
                 Grid.Column="1"
@@ -116,7 +117,7 @@
                       Visibility="Visible"
                       Content="dfjalsjf"
                 >
-                    </ToggleButton>
+                    </ToggleButton>-->
 
         <!-- Tree view with one item for the header row -->
         
@@ -161,7 +162,8 @@
         <!-- Tree view that will display hierarchical data rows -->
         <TreeView Grid.Row="1"
                   BorderThickness="0"
-                  ItemsSource="{Binding Modules}" />
+                  ItemsSource="{Binding Modules}" 
+                  Background="{DynamicResource ScrollBarBackgroundBrush}"/>
     </Grid>
 
 </UserControl>

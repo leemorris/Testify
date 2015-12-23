@@ -23,7 +23,7 @@ namespace Leem.Testify.SummaryView
         private CoverageViewModel _coverageViewModel;
         private SynchronizationContext _uiContext;
         private System.Windows.Media.SolidColorBrush _brush;
-        private string _backgroundColor;
+        private System.Windows.Media.Color _backgroundColor;
         //private IVsUIShell5 shell5;
         //public SummaryViewControl(TestifyCoverageWindow parent, System.Windows.Media.SolidColorBrush brush)
         //    : this(parent)
@@ -34,22 +34,22 @@ namespace Leem.Testify.SummaryView
         //    BuildCoverageViewModel();
         //}
 
-        public SummaryViewControl(TestifyCoverageWindow parent, SolidColorBrush brush)
+        public SummaryViewControl(TestifyCoverageWindow parent)
         {
             InitializeComponent();
             _parent = parent;
             _queries = TestifyQueries.Instance;
             _uiContext = SynchronizationContext.Current;
-            _brush = brush;
-        
-            if(_brush == null)
-            {
-                var myResourceDictionary = new ResourceDictionary();
-                myResourceDictionary.Source =
-                new Uri("/Testify;component/TestifyResourceDictionary.xaml",
-                    UriKind.RelativeOrAbsolute);
-                _brush = (System.Windows.Media.SolidColorBrush)myResourceDictionary["BackgroundBrush"];
-            }
+            //_brush = brush;
+            //_backgroundColor = backgroundColor;
+            //if(_brush == null)
+            //{
+            //    var myResourceDictionary = new ResourceDictionary();
+            //    myResourceDictionary.Source =
+            //    new Uri("/Testify;component/TestifyResourceDictionary.xaml",
+            //        UriKind.RelativeOrAbsolute);
+            //    _brush = (System.Windows.Media.SolidColorBrush)myResourceDictionary["BackgroundBrush"];
+            //}
 
 
             if (TestifyQueries.SolutionName != null)
@@ -65,19 +65,19 @@ namespace Leem.Testify.SummaryView
                 base.DataContext = new SummaryViewModel(_context);
             }
         }
-      
+        public System.Windows.Media.Color BackgroundColor { get; set; }
         private void BuildCoverageViewModel()
         {
             _coverageViewModel = GetSummaries(_context);
             _coverageViewModel.UiContext = _uiContext;
-          
+            //_coverageViewModel.BackgroundBrush = _brush;
             if (_coverageViewModel.Modules.Count > 0)
             {
                 this.Dispatcher.Invoke((Action)(() =>
                 {
-                    this.Background = _brush;
-                    base.Background = _brush;
-                    //treeGrid.Background = _brush;
+                    //this.Background = new SolidColorBrush(Colors.Pink);
+                    //this.BackgroundColor = Colors.Pink;
+                    ////treeGrid.Background = _brush;
                     base.DataContext = _coverageViewModel;
                    
                     //treeGrid.DataContext = _coverageViewModel;
