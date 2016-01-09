@@ -17,10 +17,11 @@
 
     <Grid Grid.IsSharedSizeScope="True"
           Name="treeGrid">
+      
           <!--Background="{Binding BackgroundBrush}"-->
     
           <!--Background=="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"-->
-           <!--Background="{DynamicResource ScrollBarBackgroundBrush}">-->
+        <!--Background="{DynamicResource BackgroundBrush}">-->
 
 
 
@@ -33,8 +34,8 @@
             <summaryView:LevelConverter x:Key="levelConverter" />
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                    <Setter Property="Background" Value="{DynamicResource ScrollBarBackgroundBrush}"/>
-
+                    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+                  
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="FontWeight" Value="Normal" />
@@ -43,7 +44,15 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="FontWeight" Value="Bold" />
                         </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
+                        </Trigger>
+                        <!--<EventTrigger SourceName="OnLostFocus">
+                            <InvokeCommandAction Command="{Binding WhateverCommand}"/>
+                        </EventTrigger>-->
                     </Style.Triggers>
+
                 </Style>
 
 
@@ -109,15 +118,17 @@
         </Grid.Resources>
 
 
-        <!--<ToggleButton Name="tsssg"
+        <ToggleButton Name="tsssg"
                 Height="20"
                 Width="80"
+                      Grid.Row="1"
                 Grid.Column="1"
                 Margin="2,38,79,49"
+                       Background="Pink"
                       Visibility="Visible"
-                      Content="dfjalsjf"
+                      Content="Sequence/Branch"
                 >
-                    </ToggleButton>-->
+        </ToggleButton>
 
         <!-- Tree view with one item for the header row -->
         
@@ -160,10 +171,12 @@
         </TreeView>
 
         <!-- Tree view that will display hierarchical data rows -->
-        <TreeView Grid.Row="1"
+        <TreeView Grid.Row="2"
                   BorderThickness="0"
                   ItemsSource="{Binding Modules}" 
-                  Background="{DynamicResource ScrollBarBackgroundBrush}"/>
+                  Background="{DynamicResource BackgroundBrush}"/>
+
     </Grid>
+
 
 </UserControl>

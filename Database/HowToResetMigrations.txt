@@ -13,7 +13,8 @@ Add-Migration Initial
 Then create the script for SQL CE
 Update-Database -script
 
-
+DROP TABLE [__MigrationHistory];
+GO
 DROP TABLE [TestQueue];
 GO
 DROP TABLE [CoveredLineTestMethod];
@@ -24,8 +25,6 @@ DROP TABLE [TestMethod];
 GO
 DROP TABLE [TestProject];
 GO
-DROP TABLE [Project];
-GO
 DROP TABLE [CodeMethod];
 GO
 DROP TABLE [CodeClass];
@@ -34,3 +33,13 @@ DROP TABLE [CodeModule];
 GO
 DROP TABLE [Summary];
 GO
+
+DROP TABLE [FolderClosure];
+GO
+DROP TABLE [FolderFolder];
+GO
+DROP TABLE [Folder];
+GO
+DROP TABLE [Project];
+GO
+

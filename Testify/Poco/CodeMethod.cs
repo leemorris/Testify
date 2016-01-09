@@ -1,8 +1,9 @@
 ﻿using Leem.Testify.Model;
+using EntityFramework.Triggers;
 
-namespace Leem.Testify.Poco
+namespace Leem.Testify.Poco 
 {
-    public class CodeMethod
+    public class CodeMethod : ITriggerable
     {
         public CodeMethod()
         {

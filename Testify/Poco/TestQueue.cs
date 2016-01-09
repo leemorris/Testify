@@ -1,8 +1,9 @@
 ﻿using System;
+using EntityFramework.Triggers;
 
 namespace Leem.Testify.Poco
 {
-    public class TestQueue
+    public class TestQueue : ITriggerable
     {
         public int TestQueueId { get; set; }
         public string ProjectName { get; set; }

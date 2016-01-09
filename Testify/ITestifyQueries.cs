@@ -49,5 +49,13 @@ namespace Leem.Testify
 
         void RemoveAllTestsFromQueue();
         string GetParameterList(IList<IUnresolvedParameter> unresolvedParameters);
+
+        void UpdateFolders(List<TestifyPackage.FileFolderInfo> foldermaps, string projectName);
+
+        void AddFolderClosures(int folderId, int parentId, int depth);
+
+        void RemoveFolderClosures(int folderId);
+
+        void AddRootFolderClosure(int folderId);
     }
 }

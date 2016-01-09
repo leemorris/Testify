@@ -24,15 +24,6 @@ namespace Leem.Testify.SummaryView
         private SynchronizationContext _uiContext;
         private System.Windows.Media.SolidColorBrush _brush;
         private System.Windows.Media.Color _backgroundColor;
-        //private IVsUIShell5 shell5;
-        //public SummaryViewControl(TestifyCoverageWindow parent, System.Windows.Media.SolidColorBrush brush)
-        //    : this(parent)
-        //{
-        //    InitializeComponent();
-        //    _parent = parent;
-        //    //_brush = brush;
-        //    BuildCoverageViewModel();
-        //}
 
         public SummaryViewControl(TestifyCoverageWindow parent)
         {
@@ -40,17 +31,6 @@ namespace Leem.Testify.SummaryView
             _parent = parent;
             _queries = TestifyQueries.Instance;
             _uiContext = SynchronizationContext.Current;
-            //_brush = brush;
-            //_backgroundColor = backgroundColor;
-            //if(_brush == null)
-            //{
-            //    var myResourceDictionary = new ResourceDictionary();
-            //    myResourceDictionary.Source =
-            //    new Uri("/Testify;component/TestifyResourceDictionary.xaml",
-            //        UriKind.RelativeOrAbsolute);
-            //    _brush = (System.Windows.Media.SolidColorBrush)myResourceDictionary["BackgroundBrush"];
-            //}
-
 
             if (TestifyQueries.SolutionName != null)
             {
@@ -70,24 +50,17 @@ namespace Leem.Testify.SummaryView
         {
             _coverageViewModel = GetSummaries(_context);
             _coverageViewModel.UiContext = _uiContext;
-            //_coverageViewModel.BackgroundBrush = _brush;
+
             if (_coverageViewModel.Modules.Count > 0)
             {
                 this.Dispatcher.Invoke((Action)(() =>
                 {
-                    //this.Background = new SolidColorBrush(Colors.Pink);
-                    //this.BackgroundColor = Colors.Pink;
-                    ////treeGrid.Background = _brush;
                     base.DataContext = _coverageViewModel;
-                   
-                    //treeGrid.DataContext = _coverageViewModel;
-
-                  
                 }));
             }
             else
             {
-               // base.Content = "Waiting for Solution to be Built";
+                base.Content = "Waiting for Solution to be Built";
             }
         }
 
@@ -98,8 +71,6 @@ namespace Leem.Testify.SummaryView
 
             return coverageViewModel;
         }
-
-
 
         private void ItemDoubleClicked(object sender, RoutedEventArgs e)
         {

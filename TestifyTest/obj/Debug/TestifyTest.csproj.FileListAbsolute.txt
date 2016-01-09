@@ -77,6 +77,8 @@ C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\TestifyTest.pdb
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.dll
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServer.dll
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.dll
+C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.Triggers.dll
+C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.TypedOriginalValues.dll
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\log4net.dll
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\nunit.framework.dll
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\System.Data.SqlServerCe.dll
@@ -94,6 +96,8 @@ C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\Testify.pdb
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServer.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.SqlServerCompact.xml
+C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.Triggers.pdb
+C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\EntityFramework.Triggers.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\log4net.xml
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\OpenCover.Framework.pdb
 C:\Users\Lee\Documents\GitHub\Testify\TestifyTest\bin\Debug\ICSharpCode.NRefactory.xml

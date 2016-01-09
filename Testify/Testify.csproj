@@ -24,7 +24,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Leem.Testify</RootNamespace>
     <AssemblyName>Testify</AssemblyName>
-    <SignAssembly>True</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -56,15 +56,23 @@
       <HintPath>OpenCover\Autofac.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="EntityFramework.SqlServerCompact">
       <HintPath>..\packages\EntityFramework.SqlServerCompact.6.1.1\lib\net45\EntityFramework.SqlServerCompact.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.Triggers, Version=5.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\EntityFramework.Triggers.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.TypedOriginalValues, Version=0.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.TypedOriginalValues.0.3.1\lib\net40\EntityFramework.TypedOriginalValues.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.4, Culture=neutral, PublicKeyToken=03b0b5a60fec3719, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -225,9 +233,9 @@
     <Compile Include="ITestifyQueries.cs" />
     <Compile Include="LineCoverageInfo.cs" />
     <Compile Include="LineCoverageResult.cs" />
-    <Compile Include="Migrations\201512081202416_Initial.cs" />
-    <Compile Include="Migrations\201512081202416_Initial.Designer.cs">
-      <DependentUpon>201512081202416_Initial.cs</DependentUpon>
+    <Compile Include="Migrations\201601071113543_Initial.cs" />
+    <Compile Include="Migrations\201601071113543_Initial.Designer.cs">
+      <DependentUpon>201601071113543_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BranchPoint.cs" />
@@ -247,6 +255,10 @@
     <Compile Include="Model\TrackedMethodRef.cs" />
     <Compile Include="OpenCoverLauncher.cs" />
     <Compile Include="Poco\Config.cs" />
+    <Compile Include="Poco\Folder.cs" />
+    <Compile Include="Poco\FolderClosure.cs" />
+    <Compile Include="Poco\FolderClosureMap.cs" />
+    <Compile Include="Poco\FolderPaths.cs" />
     <Compile Include="Poco\TestMethod.cs" />
     <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\CoverageViewModel.cs" />
@@ -300,10 +312,11 @@
     <Compile Include="UnitTestService.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="VsFolder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201512081202416_Initial.resx">
-      <DependentUpon>201512081202416_Initial.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201601071113543_Initial.resx">
+      <DependentUpon>201601071113543_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

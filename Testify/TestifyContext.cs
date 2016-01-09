@@ -5,10 +5,12 @@ using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Data.SqlServerCe;
 using System.IO;
+using EntityFramework.Triggers;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Leem.Testify
 {
-    public class TestifyContext : DbContext
+    public class TestifyContext : DbContextWithTriggers 
     {
         public TestifyContext()
             : base("name=TestifyDb")
@@ -39,7 +41,9 @@ namespace Leem.Testify
         public DbSet<TestProject> TestProjects { get; set; }
 
         public DbSet<TestQueue> TestQueue { get; set; }
-
+        
+        public DbSet<Folder> Folders { get; set; }
+        
         public DbSet<TestMethod> TestMethods { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -66,6 +70,22 @@ namespace Leem.Testify
 
             modelBuilder.Entity<TestProject>()
                 .HasKey(x => x.UniqueName);
+
+            modelBuilder.Entity<Folder>()
+                .HasMany(p => p.Descendants)
+                .WithMany(p => p.Ancestors);
+                //.Map(m =>
+                //    {
+                //        m.MapLeftKey( "DescendantId" ); 
+                     
+                //        m.MapRightKey("AncestorId");
+                //        m.ToTable("FolderClosure");
+                //    });
+
+            modelBuilder.Entity<FolderClosure>()
+                .HasKey(fc => new { fc.AncestorId, fc.DescendantId, fc.Depth })
+                .Property(t => t.FolderClosureId) 
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);;        
 
             modelBuilder.Entity<CoveredLine>()
                 .HasKey(y => y.CoveredLineId)

@@ -275,7 +275,7 @@ namespace Leem.Testify
                     }
                 }
 
-                // This uses 12 percent
+              
                 var codeMethods = (from clas in codeClasses
                                    join method in context.CodeMethod on clas.CodeClassId equals method.CodeClassId
                                    // where method.Name.Contains(modifiedMethodName)

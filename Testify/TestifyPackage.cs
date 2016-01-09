@@ -14,6 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Timers;
+using System.Linq;
 
 namespace Leem.Testify
 {
@@ -47,9 +48,12 @@ namespace Leem.Testify
         private bool _isFirstBuild = true;
         private bool isDatabaseValid = false;
         private readonly ILog _log = LogManager.GetLogger(typeof(TestifyPackage));
+        private List<string> _fileAndFolderGuids;
 
         public TestifyPackage()
         {
+             _fileAndFolderGuids= new List<string> { "{6BB5F8F0-4483-11D3-8BCF-00C04F8EC28C}", "{6BB5F8EE-4483-11D3-8BCF-00C04F8EC28C}", "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}" };
+
             _log.DebugFormat(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString());
             try
             {
@@ -211,13 +215,14 @@ namespace Leem.Testify
                     _log.DebugFormat("Verify project name: {0}", project.Name);
                     _log.DebugFormat("  outputPath: {0}", outputPath);
                     _log.DebugFormat("  Assembly name: {0}", assemblyName);
-
+                    //var folders = project.ProjectItems..GetType(EnvDTE.Constants.vsProjectItemKindPhysicalFolder);
                     var newProject = new Poco.Project
                     {
                         Name = project.Name,
                         AssemblyName = assemblyName,
                         UniqueName = project.UniqueName,
                     };
+                 
 
                     if (!string.IsNullOrWhiteSpace(outputPath))
                     {
@@ -226,6 +231,7 @@ namespace Leem.Testify
                     }
                     pocoProjects.Add(newProject);
                 }
+                
             }
 
             _queries.MaintainProjects(pocoProjects);
@@ -633,9 +639,12 @@ namespace Leem.Testify
             projectEvents.OnBuildProjConfigDone += ProjectBuildEventHandler;
 
             VerifyProjects(solution, string.Empty);
+        
             _queries.SetAllQueuedTestsToNotRunning();
             return VSConstants.S_OK;
         }
+
+
 
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
         { return VSConstants.E_NOTIMPL; }
@@ -682,7 +691,7 @@ namespace Leem.Testify
             DisableMenuCommandIfNoSolutionLoaded(sender as OleMenuCommand);
         }
 
-        private void ProjectBuildEventHandler(string project, string projectConfig, string platform, string solutionConfig, bool success)
+        private void ProjectBuildEventHandler(string projectName, string projectConfig, string platform, string solutionConfig, bool success)
         {
             var sw = new Stopwatch();
             sw.Restart();
@@ -691,12 +700,17 @@ namespace Leem.Testify
             if (success)
             {
                 pSolution = GetService(typeof(SVsSolution)) as IVsSolution;
-                VerifyProjects(pSolution, project);
-
+                var solution = pSolution as EnvDTE.Solution;
+                VerifyProjects(pSolution, projectName);
+               
                 _isFirstBuild = false;
-                _log.DebugFormat("Project Build Successful for project name: {0}", project);
-
-                _queries.AddToTestQueue(project);
+                _log.DebugFormat("Project Build Successful for project name: {0}", projectName);
+                if (projectName.EndsWith("Test.csproj") == false)
+                { 
+                    var foldermaps = MapProjectFolders(projectName);
+                    _queries.UpdateFolders(foldermaps, projectName);
+                }
+                _queries.AddToTestQueue(projectName);
             }
             sw.Stop();
         }
@@ -714,5 +728,148 @@ namespace Leem.Testify
         }
 
         #endregion Interface Methods
+        public class FileFolderInfo 
+        {
+            public string ProjectName { get; set; }
+            public string ClassName { get; set; }
+            public LinkedList<string> Folders { get; set; }
+            public FileFolderInfo()
+            {
+                Folders = new LinkedList<string>();
+            
+            }
+
+        }
+
+        private List<FileFolderInfo> MapProjectFolders(string projectName)
+        {
+            var sw = Stopwatch.StartNew();
+            var fileList = new List<FileFolderInfo>();
+           
+            var project = GetProject(projectName);
+
+            var fileFolderInfo = new FileFolderInfo();
+            foreach (EnvDTE.ProjectItem projectItem in project.ProjectItems)
+            {
+                var folders = new LinkedList<string>();
+                if (projectItem != null && _fileAndFolderGuids.Contains(projectItem.Kind))
+                {
+
+
+                    var folderPath = GetFileName(new List<FileFolderInfo>(), folders, projectItem);
+                    if(folderPath != null)
+                    {
+                        folderPath.ForEach(x=>x.ProjectName = projectName);
+                        fileList.AddRange(folderPath);
+                        _log.DebugFormat("MapProjectFolders   File List count: {0}",  fileList.Count);
+                    }
+                }
+
+            }
+            return fileList;
+            _log.DebugFormat("MapProjectFolders elapsed time: {0}", sw.Elapsed);
+        }
+
+        private List<FileFolderInfo> GetFileName( List < FileFolderInfo > fileList, LinkedList<string> folders, EnvDTE.ProjectItem projectItem)
+        {
+            var localFolders = new LinkedList<string>(folders);
+            var localFileList = new List<FileFolderInfo>();
+            var x = projectItem.Name;
+            var y = projectItem.FileCodeModel;
+            if ( projectItem.Kind == "{6BB5F8EE-4483-11D3-8BCF-00C04F8EC28C}")
+            {
+                if (projectItem.Name.EndsWith(".cs") || projectItem.Name.EndsWith(".vb"))
+                {
+                    localFolders = new LinkedList<string>(folders);
+                    _log.DebugFormat("GetFileName FileName: {0}  local Folder count: {1}", projectItem.Name,localFolders.Count);
+                    
+                    
+                    var newFolder = new FileFolderInfo { Folders = new LinkedList<string>(localFolders), ClassName = projectItem.Name } ;
+                    localFileList.Add(newFolder);
+                   
+
+                }
+
+            }
+            else if (_fileAndFolderGuids.Contains(projectItem.Kind))
+            {
+                var nextLevelFolders = new LinkedList<string>(localFolders);
+                nextLevelFolders.AddLast(projectItem.Name);
+                foreach (EnvDTE.ProjectItem item in projectItem.ProjectItems)
+                {
+                    _log.DebugFormat("GetFileName Processing ProjectItem: {0}", item.Name);
+                  
+                    var filesInItem = GetFileName(localFileList, nextLevelFolders, item);
+                    if (filesInItem != null)
+                    {
+                        localFileList.AddRange(filesInItem);
+                        _log.DebugFormat("GetFileName localFileList count: {0}", localFileList.Count);
+                    }
+
+                }
+            }
+
+            return localFileList;
+        }
     }
+    
+
+    
+ public class ProjectItemIterator : IEnumerable<EnvDTE.ProjectItem>
+{
+    IEnumerable<EnvDTE.Project> projects;
+
+    public ProjectItemIterator(EnvDTE.Solution solution)
+    {
+
+        if (solution == null)
+            throw new ArgumentNullException("solution");
+
+        projects = solution.Projects.Cast<EnvDTE.Project>();
+    }
+    
+    public ProjectItemIterator(IEnumerable<EnvDTE.Project> projects)
+    {
+        if (projects == null)
+            throw new ArgumentNullException("projects");
+ 
+        this.projects = projects;
+    }
+ 
+    public IEnumerator<EnvDTE.ProjectItem> GetEnumerator()
+    {
+        foreach (EnvDTE.Project currentProject in projects)
+            foreach (var currentProjectItem in Enumerate(currentProject.ProjectItems))
+                yield return currentProjectItem;
+    }
+ 
+    IEnumerable<EnvDTE.ProjectItem> Enumerate(EnvDTE.ProjectItems projectItems)
+    {
+        if (projectItems != null)
+        {
+            foreach (EnvDTE.ProjectItem item in projectItems)
+            {
+                yield return item;
+ 
+                if (item.SubProject != null)
+                {
+                    foreach (EnvDTE.ProjectItem childItem in Enumerate(item.SubProject.ProjectItems))
+                        yield return childItem;
+                }
+                else
+                {
+                    foreach (EnvDTE.ProjectItem childItem in Enumerate(item.ProjectItems))
+                        yield return childItem;
+                }
+            }
+        }
+    }
+ 
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
+
+ 
 }

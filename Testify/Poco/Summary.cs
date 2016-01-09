@@ -1,6 +1,8 @@
-﻿namespace Leem.Testify.Poco
+﻿using EntityFramework.Triggers;
+
+namespace Leem.Testify.Poco
 {
-    public class Summary
+    public class Summary : ITriggerable
     {
         public Summary(Model.Summary summary)
         {

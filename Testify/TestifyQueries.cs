@@ -180,7 +180,7 @@ namespace Leem.Testify
 
         public IEnumerable<CodeClass> GetClasses(CodeModule module, TestifyContext context)
         {
-             return context.CodeClass.Where(x => x.CodeModule.CodeModuleId == module.CodeModuleId).Include(x => x.Summary).ToArray();
+            return context.CodeClass.Where(x => x.CodeModule.CodeModuleId == module.CodeModuleId).Include(x => x.Summary).ToArray();
         }
 
         public IEnumerable<CoveredLine> GetCoveredLines(TestifyContext context, string className)
@@ -1240,7 +1240,6 @@ namespace Leem.Testify
                         {
                             modifiedLineCoverageInfos.Add(line);
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -1268,7 +1267,7 @@ namespace Leem.Testify
                 var methodsTested = newCoveredLineList.Select(x => x.MethodName).Distinct();
                 List<CoveredLine> linesToBeDeleted = new List<CoveredLine>();
 
-                var coveredLinesLookup = context.CoveredLines.Where(y =>  modulesTested.Contains(y.Module.AssemblyName)).Where(x => methodsTested.Contains(x.Method.Name)).ToLookup(item => item.Method.Name);
+                var coveredLinesLookup = context.CoveredLines.Where(y => modulesTested.Contains(y.Module.AssemblyName)).Where(x => methodsTested.Contains(x.Method.Name)).ToLookup(item => item.Method.Name);
 
                 foreach (var method in methodsTested)
                 {
@@ -1524,7 +1523,6 @@ namespace Leem.Testify
             var unitTestCasesList = new List<TrackedMethodMap>();
             foreach (var element in namespaceDeclarationNode.Children)
             {
-              
                 if (element.GetType() == typeof(TypeDeclaration) && element.HasChildren)
                 {
                     var xx = ((EntityDeclaration)(element)).Name;
@@ -1808,7 +1806,7 @@ namespace Leem.Testify
             return classThatChanged;
         }
 
-        private void UpdateClassesMethodsSummaries(TestifyContext context, Model.Module module,List<TrackedMethodMap> methodMapper)
+        private void UpdateClassesMethodsSummaries(TestifyContext context, Model.Module module, List<TrackedMethodMap> methodMapper)
         {
             Log.DebugFormat("Inside UpdateModulesClassesMethodsSummaries for Module: {0}", module.AssemblyName);
 
@@ -1873,13 +1871,12 @@ namespace Leem.Testify
                 else if (moduleMethod.FileRef != null)
                 {
                     // Null FileRefs indicate unexecuted methods like empty constructors
-                    var mapper = methodMapper.FirstOrDefault(x=>x.MethodName == moduleMethodName);
+                    var mapper = methodMapper.FirstOrDefault(x => x.MethodName == moduleMethodName);
                     if (mapper != null)
                     {
                         codeMethod = new CodeMethod(moduleMethod);
                         pocoCodeClass.Methods.Add(codeMethod);
                     }
-
                 }
             }
         }
@@ -2047,6 +2044,166 @@ namespace Leem.Testify
             context.SaveChanges();
         }
 
-        //}
+        public void UpdateFolders(List<TestifyPackage.FileFolderInfo> folderMaps, string projectName)
+        {
+            List<int> activeFolderIds = new List<int>();
+            using (var context = new TestifyContext(_solutionName))
+            {
+                foreach (var folderMap in folderMaps.Where(x => x.Folders.Any()))
+                {
+                    var isMatch = true;
+                    //var possibleMatches = context.Folders.Where(x => x.ParentProject.UniqueName == folderMap.ProjectName);
+                    //// var
+                    //if (possibleMatches.Any())
+                    //{
+                        // Does the folder pathf for this class file exist?
+                        foreach (var folder in folderMap.Folders)
+                        {
+                            var query = from proj in context.Projects
+                                        from flder in context.Folders
+                                        //from clas in context.CodeClass
+                                        where proj.UniqueName == folderMap.ProjectName
+                                        where flder.FolderName == folder
+                                        //where clas.FileName.EndsWith(folderMap.ClassName)
+                                        where flder.ParentProject.UniqueName == folderMap.ProjectName
+
+                                        select new List<Folder> { flder };
+                            var result = query.ToList();
+                            activeFolderIds.AddRange(result.SelectMany(i => i).Select(x => x.FolderId));
+                            
+                            if (result.Count == 1 && isMatch)
+                            {
+                                isMatch = true;
+                            }
+                            else 
+                            { 
+                                isMatch = false; 
+                            }
+                            var hgx = 1;
+                        }
+                        if (isMatch) 
+                        {
+                            // does bottom folder contain this class? 
+                            //  If not, add this class.
+                        }
+                        else
+                        {
+                            // separate the saving of the folders from the saving of the Transitive Closure?
+                            // What if folder is deleted or moved, how do we rebuild the Transitive Closure?
+                            SaveTransitiveClosure(context, folderMap);
+                        }
+                       
+                    //}
+                    
+                }
+
+                var unUsedFolders = context.Folders.Where(x => x.ParentProject.UniqueName == projectName && activeFolderIds.Contains(x.FolderId) == false).ToList();
+                unUsedFolders.ForEach(x => context.Folders.Remove(x));
+            }
+        }
+
+        private static void SaveTransitiveClosure(TestifyContext context, TestifyPackage.FileFolderInfo folderMap)
+        {
+            var project = context.Projects.FirstOrDefault(x => x.UniqueName == folderMap.ProjectName);
+
+            var claz = context.CodeClass.FirstOrDefault(x => x.FileName.EndsWith(folderMap.ClassName) && x.CodeModule.AssemblyName == project.AssemblyName);
+            if (project != null && claz != null)
+            {
+                var folderChain = new List<Folder>();
+
+                var i = 0;
+                Folder currentFolder = null;
+                foreach (var folderName in folderMap.Folders)
+                {
+                    currentFolder = new Folder
+                    {
+                        FolderName = folderName,
+                        Depth = i,
+                        ParentProject = project
+                    };
+
+
+                    currentFolder.Classes.Add(claz);
+
+                    if (folderChain.Any())
+                    {
+                        currentFolder.Ancestors.Add(folderChain.Last());
+                    }
+                    else
+                    {
+                        currentFolder.Ancestors.Add(currentFolder);
+                    }
+
+                    folderChain.Add(currentFolder);
+                    context.Folders.Add(currentFolder);
+                    context.SaveChanges();
+                    i++;
+                }
+            }
+        }
+
+        public void AddFolderClosures(int folderId, int parentId, int depth)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+
+                context.Database.Log = L => Log.Debug(L);
+                //context.Database.ExecuteSqlCommand("Insert Into FolderClosure(AncestorId, DescendantId, Depth) " +
+                //                                   "Values(" + folderId + "," + parentId + "," + depth + ")");
+                if (folderId != parentId) 
+                {
+
+//                   insert into closure(parent, child, depth)
+//                  select p.parent, c.child, p.depth+c.depth+1
+//                  from closure p, closure c
+//                  where p.child=PARENT_ITEM and c.parent=CHILD_ITEM
+                    context.Database.ExecuteSqlCommand( "Insert Into FolderClosure(AncestorId, DescendantId, Depth) " +
+                                                        "SELECT p.AncestorId, c.DescendantId, (Coalesce(p.Depth, 0) + Coalesce(c.Depth, 0) + 1) " +
+                                                        "FROM FolderClosure AS p, FolderClosure AS c " +
+                                                        "WHERE p.DescendantId = " + parentId + " AND c.AncestorId = " + folderId);
+                }
+                context.SaveChanges();
+
+                //Of course, you'd need a couple of extra actions when a row was inserted or deleted in the base table: 
+                //at insert time, you need to insert the (self,self,0) entry in the closure table 
+                //(followed by an optional link addition if the new row was inserted with a parent), 
+                //and at deletion time, you need to delete both the self-link, and all the links that depend on it:
+            }
+        }
+
+        public void AddRootFolderClosure(int folderId)
+        {
+            using (var context = new TestifyContext(_solutionName))
+            {
+                context.Database.Log = L => Log.Debug(L);
+                context.Database.ExecuteSqlCommand("Insert Into FolderClosure(AncestorId, DescendantId, Depth) " +
+                                                    "Values(" + folderId + "," + folderId + ", 0)");
+                context.SaveChanges();
+            }
+        }
+
+        public void RemoveFolderClosures(int folderId)
+        {
+
+            using (var context = new TestifyContext(_solutionName))
+            {
+                context.Database.ExecuteSqlCommand("DELETE FROM FolderClosure " +
+                                                   "WHERE FolderClosureId IN(SELECT relation.FolderClosureId " +
+                                                                            "FROM FolderClosure parent," + 
+                                                                            "     FolderClosure relation, " + 
+                                                                            "     FolderClosure child, " + 
+                                                                            "     FolderClosure Todelete" +
+                                                                            "WHERE parent.AncestorId = relation.AncestorId " +
+                                                                            "AND child.DescendantId = relation.DescendantId " +
+                                                                            "AND parent.DescendantId  = Todelete.AncestorId " +
+                                                                            "AND child.AncestorId = Todelete.DescendantId " +
+                                                                            "AND (Todelete.AncestorId = 16 OR Todelete.DescendantId = 16) " +
+                                                                            "AND Todelete.depth < 2 )) "
+                                                                            );
+            }
+            
+
+        }
     }
 }
+

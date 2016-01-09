@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using EntityFramework.Triggers;
 
 namespace Leem.Testify.Poco
 {
-    public class TestProject
+    public class TestProject : ITriggerable
     {
         public TestProject()
         {

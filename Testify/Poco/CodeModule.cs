@@ -1,9 +1,10 @@
 ﻿using Leem.Testify.Model;
 using System.Collections.Generic;
+using EntityFramework.Triggers;
 
 namespace Leem.Testify.Poco
 {
-    public class CodeModule
+    public class CodeModule : ITriggerable
     {
         public CodeModule()
         {

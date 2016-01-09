@@ -2,6 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.12.0">
     <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource {x:Static shell:VsColors.DropDownBorderKey}}" />
-    <SolidColorBrush x:Key="ScrollBarBackgroundBrush" Color="{DynamicResource {x:Static shell:VsColors.ToolWindowBackgroundKey}}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource {x:Static shell:VsColors.ToolWindowBackgroundKey}}" />
     <SolidColorBrush x:Key="TextBrush" Color="{DynamicResource {x:Static shell:VsColors.MenuTextKey}}" />
+    <SolidColorBrush x:Key="ButtonBrush" Color="{DynamicResource {x:Static shell:VsColors.ButtonFaceKey}}" />
+    <!--<SolidColorBrush x:Key="ButtonBrush" Color="{DynamicResource {x:Static shell:VsColors.ToolWindow}}" />-->
 </ResourceDictionary>
