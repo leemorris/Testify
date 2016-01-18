@@ -15,6 +15,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Timers;
 using System.Linq;
+using System.Drawing;
 
 namespace Leem.Testify
 {
@@ -48,6 +49,7 @@ namespace Leem.Testify
         private bool _isFirstBuild = true;
         private bool isDatabaseValid = false;
         private readonly ILog _log = LogManager.GetLogger(typeof(TestifyPackage));
+        
         private List<string> _fileAndFolderGuids;
 
         public TestifyPackage()
@@ -298,71 +300,73 @@ namespace Leem.Testify
             return string.Empty;
         }
 
-        private int GetColumnNumber()
-        {
-            // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+        //private int GetColumnNumber()
+        //{
+        //    // get the DTE2 object
+        //    DTE2 dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return 0;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return 0;
+        //    }
 
-            // get currently active cursor position
-            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+        //    // get currently active cursor position
+        //    var selection = (TextSelection)dte2.ActiveDocument.Selection;
 
-            VirtualPoint point = selection.ActivePoint;
+        //    VirtualPoint point = selection.ActivePoint;
 
-            return point.DisplayColumn; // get the column number from the location
-        }
+        //    return point.DisplayColumn; // get the column number from the location
+        //}
 
-        private string GetDocumentName()
-        {
-            // get the DTE2 object
-            DTE2 dte2 = GetDTE2();
+        //private string GetDocumentName()
+        //{
+        //    // get the DTE2 object
+        //    DTE2 dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return string.Empty;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return string.Empty;
+        //    }
 
-            // get the ActiveDocument name from DTE2 object
-            return dte2.ActiveDocument.Name;
-        }
+        //    // get the ActiveDocument name from DTE2 object
+        //    return dte2.ActiveDocument.Name;
+        //}
 
-        private DTE2 GetDTE2()
-        {
-            // get the instance of DTE
-            var dte = (DTE)GetService(typeof(DTE));
+        //private DTE2 GetDTE2()
+        //{
+        //    // get the instance of DTE
+        //    var dte = (DTE)GetService(typeof(DTE));
 
-            // cast it as DTE2, historical reasons
-            var dte2 = dte as DTE2;
+        //    // cast it as DTE2, historical reasons
+        //    var dte2 = dte as DTE2;
 
-            if (dte2 == null)
-            {
-                return null;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return null;
+        //    }
 
-            return dte2;
-        }
+        //    return dte2;
+        //}
 
-        private int GetLineNumber()
-        {
-            // get the DTE2 object
-            var dte2 = GetDTE2();
+        //private int GetLineNumber()
+        //{
+        //    // get the DTE2 object
+        //    var dte2 = GetDTE2();
 
-            if (dte2 == null)
-            {
-                return 0;
-            }
+        //    if (dte2 == null)
+        //    {
+        //        return 0;
+        //    }
 
-            // get currently active cursor location
-            var selection = (TextSelection)dte2.ActiveDocument.Selection;
+        //    // get currently active cursor location
+        //    var selection = (TextSelection)dte2.ActiveDocument.Selection;
 
-            VirtualPoint point = selection.ActivePoint;
+        //    VirtualPoint point = selection.ActivePoint;
 
-            return point.Line; // get the line number from the location
-        }
+        //    return point.Line; // get the line number from the location
+        //}
+
+        
 
         /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.
@@ -418,18 +422,25 @@ namespace Leem.Testify
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
 
-            //IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
 
-            //var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
-                   
-            //var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey) ;
-            //var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
 
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+
+
+
+
+            //IconCache.Add("Module", );
+
+
+
+
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, shell5);
             
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
+
+
 
         public void ShowUnitTestToolWindow(object sender, EventArgs e)
         {
@@ -572,14 +583,14 @@ namespace Leem.Testify
             {
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
-            //IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
+            IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
 
             //var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
 
             //var themeColor = VsColors.GetThemedWPFColor(shell5, themeRespourceKey);
             //var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
 
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window);
+            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, shell5);
 
            
             return VSConstants.S_OK;

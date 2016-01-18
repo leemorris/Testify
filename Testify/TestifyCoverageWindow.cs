@@ -43,14 +43,14 @@ namespace Leem.Testify
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
 
-            //var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
-
+            var themeRespourceKey = new ThemeResourceKey(new System.Guid("624ed9c3-bdfd-41fa-96c3-7c824ea32e3d"), "ToolWindowBackground", 0);
+            //IVsUIShell5 shell5 = (IVsUIShell5)GetService(typeof(SVsUIShell));
             //var themeColor = VsColors.GetThemedWPFColor(_shell5, themeRespourceKey);
             //var colorBrush = new System.Windows.Media.SolidColorBrush(themeColor);
             //var handle = base.Window.Handle;
             //System.Windows.Forms.Control someControl = System.Windows.Forms.Control.FromHandle(handle);
             //someControl.BackColor = System.Drawing.Color.FromArgb(themeColor.A,themeColor.R,themeColor.G,themeColor.B);
-            base.Content = new SummaryViewControl(this);
+            base.Content = new SummaryViewControl(this, _shell5);
            
         }
 

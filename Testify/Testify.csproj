@@ -13,6 +13,9 @@
   <PropertyGroup>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\Package.ico</ApplicationIcon>
+  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -39,6 +42,7 @@
     <CopyVsixExtensionFiles>True</CopyVsixExtensionFiles>
     <CopyVsixExtensionLocation>C:\Users\lee\AppData\Local\Microsoft\VisualStudio\12.0Exp\Extensions\Leem\Testify\1.0</CopyVsixExtensionLocation>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -260,6 +264,12 @@
     <Compile Include="Poco\FolderClosureMap.cs" />
     <Compile Include="Poco\FolderPaths.cs" />
     <Compile Include="Poco\TestMethod.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SummaryView\ViewModel\FolderViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\ClassViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\CoverageViewModel.cs" />
     <Compile Include="SummaryView\ViewModel\MethodViewModel.cs" />
@@ -281,11 +291,6 @@
     <Compile Include="Poco\TestQueue.cs" />
     <Compile Include="ProjectInfo.cs" />
     <Compile Include="QueuedTest.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="SummaryView\Converters.cs" />
@@ -319,9 +324,9 @@
       <DependentUpon>201601071113543_Initial.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
@@ -330,9 +335,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="OpenCover\Folder.png" />
     <Content Include="OpenCover\Mono.Cecil.Mdb.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="Resources\Folder.ico" />
+    <Resource Include="Resources\Icons\CSharpProject.bmp" />
+    <Resource Include="Resources\Icons\Branch.bmp" />
+    <Resource Include="Resources\Icons\CSharpFile.bmp" />
+    <Resource Include="Resources\Icons\Folder.bmp" />
+    <Resource Include="Resources\Icons\VBFile.bmp" />
+    <Resource Include="Resources\Icons\VBProject.bmp" />
     <Content Include="TestifyCE.sdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -443,7 +456,9 @@
     <None Include="opencover.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\DataSources\SummaryViewModel.datasource" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
@@ -455,10 +470,13 @@
   <ItemGroup>
     <VSCTCompile Include="Testify.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Images.png" />
+    <Content Include="Resources\Images.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="OpenCover.Profiler.dll" />
@@ -501,7 +519,9 @@
     <Content Include="OpenCover\x86\OpenCover.Profiler.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\Package.ico" />
+    <Content Include="Resources\Package.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Include="CodeMarkGlyph.xaml">

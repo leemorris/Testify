@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
+using System.Windows.Media;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
@@ -18,6 +20,8 @@ namespace Leem.Testify.SummaryView.ViewModel
 
         private bool _isExpanded;
         private bool _isSelected;
+        private bool _shouldShowSummary;
+        private string _type;
 
         #endregion Data
 
@@ -140,6 +144,18 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         #endregion Parent
+        public string Type
+        {
+            get { return _type; }
+            set { _type = value; }
+        }
+        public bool ShouldShowSummary
+        {
+            get { return _shouldShowSummary; }
+            set { _shouldShowSummary = value; }
+        }
+        public string IconPath { get; set; }
+        public ImageSource Icon { get; set; }
 
         #endregion Presentation Members
 

@@ -57,5 +57,11 @@ namespace Leem.Testify
         void RemoveFolderClosures(int folderId);
 
         void AddRootFolderClosure(int folderId);
+
+        IEnumerable<CodeClass> GetClasses(Folder _folder, TestifyContext _context);
+
+        IEnumerable<Folder> GetFolders(Folder _folder, TestifyContext _context);
+
+        IEnumerable<Folder> GetFolders(CodeModule _module, TestifyContext _context);
     }
 }

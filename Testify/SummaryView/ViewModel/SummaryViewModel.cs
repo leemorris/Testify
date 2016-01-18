@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 
 namespace Leem.Testify.SummaryView.ViewModel
@@ -10,9 +12,10 @@ namespace Leem.Testify.SummaryView.ViewModel
     public class SummaryViewModel : TreeViewItemViewModel
     {
         private ITestifyQueries queries;
-
-        public SummaryViewModel( TestifyContext context)
+        private Dictionary<string, Bitmap> _iconCache;
+        public SummaryViewModel(TestifyContext context, Dictionary<string, Bitmap> iconCache)
         {
+            _iconCache = iconCache;
             var module = new Poco.CodeModule
             {
                 Name = "default Summary--Yeah",
@@ -22,7 +25,7 @@ namespace Leem.Testify.SummaryView.ViewModel
 
             var moduleArray = new Poco.CodeModule[] { module };
             Items = new ObservableCollection<SummaryViewModel>();
-            Items.Add(new SummaryViewModel(moduleArray,context));
+            Items.Add(new SummaryViewModel(moduleArray, context, _iconCache));
         }
 
         private readonly ObservableCollection<ModuleViewModel> _modules;
@@ -34,8 +37,9 @@ namespace Leem.Testify.SummaryView.ViewModel
 
         private ObservableCollection<SummaryViewModel> _items;
 
-        public SummaryViewModel(Poco.CodeModule[] modules, TestifyContext context)
+        public SummaryViewModel(Poco.CodeModule[] modules, TestifyContext context, Dictionary<string,Bitmap> iconCache)
         {
+            _iconCache = iconCache;
             var numSequencePoints = modules.Sum(x => x.Summary.NumSequencePoints);
             var numBranchPoints = modules.Sum(x => x.Summary.NumBranchPoints);
             var visitedSequencePoints = modules.Sum(x => x.Summary.VisitedSequencePoints);
@@ -62,7 +66,7 @@ namespace Leem.Testify.SummaryView.ViewModel
                 .ToList());
             _modules = new ObservableCollection<ModuleViewModel>(
                 (from module in modules
-                 select new ModuleViewModel(module, context,base.UiContext))
+                 select new ModuleViewModel(module, context, base.UiContext, _iconCache))
                 .ToList());
         }
 

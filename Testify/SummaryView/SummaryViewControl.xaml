@@ -10,21 +10,11 @@
     xmlns:viewModel="clr-namespace:Leem.Testify.SummaryView.ViewModel"
     >
 
-    <UserControl.Resources>
-        <ResourceDictionary Source="../TestifyResourceDictionary.xaml" />
-        
-    </UserControl.Resources>
+
 
     <Grid Grid.IsSharedSizeScope="True"
           Name="treeGrid">
       
-          <!--Background="{Binding BackgroundBrush}"-->
-    
-          <!--Background=="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"-->
-        <!--Background="{DynamicResource BackgroundBrush}">-->
-
-
-
         <Grid.Resources>
             <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -46,7 +36,7 @@
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="False">
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                            <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
                         </Trigger>
                         <!--<EventTrigger SourceName="OnLostFocus">
                             <InvokeCommandAction Command="{Binding WhateverCommand}"/>
@@ -54,10 +44,18 @@
                     </Style.Triggers>
 
                 </Style>
+                <Style TargetType="ProgressBar">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShouldShowSummary}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
 
 
 
-            <!--
+                <!--
             This Style binds a TreeViewItem to a TreeViewItemViewModel.
             -->
 
@@ -66,7 +64,7 @@
             <HierarchicalDataTemplate   DataType="{x:Type viewModel:TreeViewItemViewModel}"
                                       ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}">
 
-                <Grid x:Name="treeViewGrid" ShowGridLines="False">
+                <Grid x:Name="treeViewGrid" ShowGridLines="False" Background="Transparent">
 
 
 
@@ -75,11 +73,13 @@
                         <ColumnDefinition />
                         <ColumnDefinition SharedSizeGroup="column1" />
                         <ColumnDefinition SharedSizeGroup="column2" />
-                    </Grid.ColumnDefinitions>
+                            <ColumnDefinition SharedSizeGroup="column3" />
+                        
+                        </Grid.ColumnDefinitions>
 
 
 
-                    <Rectangle Grid.Column="1">
+                    <Rectangle Grid.Column="2">
                         <Rectangle.Width>
                             <MultiBinding Converter="{StaticResource levelConverter}">
                                 <Binding Path="Level" />
@@ -88,30 +88,31 @@
                             </MultiBinding>
                         </Rectangle.Width>
                     </Rectangle>
-                    <TextBlock Grid.Column="0"
+                        <Image Grid.Column="0" Source="{Binding Icon}" />
+                        <!--<Image Grid.Column="0" Source="..\Resources\CSharpProject_SolutionExplorerNode.png"/>-->
+                        <TextBlock Grid.Column="1"
                                Text="{Binding Name}" />
+                    
                     <ProgressBar
-                        Grid.Column="2"
+                        Name="pbCoverage"
+                        Grid.Column="3"
                         HorizontalAlignment="Right"
                         Height="10"
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
                         Width="150"
-                        Name="pbCoverage"
                         Value="{Binding SequenceCoverage, Mode=OneWay}"
                         Foreground="Green"
                         Background="Red" />
-                    <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}"
-                               Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45" />
+                        
+
+                        <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" 
+                                   Visibility="{Binding ElementName=pbCoverage, Path=Visibility}"
+                               Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45" />
                 </Grid>
 
                 <HierarchicalDataTemplate.Triggers>
-                    <!--<Trigger SourceName="tsssg" Property="IsChecked" Value="True">
-                        <Setter TargetName="pbCoverage" Property="Value" Value="{Binding SequenceCoverage, Mode=OneWay}" />
-                    </Trigger>
-                    <Trigger SourceName="tsssg" Property="IsChecked" Value="False">
-                        <Setter TargetName="pbCoverage" Property="Value" Value="{Binding BranchCoverage, Mode=OneWay}"/>
-                    </Trigger>-->
+
                 </HierarchicalDataTemplate.Triggers>
             </HierarchicalDataTemplate>
             </ResourceDictionary>

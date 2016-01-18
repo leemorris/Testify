@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 
@@ -8,11 +10,11 @@ namespace Leem.Testify.SummaryView.ViewModel
     {
         private readonly ObservableCollection<ModuleViewModel> _modules;
 
-        public CoverageViewModel(Leem.Testify.Poco.CodeModule[] modules,TestifyContext context,SynchronizationContext uiContext)
+        public CoverageViewModel(Leem.Testify.Poco.CodeModule[] modules, TestifyContext context, SynchronizationContext uiContext, Dictionary<string, Bitmap> iconCache)
         {
             _modules = new ObservableCollection<ModuleViewModel>(
                 (from module in modules
-                 select new ModuleViewModel(module, context, uiContext))
+                 select new ModuleViewModel(module, context, uiContext, iconCache))
                 .ToList());
         }
 

@@ -13,6 +13,8 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
             parent = parentClass;
             _method = method;
+            Type = "Method";
+            this.ShouldShowSummary = true;
         }
 
         public string Name
@@ -31,32 +33,6 @@ namespace Leem.Testify.SummaryView.ViewModel
                     var truncatedArguments = arguments.Substring(0, 27) + "...";
                     name = name.Replace(arguments, truncatedArguments);
                 }
-                //var originalArgumentArray = arguments.Split(',');
-                //var outputArgumentArray = new string[originalArgumentArray.Length];
-                //for (int i = 0; i < originalArgumentArray.Length; i++)
-                //{
-                //    var arg = originalArgumentArray[i];
-                //    int positionOfLastPeriod = arg.LastIndexOf(".");
-                //    string modifiedArgument;
-                //    if (positionOfLastPeriod > 0)
-                //    {
-                //        modifiedArgument = arg.Substring(positionOfLastPeriod + 1, arg.Length - positionOfLastPeriod - 1);
-                //    }
-                //    else
-                //    {
-                //        modifiedArgument = arg;
-                //    }
-
-                //    outputArgumentArray[i] = modifiedArgument.Replace(">", string.Empty)
-                //                                             .Replace("`1<", " ")
-                //                                             .Replace("Int32", "int");
-                //}
-
-                //var result = new StringBuilder();
-                //result.Append(name.Substring(0, startOfParameters));
-                //result.Append("(");
-                //result.Append(String.Join(", ", outputArgumentArray));
-                //result.Append(")");
 
                 return name;
             }
@@ -115,6 +91,6 @@ namespace Leem.Testify.SummaryView.ViewModel
             get { return _method.Column; }
         }
 
-        public int Level { get { return 1; } }
+        public int Level { get { return 3; } }
     }
 }

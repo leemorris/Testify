@@ -1,9 +1,25 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.12.0">
+    <!--Projects-->
+    <BitmapImage x:Key="CSharpProject" UriSource="..\Testify\Resources\CSharpProject_SolutionExplorerNode.png" />
+    <BitmapImage x:Key="VBProject" UriSource="..\Testify\Resources\VBProject_SolutionExplorerNode.png" />
+    <BitmapImage x:Key="FSharpProject" UriSource="..\Testify\Resources\FSharpProject_SolutionExplorerNode.png" />
+    
+    <!--Files-->
+    <BitmapImage x:Key="CSharpFile" UriSource="..\Testify\Resources\CSharpFile_SolutionExplorerNode.png" />
+    <BitmapImage x:Key="VBFile" UriSource="..\Testify\Resources\VBFile_SolutionExplorerNode.png" />
+    <BitmapImage x:Key="FSharpFile" UriSource="..\Testify\Resources\FSharpFile_SolutionExplorerNode.png" />
+    <BitmapImage x:Key="ScriptFile" UriSource="..\Testify\Resources\ScriptFile_452.png" />
+    
+    <!--Other Icons-->
+    <BitmapImage x:Key="Folder" UriSource="..\Testify\Resources\Folder_6222.png" />
+    <BitmapImage x:Key="Branch" UriSource="..\Testify\Resources\BranchIcon.png" />
+
+    <!--Brushes-->
     <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource {x:Static shell:VsColors.DropDownBorderKey}}" />
     <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource {x:Static shell:VsColors.ToolWindowBackgroundKey}}" />
     <SolidColorBrush x:Key="TextBrush" Color="{DynamicResource {x:Static shell:VsColors.MenuTextKey}}" />
-    <SolidColorBrush x:Key="ButtonBrush" Color="{DynamicResource {x:Static shell:VsColors.ButtonFaceKey}}" />
-    <!--<SolidColorBrush x:Key="ButtonBrush" Color="{DynamicResource {x:Static shell:VsColors.ToolWindow}}" />-->
+   
+    
 </ResourceDictionary>

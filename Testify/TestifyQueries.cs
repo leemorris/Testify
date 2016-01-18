@@ -2204,6 +2204,26 @@ namespace Leem.Testify
             
 
         }
+
+
+        public IEnumerable<CodeClass> GetClasses(Folder _folder, TestifyContext _context)
+        {
+            return _folder.Classes;
+          // throw new NotImplementedException();
+            
+        }
+
+        public IEnumerable<Folder> GetFolders(Folder _folder, TestifyContext _context)
+        {
+            return _context.Folders.Where(x => x.FolderId == _folder.FolderId).First().Descendants.Where(y=>y.FolderId != _folder.FolderId);
+
+        }
+
+
+        public IEnumerable<Folder> GetFolders(CodeModule _module, TestifyContext _context)
+        {
+            return _context.Folders.Where(x => x.ParentProject.AssemblyName == _module.AssemblyName && x.Depth==0).Include(y=> y.Classes);
+        }
     }
 }
 

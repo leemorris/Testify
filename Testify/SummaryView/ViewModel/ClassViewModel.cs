@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Linq;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
@@ -10,8 +12,12 @@ namespace Leem.Testify.SummaryView.ViewModel
         private readonly ITestifyQueries _queries;
         private TestifyContext _context;
         private SynchronizationContext _uiContext;
-        private ModuleViewModel _parent;
-        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule, TestifyContext context, SynchronizationContext uiContext)
+        private ModuleViewModel _moduleParent;
+        private FolderViewModel _folderParent;
+        private Dictionary<string, Bitmap> _iconCache;
+
+        // constructor when created by a Module
+        public ClassViewModel(Poco.CodeClass codeClass, ModuleViewModel parentModule, TestifyContext context, SynchronizationContext uiContext, Dictionary<string, Bitmap> iconCache)
             : base(parentModule, (codeClass.Methods.Count > 0))
         {
             _class = codeClass;
@@ -19,7 +25,28 @@ namespace Leem.Testify.SummaryView.ViewModel
             _context = context;
             _queries.ClassChanged += ClassChanged;
             _uiContext = uiContext;
-            _parent = parentModule;
+            _iconCache = iconCache;
+            Bitmap tempIcon;
+            _iconCache.TryGetValue("C#File", out tempIcon);
+            Icon = ConvertBitmapToBitmapImage.Convert(tempIcon);
+            _moduleParent = parentModule;
+            this.ShouldShowSummary = true;
+        }
+        // constructor when created by a Folder
+        public ClassViewModel(Poco.CodeClass codeClass, FolderViewModel parentFolder, TestifyContext context, SynchronizationContext uiContext, Dictionary<string, Bitmap> iconCache)
+            : base(parentFolder, (codeClass.Methods.Count > 0))
+        {
+            _class = codeClass;
+            _queries = TestifyQueries.Instance;
+            _context = context;
+            _queries.ClassChanged += ClassChanged;
+            _uiContext = uiContext;
+            _iconCache = iconCache;
+            Bitmap tempIcon;
+            _iconCache.TryGetValue("C#File", out tempIcon);
+            Icon = ConvertBitmapToBitmapImage.Convert(tempIcon);
+            _folderParent = parentFolder;
+            this.ShouldShowSummary = true;
         }
 
         public string Name
@@ -78,7 +105,7 @@ namespace Leem.Testify.SummaryView.ViewModel
                 base.Children.Add(new MethodViewModel(method, this));
         }
 
-        public int Level { get { return 2; } }
+        public int Level { get { return 1; } }
 
         protected virtual void ClassChanged(object sender, ClassChangedEventArgs e)
         {
@@ -98,7 +125,7 @@ namespace Leem.Testify.SummaryView.ViewModel
                     _class = _context.CodeClass.FirstOrDefault(x => x.Name.EndsWith(this.Name));
                     _uiContext.Send(x => base.OnPropertyChanged("SequenceCoverage"), null);
                     _uiContext.Send(x => base.OnPropertyChanged("BranchCoverage"), null);
-                    _parent.UpdateCoverage();
+                    _moduleParent.UpdateCoverage();
                    
                  
                 }
