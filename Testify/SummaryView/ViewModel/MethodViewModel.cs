@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
@@ -7,14 +8,26 @@ namespace Leem.Testify.SummaryView.ViewModel
     {
         private readonly Poco.CodeMethod _method;
         private readonly ClassViewModel parent;
+        private bool _displaySequenceCoverage;
+        private SynchronizationContext _uiContext;
 
-        public MethodViewModel(Poco.CodeMethod method, ClassViewModel parentClass)
+
+        public MethodViewModel(Poco.CodeMethod method, ClassViewModel parentClass,SynchronizationContext uiContext)
             : base(parentClass, false)
         {
             parent = parentClass;
             _method = method;
             Type = "Method";
             this.ShouldShowSummary = true;
+            parent.Parent.CoverageChanged += CoverageChanged;
+            _uiContext = uiContext;
+        }
+
+
+        protected virtual new void CoverageChanged(object sender, CoverageChangedEventArgs e)
+        {
+            _displaySequenceCoverage = e.DisplaySequenceCoverage;
+            _uiContext.Send(x => base.OnPropertyChanged("Coverage"), null);
         }
 
         public string Name
@@ -64,6 +77,21 @@ namespace Leem.Testify.SummaryView.ViewModel
         public decimal SequenceCoverage
         {
             get { return _method.Summary.SequenceCoverage; }
+        }
+
+        public decimal Coverage
+        {
+            get
+            {
+                if (_displaySequenceCoverage)
+                {
+                    return _method.Summary.SequenceCoverage;
+                }
+                else
+                {
+                    return _method.Summary.BranchCoverage;
+                }
+            }
         }
 
         public int VisitedBranchPoints

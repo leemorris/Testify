@@ -214,6 +214,7 @@ namespace Leem.Testify
         public List<CoveredLine> GetCoveredLinesForDocument(TestifyContext context, string documentName)
         {
             return context.CoveredLines.Where(x => x.FileName == documentName)
+                                        .Distinct()
                                         .Include(x => x.Class)
                                         .ToList();
         }
@@ -826,7 +827,7 @@ namespace Leem.Testify
                         trackedMethodDictionary.Add(testMethod.Name, testMethod);
                     }
                 }
-
+                var newTestMethods = new List<TestMethod>();
                 foreach (var test in unitTests)
                 {
                     try
@@ -861,7 +862,8 @@ namespace Leem.Testify
                                     test.CodeModule = codeModule;
                                     test.AssemblyName = testModule.AssemblyName;
 
-                                    context.TestMethods.Add(test);
+                                    //context.TestMethods.Add(test);
+                                    newTestMethods.Add(test);
                                     trackedMethodDictionary.Add(test.Name, test);
                                     //hasChanges = context.ChangeTracker.HasChanges();
                                     //if (hasChanges)
@@ -869,7 +871,7 @@ namespace Leem.Testify
                                     //    Log.DebugFormat("SaveUnitTestResults - Changes were made = {0},  Added test, name:{1}", hasChanges, test.Name);
                                     //}
 
-                                    context.SaveChanges();
+                                    //context.SaveChanges();
 
                                     trackedMethodJustAdded = context.TestMethods.Local.FirstOrDefault(x => x.Name != null && x.Name.Equals(trackedMethodToAdd.Name));
                                 }
@@ -880,11 +882,14 @@ namespace Leem.Testify
                                 }
                             }
 
-                            if (trackedMethodJustAdded != null)
-                            {
-                                context.SaveChanges();
-                            }
+                            //if (trackedMethodJustAdded != null)
+                            //{
+                            //    context.SaveChanges();
+                            //}
                         }
+
+                        context.TestMethods.AddRange(newTestMethods);
+                        context.SaveChanges();
 
                         if (existingTestMethodFromDictionary != null)
                         {
@@ -900,7 +905,7 @@ namespace Leem.Testify
 
                                 test.FilePath = filePath;
                                 context.TestMethods.Add(test);
-                                Log.DebugFormat("Added TestMethod {0}", test.Name);
+                                Log.DebugFormat("Added TestMethod {0}", testName);
                                 changedUnitTestClasses.Add(className);
                                 context.SaveChanges();
                             }

@@ -11,8 +11,14 @@
     >
 
 
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <RadioButton Name="rbBranch" IsChecked="{Binding DisplayBranchCoverage, Mode=TwoWay}" Margin="10,10,10,10">Branch Coverage</RadioButton>
+            
+            <RadioButton Name="rbSequence" IsChecked="{Binding DisplaySequenceCoverage, Mode=TwoWay}" Margin="10,10,10,10"  >Line Coverage</RadioButton>
+            </StackPanel>
 
-    <Grid Grid.IsSharedSizeScope="True"
+                <Grid Grid.IsSharedSizeScope="True"
           Name="treeGrid">
       
         <Grid.Resources>
@@ -22,7 +28,8 @@
             </ResourceDictionary.MergedDictionaries>
 
             <summaryView:LevelConverter x:Key="levelConverter" />
-                <Style TargetType="{x:Type TreeViewItem}">
+            <summaryView:MultiValueConverter x:Key="multiValueConverter" />
+                    <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
                     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
                   
@@ -59,14 +66,10 @@
             This Style binds a TreeViewItem to a TreeViewItemViewModel.
             -->
 
-
-
-            <HierarchicalDataTemplate   DataType="{x:Type viewModel:TreeViewItemViewModel}"
+                <HierarchicalDataTemplate   DataType="{x:Type viewModel:TreeViewItemViewModel}"
                                       ItemsSource="{Binding Children, diag:PresentationTraceSources.TraceLevel=High}">
 
                 <Grid x:Name="treeViewGrid" ShowGridLines="False" Background="Transparent">
-
-
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition SharedSizeGroup="rowHeaderColumn" />
@@ -77,9 +80,7 @@
                         
                         </Grid.ColumnDefinitions>
 
-
-
-                    <Rectangle Grid.Column="2">
+                        <Rectangle Grid.Column="1">
                         <Rectangle.Width>
                             <MultiBinding Converter="{StaticResource levelConverter}">
                                 <Binding Path="Level" />
@@ -89,25 +90,24 @@
                         </Rectangle.Width>
                     </Rectangle>
                         <Image Grid.Column="0" Source="{Binding Icon}" />
-                        <!--<Image Grid.Column="0" Source="..\Resources\CSharpProject_SolutionExplorerNode.png"/>-->
-                        <TextBlock Grid.Column="1"
-                               Text="{Binding Name}" />
-                    
-                    <ProgressBar
-                        Name="pbCoverage"
-                        Grid.Column="3"
-                        HorizontalAlignment="Right"
-                        Height="10"
-                        Margin="10,0,0,0"
-                        VerticalAlignment="Center"
-                        Width="150"
-                        Value="{Binding SequenceCoverage, Mode=OneWay}"
-                        Foreground="Green"
-                        Background="Red" />
-                        
+                        <TextBlock Grid.Column="1" Text="{Binding Name}" />
+
+                            <ProgressBar
+                                Name="pbCoverage"
+                                Grid.Column="3"
+                                HorizontalAlignment="Right"
+                                Height="10"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Width="150"
+                                Value="{Binding Coverage, Mode=OneWay}"
+                                Foreground="Green"
+                                Background="Red">
+                               
+                            </ProgressBar>
 
                         <TextBlock Text="{Binding ElementName=pbCoverage, Path=Value, StringFormat={}{0:0}%}" 
-                                   Visibility="{Binding ElementName=pbCoverage, Path=Visibility}"
+                                   Visibility="{Binding ElementName=pbCoverage, Path=Visibility}" 
                                Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="45" />
                 </Grid>
 
@@ -119,22 +119,13 @@
         </Grid.Resources>
 
 
-        <ToggleButton Name="tsssg"
-                Height="20"
-                Width="80"
-                      Grid.Row="1"
-                Grid.Column="1"
-                Margin="2,38,79,49"
-                       Background="Pink"
-                      Visibility="Visible"
-                      Content="Sequence/Branch"
-                >
-        </ToggleButton>
 
-        <!-- Tree view with one item for the header row -->
-        
+ 
+
+            <!-- Tree view with one item for the header row -->
+
         <TreeView BorderThickness="0"
-
+Grid.Row="2"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <TreeViewItem>
                 <TreeViewItem.Header>
@@ -171,13 +162,15 @@
             </TreeViewItem>
         </TreeView>
 
+
         <!-- Tree view that will display hierarchical data rows -->
         <TreeView Grid.Row="2"
                   BorderThickness="0"
                   ItemsSource="{Binding Modules}" 
                   Background="{DynamicResource BackgroundBrush}"/>
-
+        
+   
     </Grid>
 
-
+    </StackPanel>
 </UserControl>

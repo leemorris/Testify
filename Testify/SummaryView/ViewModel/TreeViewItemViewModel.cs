@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Media;
 
 namespace Leem.Testify.SummaryView.ViewModel
@@ -21,11 +21,14 @@ namespace Leem.Testify.SummaryView.ViewModel
         private bool _isExpanded;
         private bool _isSelected;
         private bool _shouldShowSummary;
+
         private string _type;
 
         #endregion Data
 
         #region Constructors
+
+        public event EventHandler<CoverageChangedEventArgs> CoverageChanged;
 
         public TreeViewItemViewModel(TreeViewItemViewModel parent, bool lazyLoadChildren)
         {
@@ -144,17 +147,56 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         #endregion Parent
+
+        protected virtual void OnCoverageChanged()
+        {
+            var args = new CoverageChangedEventArgs { DisplaySequenceCoverage = DisplaySequenceCoverage };
+            if (CoverageChanged != null)
+            {
+                CoverageChanged(this, args);
+            }
+        }
+
+        private bool _displaySequenceCoverage;
+
+        public bool DisplaySequenceCoverage
+        {
+            get
+            {
+                return _displaySequenceCoverage;
+            }
+            set
+            {
+                _displaySequenceCoverage = value;
+                OnCoverageChanged();
+            }
+        }
+
+        public bool DisplayBranchCoverage
+        {
+            get
+            {
+                return !_displaySequenceCoverage;
+            }
+            set
+            {
+                _displaySequenceCoverage = !value;
+
+            }
+        }
+
         public string Type
         {
             get { return _type; }
             set { _type = value; }
         }
+
         public bool ShouldShowSummary
         {
             get { return _shouldShowSummary; }
             set { _shouldShowSummary = value; }
         }
-        public string IconPath { get; set; }
+
         public ImageSource Icon { get; set; }
 
         #endregion Presentation Members
@@ -170,6 +212,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         }
 
         #endregion INotifyPropertyChanged Members
+
         public System.Threading.SynchronizationContext UiContext { get; set; }
     }
 }

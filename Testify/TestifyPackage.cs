@@ -401,7 +401,7 @@ namespace Leem.Testify
 
         private void OnDocumentOpening(string documentPath, bool isReadOnly)
         {
-            _log.DebugFormat("OnDocumentOpening fired for {0}", documentPath);
+            //_log.DebugFormat("OnDocumentOpening fired for {0}", documentPath);
             //var project = document.ProjectItem;
             //_queries.AddToTestQueue(project.ContainingProject.UniqueName);
         }
@@ -434,7 +434,7 @@ namespace Leem.Testify
 
 
 
-            window.Content = new SummaryViewControl((TestifyCoverageWindow)window, shell5);
+           // window.Content = new SummaryViewControl((TestifyCoverageWindow)window, shell5);
             
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             ErrorHandler.ThrowOnFailure(windowFrame.Show());
@@ -777,8 +777,9 @@ namespace Leem.Testify
                 }
 
             }
-            return fileList;
             _log.DebugFormat("MapProjectFolders elapsed time: {0}", sw.Elapsed);
+            return fileList;
+           
         }
 
         private List<FileFolderInfo> GetFileName( List < FileFolderInfo > fileList, LinkedList<string> folders, EnvDTE.ProjectItem projectItem)

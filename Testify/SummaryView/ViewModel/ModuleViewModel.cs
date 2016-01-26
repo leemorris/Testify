@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using System;
 
 namespace Leem.Testify.SummaryView.ViewModel
 {
@@ -12,10 +13,13 @@ namespace Leem.Testify.SummaryView.ViewModel
         private TestifyContext _context;
         private SynchronizationContext _uiContext;
         private Dictionary<string, Bitmap> _iconCache;
+        private bool _shouldUpdateCoverage;
+        private bool _displaySequenceCoverage;
 
         public ModuleViewModel()
         {
             _module = new Poco.CodeModule { Summary = new Poco.Summary() };
+           // base.CoverageChanged += CoverageChanged;
         }
 
         public ModuleViewModel(Poco.CodeModule module, TestifyContext context, SynchronizationContext uiContext, Dictionary<string, Bitmap> iconCache)
@@ -29,11 +33,15 @@ namespace Leem.Testify.SummaryView.ViewModel
             Bitmap tempIcon;
             _iconCache.TryGetValue("C#Project", out tempIcon);
             Icon = ConvertBitmapToBitmapImage.Convert(tempIcon);
-          
+            base.CoverageChanged += CoverageChanged;
             this.ShouldShowSummary = true;
         }
 
-       
+        protected virtual void CoverageChanged(object sender, CoverageChangedEventArgs e)
+        {
+            _displaySequenceCoverage = e.DisplaySequenceCoverage;
+            _uiContext.Send(x => base.OnPropertyChanged("Coverage"), null);
+        }
 
         public string Name
         {
@@ -57,6 +65,26 @@ namespace Leem.Testify.SummaryView.ViewModel
         {
             get { return _module.Summary.SequenceCoverage; }
         }
+
+        public decimal Coverage
+        {
+            get
+            {
+                if (_displaySequenceCoverage)
+                {
+                 
+                    return _module.Summary.SequenceCoverage;
+                }
+                else
+                {
+                    
+                    return _module.Summary.BranchCoverage;
+                }
+            }
+        }
+
+
+
 
         public int VisitedBranchPoints
         {
@@ -84,6 +112,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         protected override void LoadChildren()
         {
             var codeClasses = _queries.GetClasses(_module, _context);
+            base.Children.Clear();
             foreach (var codeClass in codeClasses)
                 base.Children.Add(new ClassViewModel(codeClass, this, _context, _uiContext, _iconCache));
             var folders = _queries.GetFolders(_module, _context);
@@ -96,8 +125,13 @@ namespace Leem.Testify.SummaryView.ViewModel
         internal void UpdateCoverage()
         {
             _module = _context.CodeModule.FirstOrDefault(x => x.Name.EndsWith(this.Name));
-            _uiContext.Send(x => base.OnPropertyChanged("SequenceCoverage"), null);
-            _uiContext.Send(x => base.OnPropertyChanged("BranchCoverage"), null);
+            //LoadChildren();
+            //_uiContext.Send(x => base.OnPropertyChanged("SequenceCoverage"), null);
+            //_uiContext.Send(x => base.OnPropertyChanged("BranchCoverage"), null);
+           // _uiContext.Send(x => base.OnPropertyChanged("Coverage"), null);
         }
+
+
+
     }
 }

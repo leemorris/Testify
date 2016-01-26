@@ -179,9 +179,13 @@ namespace Leem.Testify.SummaryView
             const string GUID_COLOR_TABLE_ENVIRONMENT_CATEGORY = "624ed9c3-bdfd-41fa-96c3-7c824ea32e3d";
             uint backgroundColor = shell5.GetThemedColor(new System.Guid(GUID_COLOR_TABLE_ENVIRONMENT_CATEGORY), COLOR_NAME, 0);
             var toolwindowbackground = VsColors.ToolWindowBackgroundKey;
-            // Assume that the transparent color is almost green. It can be any color
-            var almostGreenColor = System.Drawing.Color.FromArgb(0, 254, 0);
-            var pinkish = System.Drawing.Color.FromArgb(255, 0, 255);
+            System.Drawing.Color transparent = System.Drawing.Color.FromArgb(255, 245, 245, 245);
+            if (backgroundColor == 4280689957)
+            {
+                transparent = System.Drawing.Color.FromArgb(255, 0, 0, 0);
+            }
+
+
             ResourceManager resourceManager = new ResourceManager ("Leem.Testify.Resources", GetType ().Assembly);
 
             var testifyPath = Path.GetDirectoryName(typeof(TestifyPackage).Assembly.Location);
@@ -195,14 +199,14 @@ namespace Leem.Testify.SummaryView
             var vbFileIcon = (Bitmap)resourceManager.GetObject("VBFile");
             var folderIcon = (Bitmap)resourceManager.GetObject("Folder");
 
-            if (backgroundColor == 4280689957)//4294309365  = FFF5F5F5
-            {
-                cSharpProjectIcon = InvertBitmaps(cSharpProjectIcon, shell5, backgroundColor, pinkish);
-                vbProjectIcon = InvertBitmaps(vbProjectIcon, shell5, backgroundColor, pinkish);
-                cSharpFileIcon = InvertBitmaps(cSharpFileIcon, shell5, backgroundColor, pinkish);
-                vbFileIcon = InvertBitmaps(vbFileIcon, shell5, backgroundColor, pinkish);
-                folderIcon = InvertBitmaps(folderIcon, shell5, backgroundColor, pinkish);
-        }
+            //if (backgroundColor == 4280689957)//4294309365  = FFF5F5F5
+            //{
+            cSharpProjectIcon = InvertBitmaps(cSharpProjectIcon, shell5, backgroundColor, transparent);
+            vbProjectIcon = InvertBitmaps(vbProjectIcon, shell5, backgroundColor, transparent);
+            cSharpFileIcon = InvertBitmaps(cSharpFileIcon, shell5, backgroundColor, transparent);
+            vbFileIcon = InvertBitmaps(vbFileIcon, shell5, backgroundColor, transparent);
+            folderIcon = InvertBitmaps(folderIcon, shell5, backgroundColor, transparent);
+
 
             IconCache.Add("C#Project", cSharpProjectIcon);
             IconCache.Add("VbProject", vbProjectIcon);
@@ -223,14 +227,13 @@ namespace Leem.Testify.SummaryView
 
                 // Get the themed output bitmap
             var outputBitmap = GetInvertedBitmap(shell5, inputBitmap, transparentColor, backgroundColor);
-            //}
 
 
             inputBitmap.Dispose();
             return outputBitmap;
         }
 
-        private unsafe Bitmap GetInvertedBitmap(IVsUIShell5 shell5, Bitmap inputBitmap,
+        private Bitmap GetInvertedBitmap(IVsUIShell5 shell5, Bitmap inputBitmap,
                  System.Drawing.Color transparentColor, uint backgroundColor)
         {
             Bitmap outputBitmap = null;
@@ -245,12 +248,10 @@ namespace Leem.Testify.SummaryView
             outputBitmap = new Bitmap(inputBitmap);
 
             outputBitmap.MakeTransparent(transparentColor);
-           // if (backgroundColor == 4280689957)
-           // {
-                outputBitmap.MakeTransparent(System.Drawing.Color.FromArgb(255, 245, 245, 245));
-                outputBitmap.MakeTransparent(System.Drawing.Color.FromArgb(255, 0, 0, 0));
-            //}
-            //else { }
+
+            //outputBitmap.MakeTransparent(System.Drawing.Color.FromArgb(255, 245, 245, 245));
+            //outputBitmap.MakeTransparent(System.Drawing.Color.FromArgb(255, 0, 0, 0));
+
             rect = new Rectangle(0, 0, outputBitmap.Width, outputBitmap.Height);
 
             bitmapData = outputBitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, outputBitmap.PixelFormat);
@@ -267,38 +268,7 @@ namespace Leem.Testify.SummaryView
                 (UInt32)outputBitmap.Height, true, backgroundColor);
 
             Marshal.Copy(outputBytes, 0, sourcePointer, length);
-            //if (backgroundColor != 4294309365)
-            //{
-            //    var replacement = System.Drawing.Color.FromArgb((int)backgroundColor);
-            //    var toReplace = System.Drawing.Color.FromArgb(16185078);
-            //    const int pixelSize = 4; // 32 bits per pixel
 
-            //    for (int y = 0; y < bitmapData.Height; ++y)
-            //    {
-            //        byte* sourceRow = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-            //        //byte* targetRow = (byte*)targetData.Scan0 + (y * targetData.Stride);
-
-            //        for (int x = 0; x < bitmapData.Width; ++x)
-            //        {
-            //            byte b = sourceRow[x * pixelSize + 0];
-            //            byte g = sourceRow[x * pixelSize + 1];
-            //            byte r = sourceRow[x * pixelSize + 2];
-            //            byte a = sourceRow[x * pixelSize + 3];
-
-            //            if (toReplace.R == r && toReplace.G == g && toReplace.B == b)
-            //            {
-            //                r = replacement.R;
-            //                g = replacement.G;
-            //                b = replacement.B;
-            //            }
-
-            //            //targetRow[x * pixelSize + 0] = b;
-            //            //targetRow[x * pixelSize + 1] = g;
-            //            //targetRow[x * pixelSize + 2] = r;
-            //            //targetRow[x * pixelSize + 3] = a;
-            //        }
-            //    }
-            //}
             outputBitmap.UnlockBits(bitmapData);
 
             //}

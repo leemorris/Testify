@@ -103,7 +103,7 @@ namespace Leem.Testify
 
             // Set connection string
             string connectionString = string.Format("Data Source={0}", path);
-            Log.DebugFormat("ConnectionString = {0}", connectionString);
+           // Log.DebugFormat("ConnectionString = {0}", connectionString);
             return connectionString;
         }
 

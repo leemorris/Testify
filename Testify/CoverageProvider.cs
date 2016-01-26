@@ -155,7 +155,7 @@ namespace Leem.Testify
             IList<CodeElement> methods;
             var getCodeBlocksSw = Stopwatch.StartNew();
 
-            _log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
+            //_log.DebugFormat("Get Code Blocks Elapsed Time {0}", getCodeBlocksSw.ElapsedMilliseconds);
             var coveredLines = new List<CoveredLine>();
 
             IEnumerable<CoveredLine> lines;

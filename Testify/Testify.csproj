@@ -42,7 +42,7 @@
     <CopyVsixExtensionFiles>True</CopyVsixExtensionFiles>
     <CopyVsixExtensionLocation>C:\Users\lee\AppData\Local\Microsoft\VisualStudio\12.0Exp\Extensions\Leem\Testify\1.0</CopyVsixExtensionLocation>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -224,6 +224,7 @@
     <Compile Include="CodeMarkManager.cs" />
     <Compile Include="CodeMethodInfo.cs" />
     <Compile Include="CodeModelService.cs" />
+    <Compile Include="CoverageChangedEventArgs.cs" />
     <Compile Include="CoverageFileReader.cs" />
     <Compile Include="CoverageMargin.cs" />
     <Compile Include="CoverageMarginFactory.cs" />
@@ -339,13 +340,7 @@
     <Content Include="OpenCover\Mono.Cecil.Mdb.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="Resources\Folder.ico" />
-    <Resource Include="Resources\Icons\CSharpProject.bmp" />
-    <Resource Include="Resources\Icons\Branch.bmp" />
-    <Resource Include="Resources\Icons\CSharpFile.bmp" />
-    <Resource Include="Resources\Icons\Folder.bmp" />
-    <Resource Include="Resources\Icons\VBFile.bmp" />
-    <Resource Include="Resources\Icons\VBProject.bmp" />
+    <None Include="Resources\Icons\FolderOpen.bmp" />
     <Content Include="TestifyCE.sdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -536,6 +531,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <None Include="Resources\Icons\CSharpFile.bmp" />
+    <None Include="Resources\Icons\CSharpProject.bmp" />
+    <None Include="Resources\Icons\Folder.bmp" />
+    <None Include="Resources\Icons\VBFile.bmp" />
+    <None Include="Resources\Icons\VBProject.bmp" />
+    <None Include="Resources\Icons\Branch.bmp" />
     <Resource Include="TestifyResourceDictionary.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

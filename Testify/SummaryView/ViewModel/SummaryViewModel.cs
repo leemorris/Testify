@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace Leem.Testify.SummaryView.ViewModel
         private Dictionary<string, Bitmap> _iconCache;
         public SummaryViewModel(TestifyContext context, Dictionary<string, Bitmap> iconCache)
         {
+           // base.CoverageChanged += CoverageChanged;
             _iconCache = iconCache;
             var module = new Poco.CodeModule
             {
@@ -27,6 +29,7 @@ namespace Leem.Testify.SummaryView.ViewModel
             Items = new ObservableCollection<SummaryViewModel>();
             Items.Add(new SummaryViewModel(moduleArray, context, _iconCache));
         }
+
 
         private readonly ObservableCollection<ModuleViewModel> _modules;
 
